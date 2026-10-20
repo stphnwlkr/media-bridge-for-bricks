@@ -2,7 +2,7 @@
 
 WordPress media tools with folders shared directly with Bricks' media manager.
 
-Version: 1.0.0-beta.15. Requires the active Bricks theme 2.4 or later, WordPress 6.8 or later, and PHP 8.3 or later. Tested locally with Bricks 2.4.3, WordPress 7.1.3, and PHP 8.4.26.
+Version: 1.0.0. Requires the active Bricks theme 2.4 or later, WordPress 6.8 or later, and PHP 8.3 or later. Tested locally with Bricks 2.4.3, WordPress 7.1.3, and PHP 8.4.26.
 
 ## Media views
 
@@ -60,7 +60,7 @@ The repository root is the plugin root.
 
 Test site: `http://localhost:8889/`
 
-For local testing, link or copy this project into a WordPress installation running Bricks. Deactivation and deletion preserve folders and settings. This beta has no data-erasure feature.
+For local testing, run `python3 tools/build.py` and install the generated ZIP in WordPress. The build also stages a clean runtime copy under `builds/test-site/media-bridge-for-bricks`. Rebuild and reinstall after source edits. The Studio test site uses a normal plugin directory. Developer tests, reports and old archives stay outside the installed plugin, so local Plugin Check results match distribution checks. Deactivation and deletion preserve folders and settings. This beta has no data-erasure feature.
 
 Run tests on a test installation with the plugin active. They create isolated fixtures and remove them afterward:
 

@@ -66,3 +66,9 @@ SHA-256: `3a25e779c5b6968114bf3457dec74fcd34be55fddf739aab571f8cbddcbcae5e`
 3. Separately approve uploading this exact plugin package to WordPress.org for a new review submission. A submission does not mean the plugin has been approved or published.
 
 Do not run an upload, Git mutation or SVN command until the maintainer approves that specific action. After any runtime source changes, rerun verification, packaging and the submission dry run.
+
+## Test-site checker comparison after GitHub approval
+
+The test site's active plugin is beta.15 and links directly to the full source checkout. Running Plugin Check against that development directory produced 84 errors and 480 warnings. Every error was in files excluded from the submission ZIP: prior build ZIPs, hidden development files or test fixtures. The checker also scanned a nested generated check tree, duplicating some warnings.
+
+Running the same test-site Plugin Check command against an extraction of the exact submission ZIP produced zero errors and the same five runtime query-performance warnings. Both raw reports are retained under verification/pressship. The source checkout and installable distribution have different scan scopes; use the built package for WordPress.org submission checks. No runtime findings were suppressed.

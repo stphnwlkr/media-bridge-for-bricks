@@ -4,7 +4,7 @@ Tags: media, folders, bricks
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.0.0-beta.15
+Stable tag: 1.0.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -96,6 +96,11 @@ No ongoing synchronization runs. Import copies supported source folders and opti
 The plugin preserves its folders, assignments, settings, and metadata.
 
 == Changelog ==
+
+= 1.0.0 =
+* Prepare the tested beta.15 feature set for the initial WordPress.org release.
+* Use a numeric release version, matching package metadata and the prefixed gallery shortcode.
+
 
 = 1.0.0-beta.15 =
 * Show a prominent progress overlay during image comparison, encoding, saving and restoration.
