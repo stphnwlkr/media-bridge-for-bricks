@@ -67,6 +67,8 @@ final class Plugin {
 			'manager_label' => 'Media Bridge', 'native_media_collections' => 1,
 			'native_pagination' => 0, 'parent_count_display' => 'direct', 'prefer_media_bridge_folders' => 0,
 			'appearance' => 'auto', 'file_replacement' => 1, 'collection_gallery' => 1,
+			'image_conversion' => 1, 'compression_webp' => 1, 'compression_avif' => 1, 'compression_jxl' => 0, 'compression_jpg' => 0,
+			'compression_roles' => array( 'administrator' ), 'restoration_roles' => array( 'administrator' ),
 			'cimo_integration' => 1, 'exif_dynamic_data' => 1, 'exif_gps' => 0, 'exif_map' => 0,
 		);
 		foreach ( self::appearance_defaults() as $mode => $colors ) {

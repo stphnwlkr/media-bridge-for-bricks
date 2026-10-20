@@ -2,7 +2,7 @@
 
 WordPress media tools with folders shared directly with Bricks' media manager.
 
-Version: 1.0.0. Requires the active Bricks theme 2.4 or later, WordPress 6.8 or later, and PHP 8.3 or later. Tested locally with Bricks 2.4.3, WordPress 7.1.3, and PHP 8.4.26.
+Version: 1.1.0, prepared for release after WordPress.org approval. Requires the active Bricks theme 2.4 or later, WordPress 6.8 or later, and PHP 8.3 or later. Tested locally with Bricks 2.4.3, WordPress 7.1.3, and PHP 8.4.26.
 
 ## Media views
 
@@ -14,6 +14,12 @@ Choose a view under **Media > Media Bridge settings**.
 Folders use one attachment taxonomy, `mbb_folder`. Creating, renaming, moving, or assigning a folder in Bricks updates the same records used by the WordPress views. There is no synchronization job and no imposed folder-depth limit. Folder deletion keeps the media files. Files may belong to multiple folders in WordPress; moving a file in Bricks replaces its folder assignments.
 
 File replacement preserves the attachment ID and metadata. Keeping the existing URL requires the same final file type and extension. Choosing a new filename can change the type; existing files remain available for old content links. GPS metadata stays hidden by default. The EXIF inspector tab appears automatically when the image contains camera metadata.
+
+## Image compression and restoration
+
+Open an image in the Enhanced Manager and choose Optimization. Generate format previews first, then adjust quality below the image you prefer. Inspect opens a larger original/compressed comparison with its own synchronized quality slider, size savings and Apply compression button. Originals are retained for restoration. JPEG XL fallback information is available beside its format heading.
+
+Settings > Compression has a master switch and WebP, AVIF, JPEG XL and JPG output selections. Compression, WebP and AVIF default on. JPEG XL and JPG default off. Each format appears only when enabled. Compression and restoration have separate role selections, both defaulting to administrators. Users must also have permission to upload files and edit the specific image. Turning off compression does not prevent authorized restoration of existing conversions.
 
 ## CIMO and EXIF
 

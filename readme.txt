@@ -4,7 +4,7 @@ Tags: media, folders, bricks
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -96,6 +96,15 @@ No ongoing synchronization runs. Import copies supported source folders and opti
 The plugin preserves its folders, assignments, settings, and metadata.
 
 == Changelog ==
+
+= 1.1.0 =
+
+* Adds preview-first image comparisons with per-format quality sliders and larger before-and-after previews.
+* Adds quality adjustment, savings and Apply compression inside the larger preview.
+* Adds a compression switch and WebP, AVIF, JPEG XL and JPG format settings. WebP and AVIF default on.
+* Adds independent role permissions for compression and restoration. Both default to administrators; upload and image-edit permissions remain required.
+* Adds JPEG XL fallback information beside the format heading and improves padding, keyboard controls and color contrast.
+
 
 = 1.0.0 =
 * Prepare the tested beta.15 feature set for the initial WordPress.org release.

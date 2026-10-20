@@ -45,8 +45,11 @@ final class Admin {
 		$input = is_array( $input ) ? $input : array();
 		$current = Plugin::settings();
 		$result = array_merge( $current, Plugin::sanitize_appearance( $input, $current ) );
-		foreach ( array( 'default_media_screen', 'native_media_collections', 'native_pagination', 'file_replacement', 'exif_dynamic_data', 'exif_gps', 'exif_map', 'cimo_integration', 'collection_gallery', 'prefer_media_bridge_folders' ) as $flag ) {
+		foreach ( array( 'default_media_screen', 'native_media_collections', 'native_pagination', 'file_replacement', 'image_conversion', 'compression_webp', 'compression_avif', 'compression_jxl', 'compression_jpg', 'exif_dynamic_data', 'exif_gps', 'exif_map', 'cimo_integration', 'collection_gallery', 'prefer_media_bridge_folders' ) as $flag ) {
 			if ( array_key_exists( $flag, $input ) ) $result[ $flag ] = empty( $input[ $flag ] ) ? 0 : 1;
+		}
+		foreach ( array( 'compression_roles', 'restoration_roles' ) as $key ) {
+			if ( array_key_exists( $key, $input ) ) $result[ $key ] = array_values( array_intersect( array_keys( wp_roles()->roles ), array_filter( is_array( $input[ $key ] ) ? $input[ $key ] : array(), 'is_string' ) ) );
 		}
 		if ( isset( $input['manager_experience'] ) && in_array( $input['manager_experience'], array( 'wordpress', 'manager_default' ), true ) ) $result['default_media_screen'] = 'manager_default' === $input['manager_experience'] ? 1 : 0;
 		if ( isset( $input['manager_label'] ) ) $result['manager_label'] = sanitize_text_field( $input['manager_label'] ) ?: 'Media Bridge';
@@ -149,6 +152,36 @@ final class Admin {
 			<?php settings_fields( 'uplink_mbb_settings_group' ); ?>
 			<div class="uplink-mbb-grid uplink-mbb-settings-groups">
 			<?php if ( 'settings' === $tab ) : ?>
+									<section class="uplink-mbb-card" id="uplink-mbb-compression-settings">
+						<h2><?php esc_html_e( 'Compression', 'media-bridge-for-bricks' ); ?></h2>
+						<input type="hidden" name="uplink_mbb_settings[image_conversion]" value="0">
+						<label class="uplink-mbb-toggle"><input id="uplink-mbb-use-compression" type="checkbox" name="uplink_mbb_settings[image_conversion]" value="1" <?php checked( $s['image_conversion'] ); ?>><span><?php esc_html_e( 'Use compression', 'media-bridge-for-bricks' ); ?></span></label>
+						<p class="description"><?php esc_html_e( 'On by default. Lets permitted users preview and compress images in the Enhanced Manager. Turn it off to disable new compression; existing originals can still be restored.', 'media-bridge-for-bricks' ); ?></p>
+						<fieldset class="uplink-mbb-compression-formats" aria-describedby="uplink-mbb-compression-formats-help">
+							<legend><?php esc_html_e( 'Output formats', 'media-bridge-for-bricks' ); ?></legend>
+							<?php foreach ( array( 'webp' => 'WebP', 'avif' => 'AVIF', 'jxl' => 'JPEG XL', 'jpg' => 'JPG' ) as $format => $format_label ) : ?>
+								<input type="hidden" name="uplink_mbb_settings[compression_<?php echo esc_attr( $format ); ?>]" value="0">
+								<label class="uplink-mbb-toggle"><input type="checkbox" name="uplink_mbb_settings[compression_<?php echo esc_attr( $format ); ?>]" value="1" <?php checked( $s[ 'compression_' . $format ] ); ?>><span><?php echo esc_html( $format_label ); ?></span></label>
+							<?php endforeach; ?>
+							<p id="uplink-mbb-compression-formats-help" class="description"><?php esc_html_e( 'WebP and AVIF are on by default. JPEG XL and JPG are off by default. Only selected formats appear in the preview workspace. JPG does not support transparency.', 'media-bridge-for-bricks' ); ?></p>
+						</fieldset>
+						<h3><?php esc_html_e( 'Compression and restoration permissions', 'media-bridge-for-bricks' ); ?></h3>
+						<p class="description"><?php esc_html_e( 'Choose roles separately for each action. Users must also have permission to upload files and edit the specific image. Both actions default to administrators only. Restoration remains available to permitted users when compression is turned off.', 'media-bridge-for-bricks' ); ?></p>
+						<table class="widefat striped">
+							<thead><tr><th scope="col"><?php esc_html_e( 'Role', 'media-bridge-for-bricks' ); ?></th><th scope="col"><?php esc_html_e( 'Compress images', 'media-bridge-for-bricks' ); ?></th><th scope="col"><?php esc_html_e( 'Restore originals', 'media-bridge-for-bricks' ); ?></th></tr></thead>
+							<tbody>
+							<?php foreach ( wp_roles()->roles as $role_slug => $role_data ) : ?>
+								<tr><th scope="row"><?php echo esc_html( translate_user_role( $role_data['name'] ) ); ?></th>
+								<?php foreach ( array( 'compression_roles' => __( 'Compress images', 'media-bridge-for-bricks' ), 'restoration_roles' => __( 'Restore originals', 'media-bridge-for-bricks' ) ) as $permission_key => $permission_label ) : ?>
+									<td><label><input type="checkbox" name="uplink_mbb_settings[<?php echo esc_attr( $permission_key ); ?>][]" value="<?php echo esc_attr( $role_slug ); ?>" <?php checked( in_array( $role_slug, $s[ $permission_key ], true ) ); ?>><span class="screen-reader-text"><?php echo esc_html( translate_user_role( $role_data['name'] ) . ': ' . $permission_label ); ?></span></label></td>
+								<?php endforeach; ?></tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+						<input type="hidden" name="uplink_mbb_settings[compression_roles][]" value="">
+						<input type="hidden" name="uplink_mbb_settings[restoration_roles][]" value="">
+
+					</section>
 				<section class="uplink-mbb-card"><h2>Media Library experience</h2><p>Choose your default media workflow. Both views use the same folders as the Media Bridge provider in Bricks.</p>
 					<fieldset class="uplink-mbb-choice-group"><legend>Default experience</legend>
 					<label class="uplink-mbb-choice"><input type="radio" name="uplink_mbb_settings[manager_experience]" value="wordpress" <?php checked( $experience, 'wordpress' ); ?>><span><strong>WordPress Media Library</strong><small>Use the familiar WordPress screens with folder controls.</small></span></label>

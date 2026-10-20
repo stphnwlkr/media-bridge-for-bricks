@@ -12,19 +12,24 @@ final class Image_Conversion {
 		add_action( 'uplink_mbb_conversion_expire', array( self::class, 'expire' ) );
 		add_filter( 'wp_get_attachment_image', array( self::class, 'picture' ), 30 );
 		add_filter( 'the_content', array( self::class, 'picture' ), 30 );
-		add_filter( 'bricks/frontend/render_data', array( self::class, 'picture' ), 30 );
+		add_filter( 'render_block', array( self::class, 'picture' ), 30 );
+	}
+	/** Formats enabled by the administrator, in the order used by preview cards. */
+	public static function enabled_formats(): array {
+		$settings = Plugin::settings();
+		return array_values( array_filter( array( 'webp', 'avif', 'jxl', 'jpg' ), static fn( string $format ): bool => ! empty( $settings[ 'compression_' . $format ] ) ) );
 	}
 	public static function assets(): void {
-		if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'upload_files' ) ) return;
+		if ( ! current_user_can( 'upload_files' ) || ( ! self::role_allowed( 'compress' ) && ! self::role_allowed( 'restore' ) ) ) return;
 		wp_enqueue_style( 'uplink-mbb-image-conversion', UPLINK_MBB_URL . 'assets/image-conversion.css', array( 'uplink-mbb-native-media' ), UPLINK_MBB_ASSET_VERSION );
 		wp_enqueue_script( 'uplink-mbb-image-conversion', UPLINK_MBB_URL . 'assets/image-conversion.js', array( 'uplink-mbb-native-media' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script( 'uplink-mbb-image-conversion', 'uplinkMbbConversion', array(
-			'ajaxUrl' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'uplink_mbb_image_conversion' ), 'worker' => UPLINK_MBB_URL . 'assets/image-encode-worker.js?v=' . UPLINK_MBB_ASSET_VERSION,
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'uplink_mbb_image_conversion' ), 'enabled' => ! empty( Plugin::settings()['image_conversion'] ), 'formats' => self::enabled_formats(), 'settingsUrl' => admin_url( 'upload.php?page=media-bridge-for-bricks&tab=settings#uplink-mbb-compression-settings' ), 'worker' => UPLINK_MBB_URL . 'assets/image-encode-worker.js?v=' . UPLINK_MBB_ASSET_VERSION,
 			'strings' => array(
 				'title' => __( 'Image compression and formats', 'media-bridge-for-bricks' ),
-				'help' => __( 'Preview formats before choosing. Every image size is converted after you choose a result. Processing stays in your browser and needs no Cimo Pro license. Originals, attachment details and folders are preserved for restoration.', 'media-bridge-for-bricks' ),
-				'qualityHelp' => __( 'Quality scales differ between formats. Open the previews to compare detail and transparency; a smaller file is not always the better result.', 'media-bridge-for-bricks' ),
-				'compare' => __( 'Compare WebP, AVIF and JPEG XL', 'media-bridge-for-bricks' ),
+				'help' => __( 'Compare your enabled formats at suggested quality settings, then fine-tune the result you prefer. Your files change only when you choose a format. Originals are kept for restoration.', 'media-bridge-for-bricks' ),
+				'qualityHelp' => __( 'Drag an image divider to compare. Adjust quality below the image.', 'media-bridge-for-bricks' ),
+				'compare' => __( 'Generate format previews', 'media-bridge-for-bricks' ),
 				'applyCompression' => __( 'Apply compression', 'media-bridge-for-bricks' ),
 				'compress' => __( 'Compress current format', 'media-bridge-for-bricks' ),
 				'restore' => __( 'Restore originals', 'media-bridge-for-bricks' ),
@@ -42,6 +47,36 @@ final class Image_Conversion {
 				'before' => __( 'Before', 'media-bridge-for-bricks' ), 'after' => __( 'After', 'media-bridge-for-bricks' ), 'size' => __( 'Image size', 'media-bridge-for-bricks' ), 'savings' => __( 'Saved', 'media-bridge-for-bricks' ), 'quality' => __( 'Quality', 'media-bridge-for-bricks' ), 'date' => __( 'Completed', 'media-bridge-for-bricks' ), 'automatic' => __( 'Automatic', 'media-bridge-for-bricks' ),
 				'files' => __( 'files', 'media-bridge-for-bricks' ),
 				'preview' => __( 'comparison preview', 'media-bridge-for-bricks' ),
+				'preparingPreview' => __( 'Preparing preview…', 'media-bridge-for-bricks' ),
+				'retryPreview' => __( 'Retry preview', 'media-bridge-for-bricks' ),
+				'releaseQuality' => __( 'Release to update the preview.', 'media-bridge-for-bricks' ),
+				'smallerFile' => __( 'Smaller file', 'media-bridge-for-bricks' ),
+				'moreDetail' => __( 'More detail', 'media-bridge-for-bricks' ),
+				'jxlInfo' => __( 'About JPEG XL', 'media-bridge-for-bricks' ),
+				'closeInfo' => __( 'Close information', 'media-bridge-for-bricks' ),
+				'compressionSettings' => __( 'Compression settings', 'media-bridge-for-bricks' ),
+				'noFormats' => __( 'No output formats are enabled. Select at least one format in Compression settings.', 'media-bridge-for-bricks' ),
+				'currentOptimized' => __( 'This image is already optimized in the enabled format. Enable another output format to compare.', 'media-bridge-for-bricks' ),
+				'jxlSummary' => __( 'Original-format fallback included', 'media-bridge-for-bricks' ),
+				/* translators: %s: Image format. */
+				'useFormat' => __( 'Use %s', 'media-bridge-for-bricks' ),
+				/* translators: %s: Image format. */
+				'inspectFormat' => __( 'Inspect %s comparison', 'media-bridge-for-bricks' ),
+				/* translators: %s: Percentage reduction in file size. */
+				'smallerResult' => __( '%s%% smaller', 'media-bridge-for-bricks' ),
+				/* translators: %s: Percentage increase in file size. */
+				'largerResult' => __( '%s%% larger', 'media-bridge-for-bricks' ),
+				'original' => __( 'Original', 'media-bridge-for-bricks' ),
+				'compressed' => __( 'Compressed', 'media-bridge-for-bricks' ),
+				'compareTitle' => __( 'Original and compressed', 'media-bridge-for-bricks' ),
+				'compareHelp' => __( 'Drag the divider or use the arrow keys to compare. Press Escape to close.', 'media-bridge-for-bricks' ),
+				'openCompare' => __( 'Inspect', 'media-bridge-for-bricks' ),
+				'close' => __( 'Close comparison', 'media-bridge-for-bricks' ),
+				'previewNeeded' => __( 'Preview this format to compare image quality and file size.', 'media-bridge-for-bricks' ),
+				/* translators: %s: Image format. */
+				'compareImages' => __( '%s original and compressed comparison', 'media-bridge-for-bricks' ),
+				/* translators: %s: Image format. */
+				'previewFormat' => __( 'Preview %s', 'media-bridge-for-bricks' ),
 				'openPreview' => __( 'Open full-size preview', 'media-bridge-for-bricks' ),
 				'jxlHelp' => __( 'JPEG XL is served through picture sources with the original image as fallback. Existing picture elements, CSS backgrounds and external links keep their original format.', 'media-bridge-for-bricks' ),
 				'useJxl' => __( 'Use JPEG XL with fallback', 'media-bridge-for-bricks' ),
@@ -64,8 +99,13 @@ final class Image_Conversion {
 			),
 		) );
 	}
-	public static function allowed( int $id ): bool {
-		return 'attachment' === get_post_type( $id ) && current_user_can( 'manage_options' ) && current_user_can( 'upload_files' ) && current_user_can( 'edit_others_posts' ) && current_user_can( 'edit_post', $id );
+	/** Role grants never override WordPress upload or attachment-edit permissions. */
+	public static function role_allowed( string $action ): bool {
+		$key = 'restore' === $action ? 'restoration_roles' : 'compression_roles';
+		return (bool) array_intersect( wp_get_current_user()->roles, (array) Plugin::settings()[ $key ] );
+	}
+	public static function allowed( int $id, string $action = 'compress' ): bool {
+		return 'attachment' === get_post_type( $id ) && self::role_allowed( $action ) && current_user_can( 'upload_files' ) && current_user_can( 'edit_post', $id );
 	}
 	public static function active( int $id ): bool { return (bool) get_post_meta( $id, self::BACKUP, true ); }
 	public static function summary( int $id ): ?array {
@@ -92,7 +132,9 @@ final class Image_Conversion {
 		return array( 'file' => get_post_meta( $id, '_wp_attached_file', true ), 'metadata' => wp_get_attachment_metadata( $id ), 'mime' => get_post_mime_type( $id ), 'editor_backups' => get_post_meta( $id, '_wp_attachment_backup_sizes', true ) );
 	}
 	public static function begin( int $id ): array {
-		if ( ! self::allowed( $id ) ) self::fail( __( 'Only administrators who can edit this image may convert it and update site references.', 'media-bridge-for-bricks' ) );
+		if ( empty( Plugin::settings()['image_conversion'] ) ) self::fail( __( 'Image compression is disabled in settings.', 'media-bridge-for-bricks' ) );
+		if ( ! self::enabled_formats() ) self::fail( __( 'Select at least one output format in Compression settings.', 'media-bridge-for-bricks' ) );
+		if ( ! self::allowed( $id ) ) self::fail( __( 'You do not have permission to compress this image.', 'media-bridge-for-bricks' ) );
 		if ( self::active( $id ) ) return array( 'restore' => true, 'format' => get_post_meta( $id, self::BACKUP, true )['format'] );
 		$old = self::snapshot( $id );
 		if ( ! in_array( $old['mime'], array( 'image/png', 'image/jpeg', 'image/webp', 'image/avif' ), true ) || empty( $old['metadata']['width'] ) ) self::fail( __( 'Choose a local PNG, JPEG, WebP or AVIF image.', 'media-bridge-for-bricks' ) );
@@ -121,11 +163,12 @@ final class Image_Conversion {
 	private static function job( string $token ): array {
 		if ( ! preg_match( '/^[a-f0-9-]{36}$/D', $token ) ) self::fail( __( 'Invalid conversion session.', 'media-bridge-for-bricks' ) );
 		$job = get_option( 'uplink_mbb_conversion_' . $token );
-		if ( ! is_array( $job ) || $job['expires'] < time() || $job['owner'] !== get_current_user_id() || ! self::allowed( $job['id'] ) ) self::fail( __( 'This conversion session expired or belongs to another administrator.', 'media-bridge-for-bricks' ) );
+		if ( ! is_array( $job ) || $job['expires'] < time() || $job['owner'] !== get_current_user_id() || ! self::allowed( $job['id'] ) ) self::fail( __( 'This conversion session expired or belongs to another user.', 'media-bridge-for-bricks' ) );
 		return $job;
 	}
 	public static function stage( string $token, string $key, string $format, array $upload, int $quality = 75 ): array {
 		$job = self::job( $token );
+		if ( empty( Plugin::settings()['image_conversion'] ) || ! in_array( $format, self::enabled_formats(), true ) ) self::fail( __( 'This compression format is disabled in settings.', 'media-bridge-for-bricks' ) );
 		if ( ! isset( self::FORMATS[ $format ], $job['files'][ $key ] ) || ( $job['format'] && $job['format'] !== $format ) ) self::fail( __( 'Invalid image size or conversion format.', 'media-bridge-for-bricks' ) );
 		if ( ! empty( $upload['error'] ) || empty( $upload['tmp_name'] ) || ! is_uploaded_file( $upload['tmp_name'] ) || filesize( $upload['tmp_name'] ) > wp_max_upload_size() ) self::fail( __( 'The converted file exceeds the upload limit or is not a valid upload.', 'media-bridge-for-bricks' ) );
 		if ( 'png' === $format ) $quality = 0;
@@ -164,9 +207,12 @@ final class Image_Conversion {
 	public static function commit( string $token ): array {
 		global $wpdb;
 		$job = self::job( $token ); $id = $job['id'];
+		if ( empty( Plugin::settings()['image_conversion'] ) ) self::fail( __( 'Image compression is disabled in settings.', 'media-bridge-for-bricks' ) );
 		self::unchanged( $job );
 		if ( count( $job['staged'] ) !== count( $job['files'] ) ) self::fail( __( 'Every original and generated size must finish conversion before saving.', 'media-bridge-for-bricks' ) );
-		$format = $job['format']; $mime = self::FORMATS[ $format ];
+		$format = $job['format'];
+		if ( ! in_array( $format, self::enabled_formats(), true ) ) self::fail( __( 'This compression format is disabled in settings.', 'media-bridge-for-bricks' ) );
+		$mime = self::FORMATS[ $format ];
 		if ( $mime === $job['old']['mime'] && ( ! empty( $job['old']['metadata']['cimo'] ) || ! empty( $job['old']['metadata']['mbb_optimization'] ) ) ) self::fail( __( 'This image already has optimization data. Choose a different format.', 'media-bridge-for-bricks' ) );
 		$journal = array(); $written = array(); $urls = array(); $destinations = array(); $started = false;
 		$old_jxl_index = get_option( 'uplink_mbb_jxl_sources', array() );
@@ -213,7 +259,7 @@ final class Image_Conversion {
 	}
 	public static function restore( int $id ): array {
 		global $wpdb;
-		if ( ! self::allowed( $id ) ) self::fail( __( 'You cannot restore this image.', 'media-bridge-for-bricks' ) );
+		if ( ! self::allowed( $id, 'restore' ) ) self::fail( __( 'You cannot restore this image.', 'media-bridge-for-bricks' ) );
 		$backup = get_post_meta( $id, self::BACKUP, true );
 		if ( ! $backup || self::snapshot( $id ) !== ( 'jxl' === $backup['format'] ? $backup['old'] : $backup['new'] ) ) self::fail( __( 'The attachment changed after conversion. Restore is unavailable until those changes are resolved.', 'media-bridge-for-bricks' ) );
 		foreach ( $backup['sources'] as $file ) if ( hash_file( 'sha256', self::local( $file['path'] ) ) !== $file['hash'] ) self::fail( __( 'An original backup is missing or changed. Nothing was restored.', 'media-bridge-for-bricks' ) );
@@ -231,8 +277,7 @@ final class Image_Conversion {
 	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	private static function refresh(): void {
 		delete_transient( 'uplink_mbb_media_health_v3' );
-		// Regenerate Bricks CSS after URL updates. Other page/CDN caches retain working original URLs.
-		try { if ( class_exists( '\Bricks\Assets_Files' ) ) \Bricks\Assets_Files::regenerate_css_files(); } catch ( \Throwable $error ) { /* Saved files and references remain valid if a CSS rebuild fails. */ }
+
 	}
 	public static function expire( string $token ): void {
 		$job = get_option( 'uplink_mbb_conversion_' . $token );
@@ -241,8 +286,9 @@ final class Image_Conversion {
 	public function ajax(): void {
 		check_ajax_referer( 'uplink_mbb_image_conversion', 'nonce' );
 		$id = absint( $_POST['attachment_id'] ?? 0 );
-		if ( ! self::allowed( $id ) ) wp_send_json_error( array( 'message' => __( 'You cannot convert this attachment.', 'media-bridge-for-bricks' ) ), 403 );
-		$mode = sanitize_key( wp_unslash( $_POST['mode'] ?? '' ) ); $token = sanitize_text_field( wp_unslash( $_POST['token'] ?? '' ) );
+		$mode = sanitize_key( wp_unslash( $_POST['mode'] ?? '' ) );
+		if ( ! self::allowed( $id, 'restore' === $mode ? 'restore' : 'compress' ) ) wp_send_json_error( array( 'message' => __( 'You do not have permission for this image action.', 'media-bridge-for-bricks' ) ), 403 );
+		$token = sanitize_text_field( wp_unslash( $_POST['token'] ?? '' ) );
 		$lock = 'uplink_mbb_replacing_' . $id;
 		global $wpdb;
 		$old_lock = get_option( $lock );

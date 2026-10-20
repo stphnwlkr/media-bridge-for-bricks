@@ -3,7 +3,7 @@
  * Plugin Name: Media Bridge for Bricks
  * Plugin URI: https://plugins.uplink.press/articles/uplink-media-bridge-for-bricks/
  * Description: Enhanced and WordPress media views with shared folders in the Bricks media manager.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Stephen Walker
  * License: GPL-3.0-or-later
  * Requires at least: 6.8
@@ -11,7 +11,7 @@
  * Text Domain: media-bridge-for-bricks
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
-define( 'UPLINK_MBB_VERSION', '1.0.0' );
+define( 'UPLINK_MBB_VERSION', '1.1.0' );
 define( 'UPLINK_MBB_ASSET_VERSION', UPLINK_MBB_VERSION );
 define( 'UPLINK_MBB_FILE', __FILE__ );
 define( 'UPLINK_MBB_PATH', plugin_dir_path( __FILE__ ) );

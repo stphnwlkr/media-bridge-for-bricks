@@ -4,7 +4,9 @@ import shutil
 import tempfile
 
 root = Path(__file__).resolve().parents[1]
-output = root / 'builds' / 'media-bridge-for-bricks-1.0.0.zip'
+import re
+version = re.search(r' \* Version: (\S+)', (root / 'media-bridge-for-bricks.php').read_text())[1]
+output = root / 'builds' / f'media-bridge-for-bricks-{version}.zip'
 output.parent.mkdir(exist_ok=True)
 with ZipFile(output, 'w', ZIP_DEFLATED) as archive:
     for name in ('media-bridge-for-bricks.php', 'readme.txt', 'LICENSE', 'includes', 'assets', 'blocks'):
