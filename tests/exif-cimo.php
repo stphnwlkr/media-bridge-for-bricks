@@ -1,0 +1,78 @@
+<?php
+/** Run through studio wp eval-file on the local test site. Fixtures are removed. */
+use UplinkPress\MediaBridgeForBricks\Bricks_Dynamic_Data;
+use UplinkPress\MediaBridgeForBricks\Image_Metadata;
+use UplinkPress\MediaBridgeForBricks\Native_Media_Library;
+use UplinkPress\MediaBridgeForBricks\Folder_Provider;
+use UplinkPress\MediaBridgeForBricks\Upload_Workspace;
+use UplinkPress\MediaBridgeForBricks\Plugin;
+use Bricks\Integrations\Dynamic_Data\Providers;
+wp_set_current_user( 1 );
+function exif_check( $condition, $label ) { if ( ! $condition ) throw new RuntimeException( $label ); echo "PASS: $label\n"; }
+$saved = get_option( 'uplink_mbb_settings' );
+$ids = array();
+$post_id = 0;
+$path = '';
+try {
+	Plugin::update_settings( array_merge( Plugin::settings(), array( 'exif_dynamic_data' => 1, 'cimo_integration' => 1, 'exif_gps' => 0 ) ) );
+	$tag_names = array_column( Providers::get_dynamic_tags_list(), 'name' );
+	exif_check( in_array( '{mbb_exif_camera}', $tag_names, true ) && in_array( '{mbb_exif_iso}', $tag_names, true ), 'EXIF fields appear in the real Bricks picker list' );
+	exif_check( ! in_array( '{mbb_exif_latitude}', $tag_names, true ), 'GPS tags are absent by default' );
+	$dir = wp_upload_dir()['path'];
+	wp_mkdir_p( $dir );
+	$path = $dir . '/mbb-exif-test-' . wp_generate_uuid4() . '.jpg';
+	$im = imagecreatetruecolor( 20, 20 ); imagejpeg( $im, $path ); imagedestroy( $im );
+	$id = wp_insert_attachment( array( 'post_title' => 'MBB EXIF fixture', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ), $path );
+	$ids[] = $id;
+	$metadata = array( 'file' => _wp_relative_upload_path( $path ), 'width' => 20, 'height' => 20, 'sizes' => array(), 'image_meta' => array( 'camera' => 'Nikon Z 8', 'lens' => 'NIKKOR Z 24-70mm', 'iso' => 125, 'aperture' => 2.8, 'focal_length' => 50, 'shutter_speed' => 0.005, 'copyright' => '<script>alert(1)</script>' ) );
+	wp_update_attachment_metadata( $id, $metadata );
+	exif_check( 'Nikon Z 8' === Providers::render_tag( '{mbb_exif_camera}', $id ), 'Bricks render_tag resolves the current attachment camera' );
+	exif_check( 'Camera: Nikon Z 8 · ISO 125' === Providers::render_content( 'Camera: {mbb_exif_camera} · ISO {mbb_exif_iso}', $id ), 'Bricks renders multiple EXIF tags inside content' );
+	exif_check( 'f/2.8' === Providers::render_tag( '{mbb_exif_aperture}', $id ) && '1/200 s' === Providers::render_tag( '{mbb_exif_shutter_speed}', $id ), 'Aperture and shutter speed use readable values' );
+	$post_id = wp_insert_post( array( 'post_title' => 'MBB EXIF featured fixture', 'post_status' => 'publish', 'post_type' => 'page' ) );
+	set_post_thumbnail( $post_id, $id );
+	exif_check( 'Nikon Z 8' === Providers::render_tag( '{mbb_exif_camera}', $post_id ), 'Post context resolves its featured image' );
+	exif_check( 'Nikon Z 8' === Providers::render_tag( '{mbb_exif_camera:' . $id . '}', $post_id ), 'Explicit attachment ID resolves through Bricks' );
+	$rendered = \Bricks\Frontend::render_data( array( array( 'id' => 'mbbtxt', 'name' => 'text-basic', 'parent' => 0, 'children' => array(), 'settings' => array( 'text' => 'Camera {mbb_exif_camera:' . $id . '}' ) ) ), 'content', $post_id );
+	exif_check( str_contains( $rendered, 'Camera Nikon Z 8' ) && ! str_contains( $rendered, '{mbb_exif_' ), 'A real Bricks text element renders EXIF in frontend HTML' );
+	exif_check( ! str_contains( Providers::render_tag( '{mbb_exif_copyright}', $id ), '<script>' ), 'Metadata cannot inject HTML' );
+	$metadata['image_meta']['camera'] = 'Nikon Z 9';
+	wp_update_attachment_metadata( $id, $metadata );
+	exif_check( 'Nikon Z 9' === Providers::render_tag( '{mbb_exif_camera}', $id ), 'Metadata edits invalidate the EXIF cache' );
+	exif_check( '{post_title}' !== Providers::render_tag( '{post_title}', $post_id ), 'Standard Bricks tags still resolve' );
+	exif_check( 'arbitrary_tag' === apply_filters( 'bricks/dynamic_data/render_tag', 'arbitrary_tag', get_post( $id ), 'text' ) || '{arbitrary_tag}' === apply_filters( 'bricks/dynamic_data/render_tag', 'arbitrary_tag', get_post( $id ), 'text' ), 'Unrelated tags pass through' );
+	Plugin::update_settings( array_merge( Plugin::settings(), array( 'exif_gps' => 1 ) ) );
+	exif_check( in_array( '{mbb_exif_latitude}', array_column( Providers::get_dynamic_tags_list(), 'name' ), true ), 'Opt-in exposes GPS fields in the picker' );
+	Plugin::update_settings( array_merge( Plugin::settings(), array( 'exif_dynamic_data' => 0 ) ) );
+	exif_check( ! in_array( '{mbb_exif_camera}', array_column( Providers::get_dynamic_tags_list(), 'name' ), true ) && '' === Providers::render_tag( '{mbb_exif_camera}', $id ), 'Disabling EXIF removes tags and their output' );
+	Plugin::update_settings( array_merge( Plugin::settings(), array( 'exif_dynamic_data' => 1 ) ) );
+	wp_set_current_user( 0 );
+	exif_check( 'Nikon Z 9' === Providers::render_tag( '{mbb_exif_camera:' . $id . '}', $post_id ), 'Public frontend resolves public image metadata' );
+	wp_set_current_user( 1 );
+	wp_update_post( array( 'ID' => $post_id, 'post_status' => 'private' ) );
+	wp_update_post( array( 'ID' => $id, 'post_parent' => $post_id ) );
+	wp_set_current_user( 0 );
+	exif_check( '' === Providers::render_tag( '{mbb_exif_camera:' . $id . '}', $post_id ), 'Private image metadata is not exposed to anonymous visitors' );
+	wp_set_current_user( 1 );
+	$metadata['cimo'] = array( 'originalFilesize' => filesize( $path ) * 2, 'convertedFilesize' => filesize( $path ), 'convertedFormat' => 'image/jpeg', 'optimized_during_upload' => true, 'conversionTime' => 50 );
+	wp_update_attachment_metadata( $id, $metadata );
+	$library = new Native_Media_Library( new Folder_Provider(), false );
+	$method = new ReflectionMethod( Native_Media_Library::class, 'attachment_optimization' );
+	$result = $method->invoke( $library, $id, $metadata );
+	exif_check( ! empty( $result['optimized'] ) && str_contains( $result['summary'], '50.0%' ), 'CIMO metadata reports optimization and saved space' );
+	$metadata['cimo']['convertedFilesize'] = 1;
+	exif_check( empty( $method->invoke( $library, $id, $metadata )['optimized'] ), 'Stale optimizer metadata is not shown as current' );
+	$selectors = apply_filters( 'cimo/select_files/allowed_locations', array( '.existing' ) );
+	exif_check( in_array( '.uplink-mbb-upload-workspace', $selectors, true ) && in_array( '.existing', $selectors, true ), 'CIMO selector hook adds the workspace and preserves other locations' );
+	Plugin::update_settings( array_merge( Plugin::settings(), array( 'cimo_integration' => 0 ) ) );
+	exif_check( ! Upload_Workspace::cimo_available() && empty( $method->invoke( $library, $id, $metadata )['optimized'] ), 'CIMO integration can be disabled independently' );
+	$sanitized = ( new UplinkPress\MediaBridgeForBricks\Admin() )->sanitize( array( 'exif_gps' => 0 ) );
+	exif_check( $sanitized['file_replacement'] === Plugin::settings()['file_replacement'], 'Saving one settings tab preserves other tab settings' );
+} finally {
+	wp_set_current_user( 1 );
+	update_option( 'uplink_mbb_settings', $saved );
+	foreach ( $ids as $id ) wp_delete_attachment( $id, true );
+	if ( $post_id ) wp_delete_post( $post_id, true );
+	if ( $path && is_file( $path ) ) unlink( $path );
+}
+echo "EXIF and CIMO integration tests passed.\n";

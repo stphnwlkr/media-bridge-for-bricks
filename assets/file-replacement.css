@@ -1,0 +1,85 @@
+.uplink-mbb-replace-dialog {
+	box-sizing: border-box;
+	width: min(900px, calc(100vw - 40px));
+	max-height: calc(100vh - 60px);
+	padding: 28px;
+	border: 1px solid var(--mbb-modal-border);
+	border-radius: 12px;
+	background: var(--mbb-modal-surface);
+	color: var(--mbb-modal-text);
+	box-shadow: 0 24px 80px #0006;
+	font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.uplink-mbb-replace-dialog::backdrop { background: #0008; }
+.uplink-mbb-replace-dialog h2 { margin-top: 0; }
+.uplink-mbb-replace-dialog input[type="file"] { display: block; max-width: 100%; margin-top: 10px; }
+.uplink-mbb-replace-choice { display: flex; gap: 12px; margin: 20px 0; padding: 16px; border: 1px solid var(--mbb-modal-border); border-radius: 8px; cursor: pointer; }
+.uplink-mbb-replace-choice input { flex: 0 0 auto; margin-top: 4px; }
+.uplink-mbb-replace-choice strong, .uplink-mbb-replace-choice small { display: block; }
+.uplink-mbb-replace-choice small { margin-top: 6px; font-size: 13px; color: var(--mbb-modal-muted); }
+.uplink-mbb-replace-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+
+.uplink-mbb-replace-dialog .media-frame-content,
+.uplink-mbb-replace-dialog .uploader-inline {
+	position: static;
+	inset: auto;
+	margin: 0;
+	padding: 0;
+}
+dialog.uplink-mbb-replace-dialog .uploader-inline .uplink-mbb-upload-workspace {
+	margin: 24px 0 0;
+}
+
+dialog.uplink-mbb-replace-dialog .uploader-inline .uplink-mbb-upload-workspace {
+	position: relative;
+	inset: auto;
+	display: block;
+	overflow: visible;
+}
+.uplink-mbb-replace-dialog .uploader-inline:has(.uplink-mbb-upload-workspace) {
+	position: static;
+	height: auto;
+	overflow: visible;
+}
+
+.uplink-mbb-replace-error:not([hidden]) {
+	margin: 16px;
+	padding: 14px 16px;
+	border: 1px solid #b32d2e;
+	border-left-width: 4px;
+	border-radius: 4px;
+	background: #fcf0f1;
+	color: #8a2424;
+	font-weight: 600;
+	line-height: 1.5;
+}
+.uplink-mbb-replace-error:focus { outline: 2px solid #b32d2e; outline-offset: 2px; }
+
+.uplink-mbb-replace-dialog .uplink-mbb-upload-kept-name {
+	display: block;
+	margin-top: 12px;
+	padding: 12px;
+	border-left: 3px solid var(--mbb-modal-accent);
+	background: var(--mbb-modal-accent-soft);
+	color: var(--mbb-modal-text);
+	overflow-wrap: anywhere;
+}
+.uplink-mbb-replace-dialog .uplink-mbb-upload-kept-name strong { display: inline; }
+.uplink-mbb-replace-dialog .uplink-mbb-upload-kept-name small { display: block; margin-top: 6px; }
+/* Let the dialog scroll as one surface instead of squeezing the preview into a nested scroller. */
+dialog.uplink-mbb-replace-dialog { overflow-y: auto; }
+dialog.uplink-mbb-replace-dialog .media-frame-content { flex-shrink: 0; overflow: visible; }
+dialog.uplink-mbb-replace-dialog .uplink-mbb-upload-footer { position: sticky; bottom: -28px; z-index: 3; }
+@media (min-width: 700px) {
+	dialog.uplink-mbb-replace-dialog .uplink-mbb-upload-workspace .has-image-preview { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px; }
+	dialog.uplink-mbb-replace-dialog .uplink-mbb-upload-workspace .has-image-preview .uplink-mbb-upload-preview { grid-column: 1; grid-row: 1; }
+	dialog.uplink-mbb-replace-dialog .uplink-mbb-upload-workspace .has-image-preview .uplink-mbb-upload-file-details { grid-column: 2; }
+}
+
+.uplink-mbb-replace-dialog h2 { color: var(--mbb-modal-text); }
+.uplink-mbb-replace-dialog .media-frame-content { background: var(--mbb-modal-surface); border-color: var(--mbb-modal-border); }
+.uplink-mbb-replace-dialog .button,
+.uplink-mbb-replace-dialog input[type="text"] { background: var(--mbb-modal-control); border-color: var(--mbb-modal-border); color: var(--mbb-modal-text); }
+.uplink-mbb-replace-dialog .button-primary { background: var(--mbb-modal-accent); border-color: var(--mbb-modal-accent); color: var(--mbb-modal-accent-icon); }
+.uplink-mbb-replace-dialog.uplink-mbb-theme-dark { color-scheme: dark; }
+.uplink-mbb-replace-dialog.uplink-mbb-theme-dark .uplink-mbb-replace-error { background: #3c2024; color: #ffb4b8; border-color: var(--mbb-modal-danger); }

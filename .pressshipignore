@@ -1,0 +1,12 @@
+# Runtime files and bundled library licenses/sources stay in the distribution.
+# Development tools, reports and marketing assets are source-only.
+/builds/
+/verification/
+/docs/
+/marketing/
+/tools/
+/tests/
+/README.md
+/AGENTS.md
+/.agents/
+/.codex/
