@@ -9,3 +9,7 @@ Defaults: compression, WebP and AVIF on; JPEG XL and JPG off; compression and re
 Validation: 23 conversion regression checks, 10 compression-settings checks, 14 permission checks and 30 Editor-account checks passed on an isolated WordPress installation running Bricks. GPS checks passed. Plugin Check reports zero errors and the same five existing performance warnings. PHP/JavaScript syntax and distribution packaging checked. Browser verification covered settings, WebP/AVIF preview generation, synchronized large-preview quality changes, a real HTTP WebP save at quality 79 and restoration of the original JPEG.
 
 Before release after approval: rerun package validation, confirm submission status and branding with the review team, and publish version 1.1.0 through the approved route. Keep this pull request in draft until the approval gate is satisfied.
+
+## Size selection and UI update, October 21
+
+The 1.1 candidate now includes All sizes, Main image only and Selected sizes. Recorded custom sizes and aliases are covered. Unselected files remain unchanged. Web Awesome 3.14.0 Free controls are bundled locally. See optimization-sizes.md for the coverage and 85 new scope assertions. Browser checks saved only the main image, then only two custom sizes, and restored both. This update remains held for WordPress.org approval.

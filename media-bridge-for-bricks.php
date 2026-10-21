@@ -12,7 +12,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 define( 'UPLINK_MBB_VERSION', '1.1.0' );
-define( 'UPLINK_MBB_ASSET_VERSION', UPLINK_MBB_VERSION );
+define( 'UPLINK_MBB_ASSET_VERSION', '1.1.0-sizes.3' );
 define( 'UPLINK_MBB_FILE', __FILE__ );
 define( 'UPLINK_MBB_PATH', plugin_dir_path( __FILE__ ) );
 define( 'UPLINK_MBB_URL', plugin_dir_url( __FILE__ ) );

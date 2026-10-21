@@ -21,11 +21,20 @@ final class Image_Conversion {
 	}
 	public static function assets(): void {
 		if ( ! current_user_can( 'upload_files' ) || ( ! self::role_allowed( 'compress' ) && ! self::role_allowed( 'restore' ) ) ) return;
+		wp_enqueue_script_module( 'uplink-mbb-optimization-components', UPLINK_MBB_URL . 'assets/optimization-components.js', array(), UPLINK_MBB_ASSET_VERSION );
+		wp_enqueue_style( 'uplink-mbb-optimization-theme', UPLINK_MBB_URL . 'assets/vendor/webawesome/theme.css', array(), UPLINK_MBB_ASSET_VERSION );
 		wp_enqueue_style( 'uplink-mbb-image-conversion', UPLINK_MBB_URL . 'assets/image-conversion.css', array( 'uplink-mbb-native-media' ), UPLINK_MBB_ASSET_VERSION );
 		wp_enqueue_script( 'uplink-mbb-image-conversion', UPLINK_MBB_URL . 'assets/image-conversion.js', array( 'uplink-mbb-native-media' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script( 'uplink-mbb-image-conversion', 'uplinkMbbConversion', array(
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'uplink_mbb_image_conversion' ), 'enabled' => ! empty( Plugin::settings()['image_conversion'] ), 'formats' => self::enabled_formats(), 'settingsUrl' => admin_url( 'upload.php?page=media-bridge-for-bricks&tab=settings#uplink-mbb-compression-settings' ), 'worker' => UPLINK_MBB_URL . 'assets/image-encode-worker.js?v=' . UPLINK_MBB_ASSET_VERSION,
 			'strings' => array(
+				'sizesTitle' => __( 'Choose image sizes', 'media-bridge-for-bricks' ),
+				'allSizes' => __( 'All sizes', 'media-bridge-for-bricks' ), 'mainOnly' => __( 'Main image only', 'media-bridge-for-bricks' ), 'chooseSizes' => __( 'Selected sizes', 'media-bridge-for-bricks' ),
+				'sizeHint' => __( 'Includes existing WordPress and custom sizes. Sizes that share a file are processed together once. Unselected files keep their current format.', 'media-bridge-for-bricks' ),
+				'scopeLabel' => __( 'Optimize', 'media-bridge-for-bricks' ), 'tooLarge' => __( 'A file exceeds the 40-megapixel limit. Choose the main image or select smaller sizes.', 'media-bridge-for-bricks' ),
+				'sizeInventory' => __( 'Available image files', 'media-bridge-for-bricks' ), 'originalUpload' => __( 'Original upload', 'media-bridge-for-bricks' ), 'selectionEmpty' => __( 'Select at least one image size before applying compression.', 'media-bridge-for-bricks' ),
+				'selectedFiles' => __( 'files selected', 'media-bridge-for-bricks' ), 'totalFiles' => __( 'files available', 'media-bridge-for-bricks' ),
+				'previewOnly' => __( 'Previews show the main image. Only your selected sizes will be saved.', 'media-bridge-for-bricks' ),
 				'title' => __( 'Image compression and formats', 'media-bridge-for-bricks' ),
 				'help' => __( 'Compare your enabled formats at suggested quality settings, then fine-tune the result you prefer. Your files change only when you choose a format. Originals are kept for restoration.', 'media-bridge-for-bricks' ),
 				'qualityHelp' => __( 'Drag an image divider to compare. Adjust quality below the image.', 'media-bridge-for-bricks' ),
@@ -38,7 +47,7 @@ final class Image_Conversion {
 				'processing' => __( 'Processing image', 'media-bridge-for-bricks' ),
 				'keepOpen' => __( 'Keep this window open until processing finishes.', 'media-bridge-for-bricks' ),
 				'preparing' => __( 'Checking original files and generated sizes…', 'media-bridge-for-bricks' ),
-				'ready' => __( 'Full-image previews are ready. Other sizes are encoded only after you choose a result. Final savings for all sizes will be saved in this tab.', 'media-bridge-for-bricks' ),
+				'ready' => __( 'Previews are ready. Choose image sizes and apply your preferred format. Savings for the selected files will be saved in this tab.', 'media-bridge-for-bricks' ),
 				'restoreFirst' => __( 'Restore the original before making another conversion.', 'media-bridge-for-bricks' ),
 				'compareFirst' => __( 'Compare the image before converting it.', 'media-bridge-for-bricks' ),
 				'failed' => __( 'Image conversion failed.', 'media-bridge-for-bricks' ),
@@ -112,7 +121,7 @@ final class Image_Conversion {
 		$backup = get_post_meta( $id, self::BACKUP, true );
 		if ( ! $backup ) return null;
 		$total = 0; foreach ( $backup['converted'] as $file ) if ( is_file( $file ) ) $total += filesize( $file );
-		return array( 'format' => $backup['format'], 'before' => array_sum( array_column( $backup['sources'], 'bytes' ) ), 'after' => $total, 'sizes' => count( $backup['converted'] ), 'references' => $backup['changed'], 'quality' => $backup['quality'] ?? null, 'date' => wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $backup['created'] ), 'rows' => $backup['rows'] ?? array() );
+		return array( 'scope' => $backup['scope'] ?? 'all', 'format' => $backup['format'], 'before' => array_sum( array_column( $backup['sources'], 'bytes' ) ), 'after' => $total, 'sizes' => count( $backup['converted'] ), 'references' => $backup['changed'], 'quality' => $backup['quality'] ?? null, 'date' => wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $backup['created'] ), 'rows' => $backup['rows'] ?? array() );
 	}
 	public static function delete_files( int $id ): void {
 		$files = get_post_meta( $id, '_uplink_mbb_conversion_files', true );
@@ -148,9 +157,9 @@ final class Image_Conversion {
 			$file = self::local( dirname( $path ) . '/' . $name );
 			if ( isset( $seen[ $file ] ) ) { $aliases[ $key ] = $seen[ $file ]; continue; }
 			$info = wp_getimagesize( $file );
-			if ( ! $info || $info[0] * $info[1] > 40000000 ) self::fail( __( 'An image size cannot be decoded or exceeds the 40-megapixel conversion limit.', 'media-bridge-for-bricks' ) );
+			if ( ! $info ) self::fail( __( 'An image size cannot be decoded.', 'media-bridge-for-bricks' ) );
 			$seen[ $file ] = $key;
-			$files[ $key ] = array( 'path' => $file, 'name' => $name, 'url' => trailingslashit( dirname( wp_get_attachment_url( $id ) ) ) . rawurlencode( $name ), 'width' => $info[0], 'height' => $info[1], 'bytes' => filesize( $file ), 'hash' => hash_file( 'sha256', $file ) );
+			$files[ $key ] = array( 'available' => $info[0] * $info[1] <= 40000000, 'path' => $file, 'name' => $name, 'url' => trailingslashit( dirname( wp_get_attachment_url( $id ) ) ) . rawurlencode( $name ), 'width' => $info[0], 'height' => $info[1], 'bytes' => filesize( $file ), 'hash' => hash_file( 'sha256', $file ) );
 		}
 		if ( count( $files ) > 100 ) self::fail( __( 'This attachment exceeds the 100-file conversion limit.', 'media-bridge-for-bricks' ) );
 		$token = wp_generate_uuid4();
@@ -158,7 +167,27 @@ final class Image_Conversion {
 		add_option( 'uplink_mbb_conversion_' . $token, $job, '', false );
 		wp_schedule_single_event( time() + 7200, 'uplink_mbb_conversion_expire', array( $token ) );
 		foreach ( $files as &$file ) unset( $file['path'], $file['hash'] ); unset( $file );
-		return array( 'token' => $token, 'files' => $files, 'restore' => false, 'mime' => $old['mime'], 'canCompress' => empty( $meta['cimo'] ) && empty( $meta['mbb_optimization'] ) );
+		return array( 'token' => $token, 'files' => $files, 'aliases' => $aliases, 'restore' => false, 'mime' => $old['mime'], 'canCompress' => empty( $meta['cimo'] ) && empty( $meta['mbb_optimization'] ) );
+	}
+	/** Select only files from the server-created manifest, before staging starts. */
+	public static function select_sizes( string $token, string $scope, array $sizes = array() ): array {
+		$job = self::job( $token );
+		if ( ! in_array( $scope, array( 'all', 'main', 'selected' ), true ) ) self::fail( __( 'Choose a valid image-size option.', 'media-bridge-for-bricks' ) );
+		$all = $job['all_files'] ?? $job['files'];
+		$keys = 'all' === $scope ? array_keys( $all ) : ( 'main' === $scope ? array( 'full' ) : $sizes );
+		if ( ! $keys ) self::fail( __( 'Select at least one image size.', 'media-bridge-for-bricks' ) );
+		$selected = array();
+		foreach ( $keys as $key ) {
+			if ( ! is_string( $key ) ) self::fail( __( 'Invalid image size.', 'media-bridge-for-bricks' ) );
+			$key = $job['aliases'][ $key ] ?? $key;
+			if ( ! isset( $all[ $key ] ) ) self::fail( __( 'This image size does not exist for the attachment.', 'media-bridge-for-bricks' ) );
+			if ( isset( $all[ $key ]['available'] ) && ! $all[ $key ]['available'] ) self::fail( __( 'A selected file exceeds the 40-megapixel limit. Choose the main image or smaller sizes.', 'media-bridge-for-bricks' ) );
+			$selected[ $key ] = $all[ $key ];
+		}
+		if ( $job['staged'] && array_keys( $selected ) !== array_keys( $job['files'] ) ) self::fail( __( 'Size selection cannot change after encoding has started.', 'media-bridge-for-bricks' ) );
+		$job['all_files'] = $all; $job['files'] = $selected; $job['scope'] = $scope;
+		update_option( 'uplink_mbb_conversion_' . $token, $job, false );
+		return array( 'sizes' => array_keys( $selected ), 'count' => count( $selected ), 'scope' => $scope );
 	}
 	private static function job( string $token ): array {
 		if ( ! preg_match( '/^[a-f0-9-]{36}$/D', $token ) ) self::fail( __( 'Invalid conversion session.', 'media-bridge-for-bricks' ) );
@@ -168,6 +197,7 @@ final class Image_Conversion {
 	}
 	public static function stage( string $token, string $key, string $format, array $upload, int $quality = 75 ): array {
 		$job = self::job( $token );
+		if ( isset( $job['files'][ $key ]['available'] ) && ! $job['files'][ $key ]['available'] ) self::fail( __( 'This file exceeds the 40-megapixel conversion limit.', 'media-bridge-for-bricks' ) );
 		if ( empty( Plugin::settings()['image_conversion'] ) || ! in_array( $format, self::enabled_formats(), true ) ) self::fail( __( 'This compression format is disabled in settings.', 'media-bridge-for-bricks' ) );
 		if ( ! isset( self::FORMATS[ $format ], $job['files'][ $key ] ) || ( $job['format'] && $job['format'] !== $format ) ) self::fail( __( 'Invalid image size or conversion format.', 'media-bridge-for-bricks' ) );
 		if ( ! empty( $upload['error'] ) || empty( $upload['tmp_name'] ) || ! is_uploaded_file( $upload['tmp_name'] ) || filesize( $upload['tmp_name'] ) > wp_max_upload_size() ) self::fail( __( 'The converted file exceeds the upload limit or is not a valid upload.', 'media-bridge-for-bricks' ) );
@@ -191,7 +221,7 @@ final class Image_Conversion {
 	}
 	private static function unchanged( array $job ): void {
 		if ( self::active( $job['id'] ) || self::snapshot( $job['id'] ) !== $job['old'] ) self::fail( __( 'This image changed after comparison. Compare it again before converting.', 'media-bridge-for-bricks' ) );
-		foreach ( $job['files'] as $file ) if ( hash_file( 'sha256', self::local( $file['path'] ) ) !== $file['hash'] ) self::fail( __( 'An original file changed after comparison. Compare it again.', 'media-bridge-for-bricks' ) );
+		foreach ( $job['all_files'] ?? $job['files'] as $file ) if ( hash_file( 'sha256', self::local( $file['path'] ) ) !== $file['hash'] ) self::fail( __( 'An original file changed after comparison. Compare it again.', 'media-bridge-for-bricks' ) );
 	}
 	private static function save_attachment( int $id, array $data ): void {
 		$result = wp_update_post( array( 'ID' => $id, 'post_mime_type' => $data['mime'] ), true );
@@ -209,6 +239,7 @@ final class Image_Conversion {
 		$job = self::job( $token ); $id = $job['id'];
 		if ( empty( Plugin::settings()['image_conversion'] ) ) self::fail( __( 'Image compression is disabled in settings.', 'media-bridge-for-bricks' ) );
 		self::unchanged( $job );
+		foreach ( $job['files'] as $file ) if ( isset( $file['available'] ) && ! $file['available'] ) self::fail( __( 'A selected file exceeds the conversion limit.', 'media-bridge-for-bricks' ) );
 		if ( count( $job['staged'] ) !== count( $job['files'] ) ) self::fail( __( 'Every original and generated size must finish conversion before saving.', 'media-bridge-for-bricks' ) );
 		$format = $job['format'];
 		if ( ! in_array( $format, self::enabled_formats(), true ) ) self::fail( __( 'This compression format is disabled in settings.', 'media-bridge-for-bricks' ) );
@@ -228,13 +259,15 @@ final class Image_Conversion {
 			}
 			$new = $job['old'];
 			if ( 'jxl' !== $format ) {
-				$new['editor_backups'] = '';
-				$new['file'] = _wp_relative_upload_path( $destinations['full']['path'] ); $new['mime'] = $mime;
-				$new['metadata']['file'] = $new['file']; $new['metadata']['filesize'] = $destinations['full']['bytes'];
+				if ( isset( $destinations['full'] ) ) {
+					$new['editor_backups'] = '';
+					$new['file'] = _wp_relative_upload_path( $destinations['full']['path'] ); $new['mime'] = $mime;
+					$new['metadata']['file'] = $new['file']; $new['metadata']['filesize'] = $destinations['full']['bytes'];
+				}
 				unset( $new['metadata']['cimo'] );
 				$new['metadata']['mbb_optimization'] = array( 'format' => $format, 'sizes' => count( $written ) );
-				foreach ( $new['metadata']['sizes'] ?? array() as $key => $size ) { $target = $destinations[ $job['aliases'][ $key ] ?? $key ]; $size['file'] = $target['file']; $size['mime-type'] = $mime; $size['filesize'] = $target['bytes']; $new['metadata']['sizes'][ $key ] = $size; }
-				if ( isset( $new['metadata']['original_image'] ) ) $new['metadata']['original_image'] = $destinations[ $job['aliases']['original_image'] ?? 'original_image' ]['file'];
+				foreach ( $new['metadata']['sizes'] ?? array() as $key => $size ) { $target = $destinations[ $job['aliases'][ $key ] ?? $key ] ?? null; if ( ! $target ) continue; $size['file'] = $target['file']; $size['mime-type'] = $mime; $size['filesize'] = $target['bytes']; $new['metadata']['sizes'][ $key ] = $size; }
+				if ( isset( $new['metadata']['original_image'], $destinations[ $job['aliases']['original_image'] ?? 'original_image' ] ) ) $new['metadata']['original_image'] = $destinations[ $job['aliases']['original_image'] ?? 'original_image' ]['file'];
 			}
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Current-site transaction groups reference and attachment changes.
 			$wpdb->query( 'START TRANSACTION' ); $started = true;
@@ -243,7 +276,7 @@ final class Image_Conversion {
 				$index = get_option( 'uplink_mbb_jxl_sources', array() ); $index[ $id ] = $urls; update_option( 'uplink_mbb_jxl_sources', $index, false );
 			} else { $changed = Image_References::update( $urls, $journal ); self::save_attachment( $id, $new ); }
 			$rows = array(); foreach ( $job['files'] as $key => $source ) $rows[] = array( 'size' => $key, 'width' => $source['width'], 'height' => $source['height'], 'before' => $source['bytes'], 'after' => $destinations[ $key ]['bytes'] );
-			$backup = array( 'quality' => $job['quality'], 'rows' => $rows, 'format' => $format, 'old' => $job['old'], 'new' => $new, 'sources' => $job['files'], 'urls' => $urls, 'converted' => $written, 'created' => time(), 'changed' => $changed );
+			$backup = array( 'scope' => $job['scope'] ?? 'all', 'quality' => $job['quality'], 'rows' => $rows, 'format' => $format, 'old' => $job['old'], 'new' => $new, 'sources' => $job['files'], 'urls' => $urls, 'converted' => $written, 'created' => time(), 'changed' => $changed );
 			$retained = get_post_meta( $id, '_uplink_mbb_conversion_files', true );
 				update_post_meta( $id, '_uplink_mbb_conversion_files', array_values( array_unique( array_merge( is_array( $retained ) ? $retained : array(), $written, array_column( $job['files'], 'path' ) ) ) ) );
 			if ( ! add_post_meta( $id, self::BACKUP, wp_slash( $backup ), true ) ) self::fail( __( 'Could not save the restoration record.', 'media-bridge-for-bricks' ) );
@@ -299,8 +332,9 @@ final class Image_Conversion {
 		$lock_owner = time() . ':' . wp_generate_uuid4();
 		if ( ! add_option( $lock, $lock_owner, '', false ) ) wp_send_json_error( array( 'message' => __( 'This attachment is already being changed. Try again shortly.', 'media-bridge-for-bricks' ) ), 409 );
 		try {
-			if ( in_array( $mode, array( 'stage', 'commit', 'cancel', 'validate' ), true ) && self::job( $token )['id'] !== $id ) self::fail( __( 'The conversion session does not match this attachment.', 'media-bridge-for-bricks' ) );
+			if ( in_array( $mode, array( 'select', 'stage', 'commit', 'cancel', 'validate' ), true ) && self::job( $token )['id'] !== $id ) self::fail( __( 'The conversion session does not match this attachment.', 'media-bridge-for-bricks' ) );
 			if ( 'begin' === $mode ) $result = self::begin( $id );
+			elseif ( 'select' === $mode ) $result = self::select_sizes( $token, sanitize_key( wp_unslash( $_POST['scope'] ?? '' ) ), isset( $_POST['sizes'] ) && is_array( $_POST['sizes'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['sizes'] ) ) : array() );
 			elseif ( 'stage' === $mode ) $result = self::stage( $token, sanitize_text_field( wp_unslash( $_POST['size'] ?? '' ) ), sanitize_key( wp_unslash( $_POST['format'] ?? '' ) ), $_FILES['file'] ?? array(), absint( $_POST['quality'] ?? 0 ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Upload provenance, size, actual MIME and dimensions are validated in stage().
 			elseif ( 'validate' === $mode ) { self::unchanged( self::job( $token ) ); $result = array( 'valid' => true ); }
 			elseif ( 'commit' === $mode ) $result = self::commit( $token );

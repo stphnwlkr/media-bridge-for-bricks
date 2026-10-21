@@ -99,6 +99,8 @@ The plugin preserves its folders, assignments, settings, and metadata.
 
 = 1.1.0 =
 
+* Adds All sizes, Main image only and Selected sizes with custom-size coverage, reversible partial conversion, and locally bundled Web Awesome controls.
+
 * Adds preview-first image comparisons with per-format quality sliders and larger before-and-after previews.
 * Adds quality adjustment, savings and Apply compression inside the larger preview.
 * Adds a compression switch and WebP, AVIF, JPEG XL and JPG format settings. WebP and AVIF default on.

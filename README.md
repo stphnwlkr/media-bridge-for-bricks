@@ -17,7 +17,7 @@ File replacement preserves the attachment ID and metadata. Keeping the existing 
 
 ## Image compression and restoration
 
-Open an image in the Enhanced Manager and choose Optimization. Generate format previews first, then adjust quality below the image you prefer. Inspect opens a larger original/compressed comparison with its own synchronized quality slider, size savings and Apply compression button. Originals are retained for restoration. JPEG XL fallback information is available beside its format heading.
+Open an image in the Enhanced Manager and choose Optimization. Generate format previews first, then adjust quality below the image you prefer. Inspect opens a larger original/compressed comparison with its own synchronized quality slider, size savings and Apply compression button. Originals are retained for restoration. Choose All sizes, Main image only or Selected sizes. The inventory includes existing standard and custom files, grouped when multiple names share the same file. Unselected files keep their original format. Optimization actions and scope controls use locally bundled Web Awesome components. JPEG XL fallback information is available beside its format heading.
 
 Settings > Compression has a master switch and WebP, AVIF, JPEG XL and JPG output selections. Compression, WebP and AVIF default on. JPEG XL and JPG default off. Each format appears only when enabled. Compression and restoration have separate role selections, both defaulting to administrators. Users must also have permission to upload files and edit the specific image. Turning off compression does not prevent authorized restoration of existing conversions.
 
