@@ -122,3 +122,7 @@ npx pressship publish . --dry-run -y --output-dir builds/pressship
 ```
 
 Review all findings before publishing. Uploads, SVN commits, Git commits, tags, remotes and repository creation require the maintainer's approval. Source repository: https://github.com/stphnwlkr/media-bridge-for-bricks.
+
+## Bricks 1.1 candidate
+
+Shared Etch 2.7.0 changes are ported; see docs/release-1.1.md.

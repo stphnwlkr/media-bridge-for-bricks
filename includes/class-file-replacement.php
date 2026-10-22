@@ -23,6 +23,7 @@ final class File_Replacement {
 		if ( empty( Plugin::settings()['file_replacement'] ) || ! current_user_can( 'upload_files' ) ) return;
 		Upload_Workspace::assets();
 		wp_enqueue_style( 'uplink-mbb-file-replacement', UPLINK_MBB_URL . 'assets/file-replacement.css', array(), UPLINK_MBB_ASSET_VERSION );
+		Upload_Workspace::ui_assets( array( 'uplink-mbb-file-replacement' ) );
 		wp_enqueue_script( 'uplink-mbb-file-replacement', UPLINK_MBB_URL . 'assets/file-replacement.js', array( 'uplink-mbb-upload-workspace' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script( 'uplink-mbb-file-replacement', 'uplinkMbbReplacement', array(
 			'appearance' => Plugin::settings()['appearance'],
@@ -38,6 +39,7 @@ final class File_Replacement {
 				'new' => __( 'Use the replacement filename and type', 'media-bridge-for-bricks' ),
 				'newHelp' => __( 'Creates a new file URL. Links written directly into content are not rewritten. Existing files are retained so those links keep working.', 'media-bridge-for-bricks' ),
 				'preserve' => __( 'The attachment ID, title, alt text, captions, folders, and custom order stay the same.', 'media-bridge-for-bricks' ),
+				'close' => __( 'Close', 'media-bridge-for-bricks' ),
 				'cancel' => __( 'Cancel', 'media-bridge-for-bricks' ),
 				'saving' => __( 'Replacing…', 'media-bridge-for-bricks' ),
 				'saved' => __( 'File replaced.', 'media-bridge-for-bricks' ),

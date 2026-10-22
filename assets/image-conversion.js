@@ -52,7 +52,7 @@ function progressOverlay(value){
  }
 }
 function syncControls(){
- root.querySelectorAll('button,input,wa-button,wa-radio-group,wa-checkbox').forEach(node=>{if(!node.classList.contains('uplink-mbb-comparison-range'))node.disabled=busy;});
+ root.querySelectorAll('button,input,wa-button,wa-radio-group,wa-checkbox,wa-slider').forEach(node=>{if(!node.classList.contains('uplink-mbb-comparison-range'))node.disabled=busy;});
  if(largeControls){largeControls.input.disabled=busy;largeControls.apply.disabled=busy||!results[largeControls.format]||!selectionValid();}
  for(const [format,panel]of formatPanels){
   panel.apply.disabled=busy||!results[format]||!selectionValid();
@@ -112,12 +112,13 @@ function contrast(a,b){const first=luminance(a),second=luminance(b);return(Math.
 function applyContrastColors(target){
  const style=getComputedStyle(root);
  const token=(name,fallback)=>{const color=style.getPropertyValue('--mbb-'+name).trim();return /^#[a-f0-9]{6}$/i.test(color)?color:fallback;};
- const surface=token('card','#ffffff');
+ const surface=token('surface-muted',token('surface','#ffffff')); // Match the inspector rather than the media-card palette.
  const bestText=background=>{const candidate=contrast('#1d2327',background)>contrast('#ffffff',background)?'#1d2327':'#ffffff';return contrast(candidate,background)>=4.5?candidate:'#000000';};
  const readable=(color,minimum=4.5)=>contrast(color,surface)>=minimum?color:bestText(surface);
  const foreground=readable(token('text','#1d2327')),muted=readable(token('muted','#50575e'));
  const accent=readable(token('accent','#2271b1'),3),onAccent=bestText(accent);
  for(const [key,value]of Object.entries({surface,text:foreground,muted,accent,'on-accent':onAccent,border:muted}))target.style.setProperty('--conversion-'+key,value);
+ target.classList.toggle('wa-dark',luminance(surface)<0.2);target.classList.toggle('wa-light',luminance(surface)>=0.2);
 }
 const paletteSource=root.closest('.uplink-mbb-native-wrap');
 if(paletteSource)new MutationObserver(()=>{applyContrastColors(root);if(comparisonDialog)applyContrastColors(comparisonDialog);if(infoPopup)applyContrastColors(infoPopup.popup);}).observe(paletteSource,{attributes:true,attributeFilter:['style','class']});
@@ -144,18 +145,18 @@ function updateLargeComparison(format){
  if(!largeControls||largeControls.format!==format||!results[format])return;
  const result=results[format],split=largeControls.preview.querySelector('input')?.value||50;
  largeControls.preview.replaceChildren(comparison(originalUrl,result.previewUrl,format,job.files.full,split));
- largeControls.input.value=String(result.quality);largeControls.output.value=String(result.quality);showStatistics(largeControls.stats,result);
+ largeControls.input.value=Number(result.quality);largeControls.output.value=String(result.quality);showStatistics(largeControls.stats,result);
 }
 function openComparison(format,trigger){
  const result=results[format];if(!result)return;
  closeInfo();closeComparison();
  const dialog=el('dialog','','uplink-mbb-comparison-dialog uplink-mbb-optimization-theme wa-theme-default');comparisonDialog=dialog;
- const header=el('header'),title=el('h2',label(format)+' · '+text.compareTitle),close=el('button',text.close,'button');close.type='button';
+ const header=el('header'),title=el('h2',label(format)+' · '+text.compareTitle),close=el('button','','button uplink-mbb-ui-close');close.type='button';close.setAttribute('aria-label',text.close);
  const titleId='uplink-mbb-comparison-title';title.id=titleId;dialog.setAttribute('aria-labelledby',titleId);
  close.addEventListener('click',()=>dialog.close());header.append(title,close);
  const preview=el('div','','uplink-mbb-large-preview'),controls=el('div','','uplink-mbb-large-controls'),stats=el('p','','uplink-mbb-format-stats');stats.setAttribute('role','status');
- const field=el('label','','uplink-mbb-format-quality'),caption=el('span',text.quality),output=el('output',String(result.quality)),input=el('input');
- input.type='range';input.min='1';input.max='100';input.step='1';input.value=String(result.quality);input.setAttribute('aria-label',label(format)+' '+text.quality);
+ const field=el('label','','uplink-mbb-format-quality'),caption=el('span',text.quality),output=el('output',String(result.quality)),input=el('wa-slider');
+ input.min=1;input.max=100;input.step=1;input.value=Number(result.quality);input.label=label(format)+' '+text.quality;input.classList.add('wa-visually-hidden-label');
  field.append(caption,output,input);
  const apply=button(text.applyCompression,'button button-primary');apply.type='button';
  input.addEventListener('input',()=>{
@@ -165,6 +166,18 @@ function openComparison(format,trigger){
  apply.addEventListener('click',()=>{if(busy||!results[format])return;closeComparison();action(()=>save(format));});
  controls.append(stats,field,apply);dialog.append(header,preview,controls,el('p',text.compareHelp));
  largeControls={format,preview,input,output,stats,apply};updateLargeComparison(format);syncControls();
+ // Require both ends outside so dragging the comparison past the edge stays open.
+ let backdropPointerDown=false;
+ const outsideDialog=event=>{
+  const bounds=dialog.getBoundingClientRect();
+  return event.target===dialog&&(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom);
+ };
+ dialog.addEventListener('pointerdown',event=>{backdropPointerDown=event.button===0&&outsideDialog(event);});
+ dialog.addEventListener('pointercancel',()=>{backdropPointerDown=false;});
+ dialog.addEventListener('click',event=>{
+  const dismiss=backdropPointerDown&&outsideDialog(event);backdropPointerDown=false;
+  if(dismiss){event.stopPropagation();dialog.close();}
+ });
  dialog.addEventListener('keydown',event=>event.stopPropagation());
  dialog.addEventListener('close',()=>{dialog.remove();if(comparisonDialog===dialog){comparisonDialog=null;largeControls=null;}if(trigger.isConnected)trigger.focus({preventScroll:true});});
  document.body.append(dialog);applyContrastColors(dialog);dialog.showModal();
@@ -198,23 +211,23 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&infoPopup){
 window.addEventListener('resize',()=>closeInfo());
 document.addEventListener('scroll',event=>{if(infoPopup&&!infoPopup.popup.contains(event.target))closeInfo();},true);
 function createFormatCard(format,value){
- const card=el('section','','uplink-mbb-conversion-card');card.dataset.format=format;
- const header=el('div','','uplink-mbb-format-heading'),heading=el('h4',label(format));header.append(heading);
+ const card=el('wa-card','','uplink-mbb-conversion-card');card.dataset.format=format;
+ const header=el('div','','uplink-mbb-format-heading'),heading=el('h4',label(format));header.slot='header';header.append(heading);const badge=el('wa-badge',text.previewBadge);badge.setAttribute('appearance','outlined');badge.setAttribute('variant','neutral');header.append(badge);
  if(format==='jxl')header.append(createJxlInfo());card.append(header);
  const preview=el('div','','uplink-mbb-format-preview');
  const original=el('img');original.src=current.url;original.alt=text.original;original.className='uplink-mbb-preview-placeholder';original.style.aspectRatio=job.files.full.width+'/'+job.files.full.height;preview.append(original);
  const stats=el('p',text.preparingPreview,'uplink-mbb-format-stats');stats.setAttribute('role','status');
- const field=el('label','','uplink-mbb-format-quality'),caption=el('span',text.quality),output=el('output',String(value)),input=el('input');
- field.hidden=true;input.type='range';input.min='1';input.max='100';input.step='1';input.value=String(value);input.dataset.format=format;input.setAttribute('aria-label',label(format)+' '+text.quality);
+ const field=el('label','','uplink-mbb-format-quality'),caption=el('span',text.quality),output=el('output',String(value)),input=el('wa-slider');
+ field.hidden=true;input.min=1;input.max=100;input.step=1;input.value=Number(value);input.dataset.format=format;input.label=label(format)+' '+text.quality;input.classList.add('wa-visually-hidden-label');
  field.append(caption,output,input);
  const hints=el('span','','uplink-mbb-quality-hints');hints.append(el('span',text.smallerFile),el('span',text.moreDetail));field.append(hints);
- const refresh=button(text.retryPreview,'button'),expand=button(text.openCompare,'button uplink-mbb-inspect'),apply=button(text.useFormat.replace('%s',label(format)),'button button-primary');
+ const refresh=button(text.retryPreview,'button'),expand=button(text.inspectShort.replace('%s',label(format)),'button uplink-mbb-inspect'),apply=button(text.useFormat.replace('%s',label(format)),'button button-primary');
  for(const button of [refresh,expand,apply])button.type='button';refresh.hidden=true;expand.hidden=true;apply.hidden=true;
  expand.setAttribute('aria-label',text.inspectFormat.replace('%s',label(format)));
  input.addEventListener('input',()=>{output.value=input.value;invalidate(format);});
  input.addEventListener('change',()=>action(()=>compareFormats([format]),true));
  refresh.addEventListener('click',()=>action(()=>compareFormats([format]),true));expand.addEventListener('click',()=>openComparison(format,expand));apply.addEventListener('click',()=>action(()=>save(format)));
- const actions=el('div','','uplink-mbb-format-actions');actions.append(expand,apply,refresh);
+ const actions=el('div','','uplink-mbb-format-actions');actions.slot='footer';actions.append(expand,apply,refresh);
  card.append(preview,stats,field,actions);
 
  cards.append(card);formatPanels.set(format,{card,input,output,field,preview,stats,refresh,expand,apply,previewUrl:null});
@@ -228,7 +241,7 @@ async function prepareSource(){
 }
 async function compareFormats(formats){
  await prepareSource();closeInfo();root.classList.add('is-comparing');intro.hidden=true;compare.hidden=true;cards.hidden=false;
- sourceSummary.hidden=false;sourceSummary.textContent=text.original+' · '+bytes(job.files.full.bytes)+' · '+text.qualityHelp;
+ sourceSummary.hidden=false;sourceSummary.textContent=text.mainPreview+' · '+job.files.full.width+' × '+job.files.full.height+' · '+bytes(job.files.full.bytes);
  let done=0;
  for(const format of formats){
   if(!formatPanels.has(format))createFormatCard(format,{webp:80,avif:50,jxl:75,jpg:80,png:80}[format]||80);
@@ -258,27 +271,28 @@ async function compareFormats(formats){
 function selectionValid(){const keys=selectedSizeKeys();return !!keys.length&&keys.every(key=>job.files[key].available!==false);}
 function selectedSizeKeys(){
  if(!job)return [];
- if(sizeScope==='all')return Object.keys(job.files);
+ if(sizeScope==='all')return Object.keys(job.files).filter(key=>!job.files[key].excluded);
  if(sizeScope==='main')return ['full'];
  return sizeChecks.filter(control=>control.checked).map(control=>control.value);
 }
 function createSizePanel(){
  sizePanel=el('section','','uplink-mbb-size-panel wa-stack wa-gap-m');
  const heading=el('div','','wa-split');heading.append(el('h4',text.sizesTitle));
- sizeSummary=el('strong','','uplink-mbb-size-summary');heading.append(sizeSummary);sizePanel.append(heading);
- scopeGroup=el('wa-radio-group');scopeGroup.setAttribute('label',text.scopeLabel);scopeGroup.setAttribute('orientation','horizontal');scopeGroup.value='all';
- for(const [value,label]of [['all',text.allSizes],['main',text.mainOnly],['selected',text.chooseSizes]]){const choice=el('wa-radio',label);choice.value=value;scopeGroup.append(choice);}
+ sizeSummary=el('wa-badge','','uplink-mbb-size-summary');sizeSummary.setAttribute('appearance','outlined');sizeSummary.setAttribute('variant','neutral');heading.append(sizeSummary);sizePanel.append(heading);
+ scopeGroup=el('wa-radio-group');scopeGroup.setAttribute('label',text.scopeLabel);scopeGroup.setAttribute('orientation','horizontal');scopeGroup.value='all';scopeGroup.setAttribute('size','s');
+ for(const [value,label]of [['all',text.allSizes],['main',text.mainOnly],['selected',text.chooseSizes]]){const choice=el('wa-radio',label);choice.value=value;choice.setAttribute('appearance','button');scopeGroup.append(choice);}
  sizePanel.append(scopeGroup,el('p',text.sizeHint,'uplink-mbb-size-hint'));
+ if(Object.values(job.files).some(file=>file.excluded))sizePanel.append(el('p',text.exclusionsHint,'uplink-mbb-exclusions-hint'));
  if(Object.values(job.files).some(file=>file.available===false))sizePanel.append(el('p',text.tooLarge,'uplink-mbb-size-hint'));
  const list=el('div','','uplink-mbb-size-list wa-grid wa-gap-m');list.setAttribute('role','group');list.setAttribute('aria-label',text.sizeInventory);
  for(const [key,file]of Object.entries(job.files)){
   const aliases=Object.entries(job.aliases||{}).filter(([,canonical])=>canonical===key).map(([name])=>name);
   const label=key==='full'?text.mainOnly:key==='original_image'?text.originalUpload:key;
-  const check=el('wa-checkbox',label+(aliases.length?' / '+aliases.join(', '):''));check.value=key;check.checked=file.available!==false;check.dataset.unavailable=String(file.available===false);
-  check.setAttribute('hint',file.width+' × '+file.height+' · '+bytes(file.bytes)+(file.available===false?' · '+text.tooLarge:''));
+  const check=el('wa-checkbox',label+(aliases.length?' / '+aliases.join(', '):''));check.value=key;check.checked=file.available!==false&&!file.excluded;check.dataset.unavailable=String(file.available===false);
+  check.setAttribute('hint',file.width+' × '+file.height+' · '+bytes(file.bytes)+(file.available===false?' · '+text.tooLarge:'')+(file.excluded?' · '+text.excludedSize:''));
   check.addEventListener('change',updateSizeSelection);sizeChecks.push(check);list.append(check);
  }
- sizePanel.append(list,el('p',text.previewOnly,'uplink-mbb-size-hint'));
+ sizePanel.append(list);
  saveProgress=el('wa-progress-bar');saveProgress.setAttribute('label',text.processing);saveProgress.hidden=true;sizePanel.append(saveProgress);
  scopeGroup.addEventListener('change',()=>{sizeScope=scopeGroup.value;updateSizeSelection();});
  root.insertBefore(sizePanel,cards);updateSizeSelection();
@@ -288,6 +302,7 @@ function updateSizeSelection(){
  sizeSummary.textContent=keys.length+' / '+Object.keys(job.files).length+' '+text.selectedFiles+' · '+bytes(total);
  for(const check of sizeChecks){check.disabled=busy||sizeScope!=='selected'||check.dataset.unavailable==='true';check.hidden=sizeScope!=='selected';}
  sizePanel.querySelector('.uplink-mbb-size-list').hidden=sizeScope!=='selected';
+ sizePanel.querySelectorAll('.uplink-mbb-size-hint').forEach(note=>note.hidden=sizeScope!=='selected'&&Object.values(job.files).every(file=>file.available!==false));
  syncControls();for(const check of sizeChecks)check.disabled=busy||sizeScope!=='selected'||check.dataset.unavailable==='true';
 }
 

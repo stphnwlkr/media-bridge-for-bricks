@@ -51,6 +51,7 @@ final class Admin {
 		foreach ( array( 'compression_roles', 'restoration_roles' ) as $key ) {
 			if ( array_key_exists( $key, $input ) ) $result[ $key ] = array_values( array_intersect( array_keys( wp_roles()->roles ), array_filter( is_array( $input[ $key ] ) ? $input[ $key ] : array(), 'is_string' ) ) );
 		}
+		$result['compression_excluded_sizes'] = array_values( array_unique( array_filter( array_map( 'sanitize_key', array_filter( (array) ( $input['compression_excluded_sizes'] ?? $current['compression_excluded_sizes'] ), 'is_string' ) ) ) ) );
 		if ( isset( $input['manager_experience'] ) && in_array( $input['manager_experience'], array( 'wordpress', 'manager_default' ), true ) ) $result['default_media_screen'] = 'manager_default' === $input['manager_experience'] ? 1 : 0;
 		if ( isset( $input['manager_label'] ) ) $result['manager_label'] = sanitize_text_field( $input['manager_label'] ) ?: 'Media Bridge';
 		if ( isset( $input['parent_count_display'] ) ) {
@@ -127,7 +128,7 @@ final class Admin {
 		$s = Plugin::settings();
 		// Display-only tab selection.
 		$tab = isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'settings'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! in_array( $tab, array( 'settings', 'exif', 'cimo', 'import', 'about' ), true ) ) $tab = 'settings';
+		if ( ! in_array( $tab, array( 'settings', 'compression', 'exif', 'cimo', 'import', 'about' ), true ) ) $tab = 'settings';
 		$experience = $s['default_media_screen'] ? 'manager_default' : 'wordpress';
 		?>
 		<div class="wrap uplink-mbb-wrap">
@@ -139,7 +140,7 @@ final class Admin {
 			</div></header>
 			<?php settings_errors(); ?>
 			<nav class="nav-tab-wrapper uplink-mbb-tabs" aria-label="Media Bridge sections">
-			<?php foreach ( array( 'settings' => 'Settings', 'exif' => 'Bricks EXIF', 'cimo' => 'CIMO', 'import' => 'Import', 'about' => 'About' ) as $key => $label ) : ?>
+			<?php foreach ( array( 'settings' => 'Settings', 'compression' => 'Compression', 'exif' => 'Bricks EXIF', 'cimo' => 'CIMO', 'import' => 'Import', 'about' => 'About' ) as $key => $label ) : ?>
 				<a class="nav-tab <?php echo $tab === $key ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( add_query_arg( 'tab', $key, $this->page_url() ) ); ?>" <?php echo $tab === $key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
 			<?php endforeach; ?>
 			</nav>
@@ -152,36 +153,7 @@ final class Admin {
 			<?php settings_fields( 'uplink_mbb_settings_group' ); ?>
 			<div class="uplink-mbb-grid uplink-mbb-settings-groups">
 			<?php if ( 'settings' === $tab ) : ?>
-									<section class="uplink-mbb-card" id="uplink-mbb-compression-settings">
-						<h2><?php esc_html_e( 'Compression', 'media-bridge-for-bricks' ); ?></h2>
-						<input type="hidden" name="uplink_mbb_settings[image_conversion]" value="0">
-						<label class="uplink-mbb-toggle"><input id="uplink-mbb-use-compression" type="checkbox" name="uplink_mbb_settings[image_conversion]" value="1" <?php checked( $s['image_conversion'] ); ?>><span><?php esc_html_e( 'Use compression', 'media-bridge-for-bricks' ); ?></span></label>
-						<p class="description"><?php esc_html_e( 'On by default. Lets permitted users preview and compress images in the Enhanced Manager. Turn it off to disable new compression; existing originals can still be restored.', 'media-bridge-for-bricks' ); ?></p>
-						<fieldset class="uplink-mbb-compression-formats" aria-describedby="uplink-mbb-compression-formats-help">
-							<legend><?php esc_html_e( 'Output formats', 'media-bridge-for-bricks' ); ?></legend>
-							<?php foreach ( array( 'webp' => 'WebP', 'avif' => 'AVIF', 'jxl' => 'JPEG XL', 'jpg' => 'JPG' ) as $format => $format_label ) : ?>
-								<input type="hidden" name="uplink_mbb_settings[compression_<?php echo esc_attr( $format ); ?>]" value="0">
-								<label class="uplink-mbb-toggle"><input type="checkbox" name="uplink_mbb_settings[compression_<?php echo esc_attr( $format ); ?>]" value="1" <?php checked( $s[ 'compression_' . $format ] ); ?>><span><?php echo esc_html( $format_label ); ?></span></label>
-							<?php endforeach; ?>
-							<p id="uplink-mbb-compression-formats-help" class="description"><?php esc_html_e( 'WebP and AVIF are on by default. JPEG XL and JPG are off by default. Only selected formats appear in the preview workspace. JPG does not support transparency.', 'media-bridge-for-bricks' ); ?></p>
-						</fieldset>
-						<h3><?php esc_html_e( 'Compression and restoration permissions', 'media-bridge-for-bricks' ); ?></h3>
-						<p class="description"><?php esc_html_e( 'Choose roles separately for each action. Users must also have permission to upload files and edit the specific image. Both actions default to administrators only. Restoration remains available to permitted users when compression is turned off.', 'media-bridge-for-bricks' ); ?></p>
-						<table class="widefat striped">
-							<thead><tr><th scope="col"><?php esc_html_e( 'Role', 'media-bridge-for-bricks' ); ?></th><th scope="col"><?php esc_html_e( 'Compress images', 'media-bridge-for-bricks' ); ?></th><th scope="col"><?php esc_html_e( 'Restore originals', 'media-bridge-for-bricks' ); ?></th></tr></thead>
-							<tbody>
-							<?php foreach ( wp_roles()->roles as $role_slug => $role_data ) : ?>
-								<tr><th scope="row"><?php echo esc_html( translate_user_role( $role_data['name'] ) ); ?></th>
-								<?php foreach ( array( 'compression_roles' => __( 'Compress images', 'media-bridge-for-bricks' ), 'restoration_roles' => __( 'Restore originals', 'media-bridge-for-bricks' ) ) as $permission_key => $permission_label ) : ?>
-									<td><label><input type="checkbox" name="uplink_mbb_settings[<?php echo esc_attr( $permission_key ); ?>][]" value="<?php echo esc_attr( $role_slug ); ?>" <?php checked( in_array( $role_slug, $s[ $permission_key ], true ) ); ?>><span class="screen-reader-text"><?php echo esc_html( translate_user_role( $role_data['name'] ) . ': ' . $permission_label ); ?></span></label></td>
-								<?php endforeach; ?></tr>
-							<?php endforeach; ?>
-							</tbody>
-						</table>
-						<input type="hidden" name="uplink_mbb_settings[compression_roles][]" value="">
-						<input type="hidden" name="uplink_mbb_settings[restoration_roles][]" value="">
 
-					</section>
 				<section class="uplink-mbb-card"><h2>Media Library experience</h2><p>Choose your default media workflow. Both views use the same folders as the Media Bridge provider in Bricks.</p>
 					<fieldset class="uplink-mbb-choice-group"><legend>Default experience</legend>
 					<label class="uplink-mbb-choice"><input type="radio" name="uplink_mbb_settings[manager_experience]" value="wordpress" <?php checked( $experience, 'wordpress' ); ?>><span><strong>WordPress Media Library</strong><small>Use the familiar WordPress screens with folder controls.</small></span></label>
@@ -203,6 +175,49 @@ final class Admin {
 				<div class="uplink-mbb-settings-subsection"><h3>Appearance</h3><label for="mbb-appearance">Color mode</label><select id="mbb-appearance" name="uplink_mbb_settings[appearance]"><?php foreach ( array( 'auto' => 'System', 'light' => 'Light', 'dark' => 'Dark' ) as $value => $label ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( $s['appearance'], $value ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?></select></div>
 				<div class="uplink-mbb-settings-subsection"><h3>File replacement</h3><?php $this->toggle( 'file_replacement', 'Enable file replacement', $s, 'Preserves the attachment ID, metadata, folder assignments, and custom order. Keeping the existing URL requires the same final file type.' ); ?></div></section>
 			<section class="uplink-mbb-card"><h2>Gutenberg galleries and slideshows</h2><?php $this->toggle( 'collection_gallery', 'Enable gallery and slideshow blocks', $s, 'Adds Media Bridge Gallery and Media Bridge Slideshow to the WordPress block editor. Images come from the shared Media Bridge folders.' ); ?><p>Choose a gallery layout or slideshow, with lightbox, caption and EXIF controls. New images added to the selected folder appear automatically.</p><p>Shortcode: <code>[uplink_mbb_gallery collection="your-folder-slug"]</code></p></section>
+			<?php elseif ( 'compression' === $tab ) : ?>
+<section class="uplink-mbb-card" id="uplink-mbb-compression-settings">
+						<h2><?php esc_html_e( 'Compression', 'media-bridge-for-bricks' ); ?></h2>
+						<input type="hidden" name="uplink_mbb_settings[image_conversion]" value="0">
+						<label class="uplink-mbb-toggle"><input id="uplink-mbb-use-compression" type="checkbox" name="uplink_mbb_settings[image_conversion]" value="1" <?php checked( $s['image_conversion'] ); ?>><span><?php esc_html_e( 'Use compression', 'media-bridge-for-bricks' ); ?></span></label>
+						<p class="description"><?php esc_html_e( 'On by default. Lets permitted users preview and compress images in the Enhanced Manager. Turn it off to disable new compression; existing originals can still be restored.', 'media-bridge-for-bricks' ); ?></p>
+						<fieldset class="uplink-mbb-compression-formats" aria-describedby="uplink-mbb-compression-formats-help">
+							<legend><?php esc_html_e( 'Output formats', 'media-bridge-for-bricks' ); ?></legend>
+							<?php foreach ( array( 'webp' => 'WebP', 'avif' => 'AVIF', 'jxl' => 'JPEG XL', 'jpg' => 'JPG' ) as $format => $format_label ) : ?>
+								<input type="hidden" name="uplink_mbb_settings[compression_<?php echo esc_attr( $format ); ?>]" value="0">
+								<label class="uplink-mbb-toggle"><input type="checkbox" name="uplink_mbb_settings[compression_<?php echo esc_attr( $format ); ?>]" value="1" <?php checked( $s[ 'compression_' . $format ] ); ?>><span><?php echo esc_html( $format_label ); ?></span></label>
+							<?php endforeach; ?>
+							<p id="uplink-mbb-compression-formats-help" class="description"><?php esc_html_e( 'WebP and AVIF are on by default. JPEG XL and JPG are off by default. Only selected formats appear in the preview workspace. JPG does not support transparency.', 'media-bridge-for-bricks' ); ?></p>
+						</fieldset>
+						<fieldset class="uplink-mbb-compression-exclusions">
+							<legend><strong><?php esc_html_e( 'Exclude image sizes from compression', 'media-bridge-for-bricks' ); ?></strong></legend>
+							<p class="description"><?php esc_html_e( 'All sizes skips these sizes. To override for one image, choose Selected sizes in its optimization panel and check an excluded size. Sizes sharing the same file are excluded and overridden together.', 'media-bridge-for-bricks' ); ?></p>
+							<input type="hidden" name="uplink_mbb_settings[compression_excluded_sizes][]" value="">
+							<?php
+							$registered_sizes = wp_get_registered_image_subsizes();
+							foreach ( array_unique( array_merge( array_keys( $registered_sizes ), $s['compression_excluded_sizes'] ) ) as $size_name ) :
+								$dimensions = $registered_sizes[ $size_name ] ?? null;
+								?>
+								<label class="uplink-mbb-toggle"><input type="checkbox" name="uplink_mbb_settings[compression_excluded_sizes][]" value="<?php echo esc_attr( $size_name ); ?>" <?php checked( in_array( $size_name, $s['compression_excluded_sizes'], true ) ); ?>><span><?php echo esc_html( $size_name . ( $dimensions ? ' · ' . ( $dimensions['width'] ?: __( 'auto', 'media-bridge-for-bricks' ) ) . ' × ' . ( $dimensions['height'] ?: __( 'auto', 'media-bridge-for-bricks' ) ) : '' ) ); ?></span></label>
+							<?php endforeach; ?>
+						</fieldset>
+						<h3><?php esc_html_e( 'Compression and restoration permissions', 'media-bridge-for-bricks' ); ?></h3>
+						<p class="description"><?php esc_html_e( 'Choose roles separately for each action. Users must also have permission to upload files and edit the specific image. Both actions default to administrators only. Restoration remains available to permitted users when compression is turned off.', 'media-bridge-for-bricks' ); ?></p>
+						<table class="widefat striped">
+							<thead><tr><th scope="col"><?php esc_html_e( 'Role', 'media-bridge-for-bricks' ); ?></th><th scope="col"><?php esc_html_e( 'Compress images', 'media-bridge-for-bricks' ); ?></th><th scope="col"><?php esc_html_e( 'Restore originals', 'media-bridge-for-bricks' ); ?></th></tr></thead>
+							<tbody>
+							<?php foreach ( wp_roles()->roles as $role_slug => $role_data ) : ?>
+								<tr><th scope="row"><?php echo esc_html( translate_user_role( $role_data['name'] ) ); ?></th>
+								<?php foreach ( array( 'compression_roles' => __( 'Compress images', 'media-bridge-for-bricks' ), 'restoration_roles' => __( 'Restore originals', 'media-bridge-for-bricks' ) ) as $permission_key => $permission_label ) : ?>
+									<td><label><input type="checkbox" name="uplink_mbb_settings[<?php echo esc_attr( $permission_key ); ?>][]" value="<?php echo esc_attr( $role_slug ); ?>" <?php checked( in_array( $role_slug, $s[ $permission_key ], true ) ); ?>><span class="screen-reader-text"><?php echo esc_html( translate_user_role( $role_data['name'] ) . ': ' . $permission_label ); ?></span></label></td>
+								<?php endforeach; ?></tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+						<input type="hidden" name="uplink_mbb_settings[compression_roles][]" value="">
+						<input type="hidden" name="uplink_mbb_settings[restoration_roles][]" value="">
+
+					</section>
 			<?php elseif ( 'exif' === $tab ) : ?>
 				<section class="uplink-mbb-card"><h2>Bricks dynamic data</h2><p>Add image metadata to text fields, templates, and attachment query loops through the Bricks dynamic data picker.</p><?php $this->toggle( 'exif_dynamic_data', 'Enable EXIF in Bricks dynamic data', $s, 'Look for the Media Bridge · EXIF group in the picker.' ); ?><div class="uplink-mbb-settings-subsection"><h3>GPS metadata</h3><?php $this->toggle( 'exif_gps', 'Include GPS coordinates and altitude', $s, 'Disabled by default. Enables GPS fields in the inspector and Bricks dynamic data.' ); ?><?php $this->toggle( 'exif_map', 'Enable external location maps', $s, 'Optional and disabled by default. Requires GPS above. When an EXIF map is visible, your browser contacts Esri for satellite tiles, or OpenStreetMap when you select the street layer. Requests share your IP address, browser details, site origin and the viewed map area. Photo files are not uploaded to these services.' ); ?><p class="description"><a href="https://www.esri.com/en-us/legal/terms/web-site-service" target="_blank" rel="noopener noreferrer">Esri terms</a> · <a href="https://www.esri.com/en-us/privacy/privacy-statements/privacy-statement" target="_blank" rel="noopener noreferrer">Esri privacy</a> · <a href="https://operations.osmfoundation.org/policies/tiles/" target="_blank" rel="noopener noreferrer">OpenStreetMap tile policy</a> · <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer">OpenStreetMap privacy</a></p></div><div class="uplink-mbb-docs-callout"><h3>Image context</h3><p>Tags use the current attachment in an image loop, or the featured image on a post. Append an attachment ID to choose a specific image.</p><p><code>{mbb_exif_camera}</code><br><code>{mbb_exif_camera:123}</code></p></div></section>
 				<section class="uplink-mbb-card uplink-mbb-docs"><h2>Available EXIF fields</h2><p>Fields return an empty value when the image has no matching metadata. GPS fields require the setting beside this list.</p><div class="uplink-mbb-docs-table-wrap"><table class="widefat striped uplink-mbb-docs-table"><thead><tr><th>Field</th><th>Dynamic tag</th></tr></thead><tbody><?php foreach ( Bricks_Dynamic_Data::fields() as $name => $field ) : ?><tr><td><?php echo esc_html( $field[0] ); ?></td><td><code><?php echo esc_html( '{mbb_exif_' . $name . '}' ); ?></code></td></tr><?php endforeach; ?></tbody></table></div></section>

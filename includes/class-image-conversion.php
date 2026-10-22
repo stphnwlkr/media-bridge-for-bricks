@@ -24,19 +24,23 @@ final class Image_Conversion {
 		wp_enqueue_script_module( 'uplink-mbb-optimization-components', UPLINK_MBB_URL . 'assets/optimization-components.js', array(), UPLINK_MBB_ASSET_VERSION );
 		wp_enqueue_style( 'uplink-mbb-optimization-theme', UPLINK_MBB_URL . 'assets/vendor/webawesome/theme.css', array(), UPLINK_MBB_ASSET_VERSION );
 		wp_enqueue_style( 'uplink-mbb-image-conversion', UPLINK_MBB_URL . 'assets/image-conversion.css', array( 'uplink-mbb-native-media' ), UPLINK_MBB_ASSET_VERSION );
+		Upload_Workspace::ui_assets( array( 'uplink-mbb-image-conversion' ) );
 		wp_enqueue_script( 'uplink-mbb-image-conversion', UPLINK_MBB_URL . 'assets/image-conversion.js', array( 'uplink-mbb-native-media' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script( 'uplink-mbb-image-conversion', 'uplinkMbbConversion', array(
-			'ajaxUrl' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'uplink_mbb_image_conversion' ), 'enabled' => ! empty( Plugin::settings()['image_conversion'] ), 'formats' => self::enabled_formats(), 'settingsUrl' => admin_url( 'upload.php?page=media-bridge-for-bricks&tab=settings#uplink-mbb-compression-settings' ), 'worker' => UPLINK_MBB_URL . 'assets/image-encode-worker.js?v=' . UPLINK_MBB_ASSET_VERSION,
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'uplink_mbb_image_conversion' ), 'enabled' => ! empty( Plugin::settings()['image_conversion'] ), 'formats' => self::enabled_formats(), 'settingsUrl' => admin_url( 'upload.php?page=media-bridge-for-bricks&tab=compression#uplink-mbb-compression-settings' ), 'worker' => UPLINK_MBB_URL . 'assets/image-encode-worker.js?v=' . UPLINK_MBB_ASSET_VERSION,
 			'strings' => array(
-				'sizesTitle' => __( 'Choose image sizes', 'media-bridge-for-bricks' ),
+				'sizesTitle' => __( 'Image sizes', 'media-bridge-for-bricks' ),
 				'allSizes' => __( 'All sizes', 'media-bridge-for-bricks' ), 'mainOnly' => __( 'Main image only', 'media-bridge-for-bricks' ), 'chooseSizes' => __( 'Selected sizes', 'media-bridge-for-bricks' ),
+				'excludedSize' => __( 'Excluded in Settings. Check to include for this image.', 'media-bridge-for-bricks' ),
+				'exclusionsHint' => __( 'All sizes honors Settings exclusions. Choose Selected sizes to override them for this image.', 'media-bridge-for-bricks' ),
 				'sizeHint' => __( 'Includes existing WordPress and custom sizes. Sizes that share a file are processed together once. Unselected files keep their current format.', 'media-bridge-for-bricks' ),
 				'scopeLabel' => __( 'Optimize', 'media-bridge-for-bricks' ), 'tooLarge' => __( 'A file exceeds the 40-megapixel limit. Choose the main image or select smaller sizes.', 'media-bridge-for-bricks' ),
 				'sizeInventory' => __( 'Available image files', 'media-bridge-for-bricks' ), 'originalUpload' => __( 'Original upload', 'media-bridge-for-bricks' ), 'selectionEmpty' => __( 'Select at least one image size before applying compression.', 'media-bridge-for-bricks' ),
 				'selectedFiles' => __( 'files selected', 'media-bridge-for-bricks' ), 'totalFiles' => __( 'files available', 'media-bridge-for-bricks' ),
 				'previewOnly' => __( 'Previews show the main image. Only your selected sizes will be saved.', 'media-bridge-for-bricks' ),
-				'title' => __( 'Image compression and formats', 'media-bridge-for-bricks' ),
+				'title' => __( 'Optimize image', 'media-bridge-for-bricks' ),
 				'help' => __( 'Compare your enabled formats at suggested quality settings, then fine-tune the result you prefer. Your files change only when you choose a format. Originals are kept for restoration.', 'media-bridge-for-bricks' ),
+				'mainPreview' => __( 'Main image preview', 'media-bridge-for-bricks' ), 'previewBadge' => __( 'Preview', 'media-bridge-for-bricks' ),
 				'qualityHelp' => __( 'Drag an image divider to compare. Adjust quality below the image.', 'media-bridge-for-bricks' ),
 				'compare' => __( 'Generate format previews', 'media-bridge-for-bricks' ),
 				'applyCompression' => __( 'Apply compression', 'media-bridge-for-bricks' ),
@@ -68,7 +72,7 @@ final class Image_Conversion {
 				'currentOptimized' => __( 'This image is already optimized in the enabled format. Enable another output format to compare.', 'media-bridge-for-bricks' ),
 				'jxlSummary' => __( 'Original-format fallback included', 'media-bridge-for-bricks' ),
 				/* translators: %s: Image format. */
-				'useFormat' => __( 'Use %s', 'media-bridge-for-bricks' ),
+				'useFormat' => __( 'Optimize to %s', 'media-bridge-for-bricks' ),
 				/* translators: %s: Image format. */
 				'inspectFormat' => __( 'Inspect %s comparison', 'media-bridge-for-bricks' ),
 				/* translators: %s: Percentage reduction in file size. */
@@ -86,6 +90,8 @@ final class Image_Conversion {
 				'compareImages' => __( '%s original and compressed comparison', 'media-bridge-for-bricks' ),
 				/* translators: %s: Image format. */
 				'previewFormat' => __( 'Preview %s', 'media-bridge-for-bricks' ),
+				/* translators: %s: Image format. */
+				'inspectShort' => __( 'Inspect %s', 'media-bridge-for-bricks' ),
 				'openPreview' => __( 'Open full-size preview', 'media-bridge-for-bricks' ),
 				'jxlHelp' => __( 'JPEG XL is served through picture sources with the original image as fallback. Existing picture elements, CSS backgrounds and external links keep their original format.', 'media-bridge-for-bricks' ),
 				'useJxl' => __( 'Use JPEG XL with fallback', 'media-bridge-for-bricks' ),
@@ -162,6 +168,7 @@ final class Image_Conversion {
 			$files[ $key ] = array( 'available' => $info[0] * $info[1] <= 40000000, 'path' => $file, 'name' => $name, 'url' => trailingslashit( dirname( wp_get_attachment_url( $id ) ) ) . rawurlencode( $name ), 'width' => $info[0], 'height' => $info[1], 'bytes' => filesize( $file ), 'hash' => hash_file( 'sha256', $file ) );
 		}
 		if ( count( $files ) > 100 ) self::fail( __( 'This attachment exceeds the 100-file conversion limit.', 'media-bridge-for-bricks' ) );
+		foreach ( self::excluded_keys( $files, $aliases ) as $key ) $files[ $key ]['excluded'] = true;
 		$token = wp_generate_uuid4();
 		$job = array( 'owner' => get_current_user_id(), 'id' => $id, 'old' => $old, 'files' => $files, 'aliases' => $aliases, 'staged' => array(), 'format' => '', 'quality' => null, 'expires' => time() + 7200 );
 		add_option( 'uplink_mbb_conversion_' . $token, $job, '', false );
@@ -169,12 +176,21 @@ final class Image_Conversion {
 		foreach ( $files as &$file ) unset( $file['path'], $file['hash'] ); unset( $file );
 		return array( 'token' => $token, 'files' => $files, 'aliases' => $aliases, 'restore' => false, 'mime' => $old['mime'], 'canCompress' => empty( $meta['cimo'] ) && empty( $meta['mbb_optimization'] ) );
 	}
+	/** An excluded alias excludes its shared physical file as well. */
+	private static function excluded_keys( array $files, array $aliases ): array {
+		$excluded = array();
+		foreach ( (array) Plugin::settings()['compression_excluded_sizes'] as $name ) {
+			$key = $aliases[ $name ] ?? $name;
+			if ( isset( $files[ $key ] ) ) $excluded[] = $key;
+		}
+		return array_values( array_unique( $excluded ) );
+	}
 	/** Select only files from the server-created manifest, before staging starts. */
 	public static function select_sizes( string $token, string $scope, array $sizes = array() ): array {
 		$job = self::job( $token );
 		if ( ! in_array( $scope, array( 'all', 'main', 'selected' ), true ) ) self::fail( __( 'Choose a valid image-size option.', 'media-bridge-for-bricks' ) );
 		$all = $job['all_files'] ?? $job['files'];
-		$keys = 'all' === $scope ? array_keys( $all ) : ( 'main' === $scope ? array( 'full' ) : $sizes );
+		$keys = 'all' === $scope ? array_values( array_diff( array_keys( $all ), self::excluded_keys( $all, $job['aliases'] ) ) ) : ( 'main' === $scope ? array( 'full' ) : $sizes );
 		if ( ! $keys ) self::fail( __( 'Select at least one image size.', 'media-bridge-for-bricks' ) );
 		$selected = array();
 		foreach ( $keys as $key ) {
@@ -197,6 +213,7 @@ final class Image_Conversion {
 	}
 	public static function stage( string $token, string $key, string $format, array $upload, int $quality = 75 ): array {
 		$job = self::job( $token );
+		if ( ! isset( $job['scope'] ) ) self::fail( __( 'Choose image sizes before encoding.', 'media-bridge-for-bricks' ) );
 		if ( isset( $job['files'][ $key ]['available'] ) && ! $job['files'][ $key ]['available'] ) self::fail( __( 'This file exceeds the 40-megapixel conversion limit.', 'media-bridge-for-bricks' ) );
 		if ( empty( Plugin::settings()['image_conversion'] ) || ! in_array( $format, self::enabled_formats(), true ) ) self::fail( __( 'This compression format is disabled in settings.', 'media-bridge-for-bricks' ) );
 		if ( ! isset( self::FORMATS[ $format ], $job['files'][ $key ] ) || ( $job['format'] && $job['format'] !== $format ) ) self::fail( __( 'Invalid image size or conversion format.', 'media-bridge-for-bricks' ) );
