@@ -4,7 +4,7 @@ Tags: media, folders, bricks
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -96,6 +96,24 @@ No ongoing synchronization runs. Import copies supported source folders and opti
 The plugin preserves its folders, assignments, settings, and metadata.
 
 == Changelog ==
+
+= 1.1.0 =
+
+* Ports the Enhanced Manager interface and fixes from Etch 2.7.0, with local Web Awesome controls, consistent spacing, joined button groups, unified search and corrected input styling.
+* Adds a dedicated Compression settings tab and administrator image-size exclusions honored by All sizes, with per-image overrides in Selected sizes.
+* Adds drag-to-move folder assignment while retaining unrelated folder memberships and multiple-assignment actions.
+* Refines inspector scrolling, compact format previews, large-preview quality controls, outside-click dismissal, close buttons and keyboard focus outlines.
+* Adds local open-source Lucide outline icons, a compact selection toolbar with an information popup, and persistent error feedback.
+* Adds Google Maps and Apple Maps links to photo-location maps and loads maps when opening Enhanced from the WordPress-default workflow.
+
+* Adds All sizes, Main image only and Selected sizes with custom-size coverage, reversible partial conversion, and locally bundled Web Awesome controls.
+
+* Adds preview-first image comparisons with per-format quality sliders and larger before-and-after previews.
+* Adds quality adjustment, savings and Apply compression inside the larger preview.
+* Adds a compression switch and WebP, AVIF, JPEG XL and JPG format settings. WebP and AVIF default on.
+* Adds independent role permissions for compression and restoration. Both default to administrators; upload and image-edit permissions remain required.
+* Adds JPEG XL fallback information beside the format heading and improves padding, keyboard controls and color contrast.
+
 
 = 1.0.0 =
 * Prepare the tested beta.15 feature set for the initial WordPress.org release.
@@ -229,3 +247,7 @@ Saved results include format, quality, completion time, original/converted total
 Administrator, media-upload and attachment-edit permissions plus a nonce are required. Processing is restricted to the current site. Each file must be local; conversion is limited to 100 physical files per attachment and 40 megapixels per file. Animated sources are left unchanged. Web Workers and WebAssembly must be allowed by the browser/site policy. JPEG XL previews use the bundled decoder when native browser support is absent. Encoding uses 8-bit canvas pixels; HDR/color-profile-preserving workflows are outside this version.
 
 Original and converted files remain available after restoration for existing links. They are tracked for deletion when the attachment is permanently deleted. Temporary server uploads expire after two hours through WordPress cron. No ongoing synchronization runs. Optional pre-upload Cimo integration remains independent of these post-upload actions.
+
+== Third-party licenses ==
+
+Lucide outline icons are included under ISC/MIT licenses. Source revision and full license notices are included in assets/vendor/lucide/. Web Awesome 3.14.0 Free is bundled locally with its license and source notices.

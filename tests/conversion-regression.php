@@ -15,7 +15,7 @@ try{
  mbb_cv_reject(fn()=>Image_Conversion::stage($plan['token'],'full','php',[]),'Executable format rejected');
  mbb_cv_reject(fn()=>Image_Conversion::stage($plan['token'],'full','webp',['tmp_name'=>$up['file'],'error'=>0]),'Local files cannot spoof HTTP uploads');
  mbb_cv_reject(fn()=>Image_Conversion::commit($plan['token']),'Incomplete conversion cannot commit');
- $no_admin=static function($caps){$caps['manage_options']=false;return $caps;};add_filter('user_has_cap',$no_admin);mbb_cv_assert(!Image_Conversion::allowed($id),'Uploading and editing are insufficient without administrator permission');remove_filter('user_has_cap',$no_admin);
+ $no_upload=static function($caps){$caps['upload_files']=false;return $caps;};add_filter('user_has_cap',$no_upload);mbb_cv_assert(!Image_Conversion::allowed($id),'Role permission cannot bypass upload permission');remove_filter('user_has_cap',$no_upload);
  wp_set_current_user(0);mbb_cv_reject(fn()=>Image_Conversion::begin($id),'Anonymous begin rejected');mbb_cv_reject(fn()=>Image_Conversion::commit($plan['token']),'Known token cannot bypass authorization');wp_set_current_user(1);
  $editor=wp_get_image_editor($up['file']);$variant=$editor->save(get_temp_dir().'mbb-regression-'.wp_generate_uuid4().'.webp','image/webp');if(is_wp_error($variant))throw new RuntimeException($variant->get_error_message());
  $job=get_option('uplink_mbb_conversion_'.$plan['token']);$job['format']='webp';$job['quality']=80;$job['staged']=['full'=>$variant['path']];update_option('uplink_mbb_conversion_'.$plan['token'],$job,false);

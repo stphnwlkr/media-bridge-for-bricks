@@ -31,6 +31,16 @@ final class Upload_Workspace {
 		return defined( 'CIMO_FILE' ) && ! empty( Plugin::settings()['cimo_integration'] );
 	}
 
+	/** Keep shared overrides after every workspace feature loaded on this page. */
+	public static function ui_assets( array $dependencies ): void {
+		$handle = 'uplink-mbb-workspace-ui';
+		wp_enqueue_style( $handle, UPLINK_MBB_URL . 'assets/workspace-ui.css', $dependencies, UPLINK_MBB_ASSET_VERSION );
+		$registered = wp_styles()->registered[ $handle ] ?? null;
+		if ( $registered ) {
+			$registered->deps = array_values( array_unique( array_merge( $registered->deps, $dependencies ) ) );
+		}
+	}
+
 	public static function assets(): void {
 		static $enqueued = false;
 		if ( $enqueued ) return;
@@ -43,6 +53,7 @@ final class Upload_Workspace {
 		wp_enqueue_script( 'wp-hooks' );
 		if ( self::cimo_available() ) wp_add_inline_script( 'wp-hooks', "['cimo.selectFiles.allowedLocations', 'cimo.dropZone.allowedLocations'].forEach(function (hook) { wp.hooks.addFilter(hook, 'uplink-media-bridge/upload-workspace', function (locations) { locations = Array.isArray(locations) ? locations : []; return locations.indexOf('" . self::SELECTOR . "') === -1 ? locations.concat(['" . self::SELECTOR . "']) : locations; }); });" );
 		wp_enqueue_style( 'uplink-mbb-upload-workspace', UPLINK_MBB_URL . 'assets/media-modal.css', array(), UPLINK_MBB_ASSET_VERSION );
+		self::ui_assets( array( 'uplink-mbb-upload-workspace' ) );
 		wp_enqueue_script( 'uplink-mbb-upload-workspace', UPLINK_MBB_URL . 'assets/upload-workspace.js', array( 'jquery' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script( 'uplink-mbb-upload-workspace', 'uplinkMbbUploadConfig', array(
 			'cimoAvailable' => self::cimo_available(),

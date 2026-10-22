@@ -67,6 +67,7 @@ final class Native_Media_Library {
 
 		wp_enqueue_style( 'uplink-mbb-media-modal', UPLINK_MBB_URL . 'assets/media-modal.css', array( 'media-views' ), UPLINK_MBB_ASSET_VERSION );
 		wp_add_inline_style( 'uplink-mbb-media-modal', $this->custom_color_css( true ) );
+		Upload_Workspace::ui_assets( array( 'uplink-mbb-media-modal' ) );
 		wp_enqueue_script( 'uplink-mbb-media-modal', UPLINK_MBB_URL . 'assets/media-modal.js', array( 'media-views', 'wp-util', 'uplink-mbb-upload-workspace' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script(
 			'uplink-mbb-media-modal',
@@ -697,7 +698,13 @@ final class Native_Media_Library {
 
 		wp_enqueue_media();
 		Image_Conversion::assets();
-		$native_media_asset_version = UPLINK_MBB_ASSET_VERSION . '.6';
+		Exif_Map::assets();
+		Upload_Workspace::assets();
+		$native_media_asset_version = UPLINK_MBB_ASSET_VERSION . '.8';
+		wp_enqueue_script_module( 'uplink-mbb-optimization-components', UPLINK_MBB_URL . 'assets/optimization-components.js', array(), $native_media_asset_version );
+		wp_enqueue_style( 'uplink-mbb-optimization-theme', UPLINK_MBB_URL . 'assets/vendor/webawesome/theme.css', array(), $native_media_asset_version );
+		wp_enqueue_style( 'uplink-mbb-enhanced-components', UPLINK_MBB_URL . 'assets/enhanced-components.css', array( 'uplink-mbb-native-media', 'uplink-mbb-optimization-theme' ), $native_media_asset_version );
+		Upload_Workspace::ui_assets( array( 'uplink-mbb-enhanced-components' ) );
 		wp_enqueue_style( 'uplink-mbb-native-media', UPLINK_MBB_URL . 'assets/native-media.css', array(), $native_media_asset_version );
 		wp_add_inline_style( 'uplink-mbb-native-media', $this->custom_color_css() );
 		wp_enqueue_script( 'uplink-mbb-native-media', UPLINK_MBB_URL . 'assets/native-media.js', array( 'media-editor' ), $native_media_asset_version, true );
@@ -731,9 +738,11 @@ final class Native_Media_Library {
 				'initialAttachmentId' => $initial_attachment_id,
 				'initialAction' => $initial_action,
 				'initialCollectionId' => $initial_collection_id,
+				'canAssign' => $taxonomy && current_user_can( $taxonomy->cap->assign_terms ),
 				'canManage'    => $taxonomy && current_user_can( $taxonomy->cap->manage_terms ),
 				'strings'      => array(
 					'add'                  => __( 'Add to folder', 'media-bridge-for-bricks' ),
+					'movedTo' => __( 'Moved to', 'media-bridge-for-bricks' ),
 					'allMedia'             => __( 'All media', 'media-bridge-for-bricks' ),
 					'attachmentDetails'    => __( 'Attachment details', 'media-bridge-for-bricks' ),
 					'altSaved'             => __( 'Attachment saved.', 'media-bridge-for-bricks' ),
@@ -883,7 +892,7 @@ final class Native_Media_Library {
 		/* translators: %s is the administrator-defined media manager label. */
 		$info_description = sprintf( __( 'Organize WordPress media directly with %s. An item can belong to more than one folder.', 'media-bridge-for-bricks' ), $manager_label );
 		?>
-		<div class="wrap uplink-mbb-native-wrap uplink-mbb-theme-<?php echo esc_attr( $appearance ); ?>">
+		<div class="wrap uplink-mbb-native-wrap uplink-mbb-optimization-theme wa-theme-default uplink-mbb-theme-<?php echo esc_attr( $appearance ); ?>">
 			<div class="uplink-mbb-native-heading">
 				<div class="uplink-mbb-native-title-group">
 					<div class="uplink-mbb-native-title-row">
@@ -904,14 +913,15 @@ final class Native_Media_Library {
 					</div>
 				</div>
 				<div class="uplink-mbb-native-heading-actions">
+<?php if ( current_user_can( 'upload_files' ) ) : ?>
+						<wa-button size="small" variant="brand" appearance="filled" type="button" class="button button-primary uplink-mbb-upload-action" id="uplink-mbb-upload-media" aria-label="<?php esc_attr_e( 'Upload media', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Upload media', 'media-bridge-for-bricks' ); ?>"><svg slot="start" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 14v5h14v-5"></path></svg><span><?php esc_html_e( 'Upload media', 'media-bridge-for-bricks' ); ?></span></wa-button>
+										<?php endif; ?>
 
-					<?php if ( current_user_can( 'upload_files' ) ) : ?>
-						<button type="button" class="uplink-mbb-icon-button is-primary" id="uplink-mbb-upload-media" aria-label="<?php esc_attr_e( 'Upload media', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Upload media', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 14v5h14v-5"></path></svg></button>
-					<?php endif; ?>
+<wa-button-group label="<?php esc_attr_e( 'Workspace tools', 'media-bridge-for-bricks' ); ?>">
 					<?php if ( current_user_can( 'manage_options' ) ) : ?>
-						<button type="button" class="uplink-mbb-icon-button" id="uplink-mbb-appearance-toggle" aria-expanded="false" aria-controls="uplink-mbb-appearance-panel" aria-label="<?php esc_attr_e( 'Customize appearance', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Customize appearance', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-palette-icon" aria-hidden="true"></span></button>
-						<a class="uplink-mbb-icon-button" href="<?php echo esc_url( admin_url( 'upload.php?page=media-bridge-for-bricks' ) ); ?>" aria-label="<?php esc_attr_e( 'Media Bridge settings', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Media Bridge settings', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"></path></svg></a>
-					<?php endif; ?>
+						<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-icon-button" id="uplink-mbb-appearance-toggle" aria-expanded="false" aria-controls="uplink-mbb-appearance-panel" aria-label="<?php esc_attr_e( 'Customize appearance', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Customize appearance', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-palette-icon" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Customize appearance', 'media-bridge-for-bricks' ); ?></span></wa-button>
+						<wa-button size="small" variant="neutral" appearance="outlined" class="uplink-mbb-icon-button" href="<?php echo esc_url( admin_url( 'upload.php?page=media-bridge-for-bricks' ) ); ?>" aria-label="<?php esc_attr_e( 'Media Bridge settings', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Media Bridge settings', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"></path></svg><span class="screen-reader-text"><?php esc_html_e( 'Media Bridge settings', 'media-bridge-for-bricks' ); ?></span></wa-button>
+					<?php endif; ?></wa-button-group>
 				</div>
 				<?php if ( current_user_can( 'manage_options' ) ) : ?>
 				<div class="uplink-mbb-appearance-panel" id="uplink-mbb-appearance-panel" role="dialog" aria-modal="false" aria-labelledby="uplink-mbb-appearance-title" hidden>
@@ -942,7 +952,7 @@ final class Native_Media_Library {
 			<?php if ( ! $this->folders->is_available() ) : ?>
 				<div class="notice notice-error"><p><?php esc_html_e( 'Media folders are not available. Activate Bricks before using this screen.', 'media-bridge-for-bricks' ); ?></p></div>
 			<?php else : ?>
-				<div id="uplink-mbb-native-notice" class="notice inline" role="status" aria-live="polite" hidden><p></p></div>
+				<wa-callout variant="neutral" appearance="outlined" id="uplink-mbb-native-notice" class="notice inline" role="status" aria-live="polite" hidden><p></p></wa-callout>
 				<div id="uplink-mbb-native-toast" class="uplink-mbb-native-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
 				<div class="uplink-mbb-native-shell" id="uplink-mbb-native-library">
 					<aside class="uplink-mbb-native-sidebar" aria-label="<?php esc_attr_e( 'Media folders', 'media-bridge-for-bricks' ); ?>">
@@ -950,14 +960,13 @@ final class Native_Media_Library {
 						<div id="uplink-mbb-library-navigation">
 							<div class="uplink-mbb-collection-heading">
 								<h2><?php esc_html_e( 'Folders', 'media-bridge-for-bricks' ); ?></h2>
-								<div class="uplink-mbb-collection-heading-actions">
-									<button type="button" class="uplink-mbb-icon-button" id="uplink-mbb-collection-tree-toggle" aria-label="<?php esc_attr_e( 'Collapse all folders', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Collapse all folders', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-tree-icon is-close" aria-hidden="true"></span></button>
-									
-									<?php if ( $can_manage ) : ?>
-										<button type="button" class="uplink-mbb-icon-button" id="uplink-mbb-new-collection" aria-label="<?php esc_attr_e( 'New folder', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'New folder', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"></path><path d="M12 12v5M9.5 14.5h5"></path></svg></button>
-										<button type="button" class="uplink-mbb-icon-button" id="uplink-mbb-manage-collections" aria-label="<?php esc_attr_e( 'Manage folders', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Manage folders', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path><circle cx="16" cy="7" r="2"></circle><circle cx="8" cy="17" r="2"></circle></svg></button>
+								<wa-button-group label="<?php esc_attr_e( 'Folder actions', 'media-bridge-for-bricks' ); ?>" class="uplink-mbb-collection-heading-actions">
+									<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-icon-button" id="uplink-mbb-collection-tree-toggle" aria-label="<?php esc_attr_e( 'Collapse all folders', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Collapse all folders', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-tree-icon is-close" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Collapse all folders', 'media-bridge-for-bricks' ); ?></span></wa-button>
+																		<?php if ( $can_manage ) : ?>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-icon-button" id="uplink-mbb-new-collection" aria-label="<?php esc_attr_e( 'New folder', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'New folder', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"></path><path d="M12 12v5M9.5 14.5h5"></path></svg><span class="screen-reader-text"><?php esc_html_e( 'New folder', 'media-bridge-for-bricks' ); ?></span></wa-button>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-icon-button" id="uplink-mbb-manage-collections" aria-label="<?php esc_attr_e( 'Manage folders', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Manage folders', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path><circle cx="16" cy="7" r="2"></circle><circle cx="8" cy="17" r="2"></circle></svg><span class="screen-reader-text"><?php esc_html_e( 'Manage folders', 'media-bridge-for-bricks' ); ?></span></wa-button>
 									<?php endif; ?>
-								</div>
+								</wa-button-group>
 							</div>
 							<nav id="uplink-mbb-collection-tree"></nav>
 						</div>
@@ -967,42 +976,42 @@ final class Native_Media_Library {
 					<div class="uplink-mbb-sidebar-resizer" id="uplink-mbb-sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="<?php esc_attr_e( 'Resize folders panel', 'media-bridge-for-bricks' ); ?>" aria-valuemin="220" aria-valuemax="480" aria-valuenow="280" tabindex="0"></div>
 
 					<main class="uplink-mbb-native-content">
-						<div class="uplink-mbb-health-summary" id="uplink-mbb-health-summary" hidden><strong><?php esc_html_e( 'Media health', 'media-bridge-for-bricks' ); ?></strong><div class="uplink-mbb-health-progress"><span id="uplink-mbb-health-progress-bar"></span></div><span id="uplink-mbb-health-status"></span><button type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-health-rescan" aria-label="<?php esc_attr_e( 'Rescan media health', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Rescan media health', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg></button></div>
+						<div class="uplink-mbb-health-summary" id="uplink-mbb-health-summary" hidden><strong><?php esc_html_e( 'Media health', 'media-bridge-for-bricks' ); ?></strong><wa-progress-bar class="uplink-mbb-health-progress" id="uplink-mbb-health-progress-bar" label="<?php esc_attr_e( 'Healthy media', 'media-bridge-for-bricks' ); ?>"></wa-progress-bar><span id="uplink-mbb-health-status"></span><wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-health-rescan" aria-label="<?php esc_attr_e( 'Rescan media health', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Rescan media health', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg><span class="screen-reader-text"><?php esc_html_e( 'Rescan media health', 'media-bridge-for-bricks' ); ?></span></wa-button></div>
 						<section class="uplink-mbb-library-drawer uplink-mbb-library-toolbar" id="uplink-mbb-library-drawer">
 							<div class="uplink-mbb-library-drawer-bar">
 								<form id="uplink-mbb-media-search" role="search">
-									<label class="screen-reader-text" for="uplink-mbb-search-input"><?php esc_html_e( 'Search media', 'media-bridge-for-bricks' ); ?></label>
-									<input type="search" id="uplink-mbb-search-input" placeholder="<?php esc_attr_e( 'Search', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Use * as a filename wildcard, for example *-1.png.', 'media-bridge-for-bricks' ); ?>">
-									<button type="submit" class="uplink-mbb-toolbar-button" aria-label="<?php esc_attr_e( 'Search media', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Search media', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg></button>
+																		<wa-input class="wa-visually-hidden-label" size="small" label="<?php esc_attr_e( 'Search media', 'media-bridge-for-bricks' ); ?>" type="search" id="uplink-mbb-search-input" placeholder="<?php esc_attr_e( 'Search', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Use * as a filename wildcard, for example *-1.png.', 'media-bridge-for-bricks' ); ?>">
+									<button slot="end" type="submit" class="uplink-mbb-toolbar-button" aria-label="<?php esc_attr_e( 'Search media', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Search media', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg></button>
+									</wa-input>
 								</form>
-								<button type="button" class="uplink-mbb-toolbar-button uplink-mbb-library-drawer-toggle" id="uplink-mbb-library-drawer-toggle" aria-expanded="false" aria-controls="uplink-mbb-library-drawer-panel" aria-label="<?php esc_attr_e( 'Open filters', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Filter media', 'media-bridge-for-bricks' ); ?>">
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-toolbar-button uplink-mbb-library-drawer-toggle" id="uplink-mbb-library-drawer-toggle" aria-expanded="false" aria-controls="uplink-mbb-library-drawer-panel" aria-label="<?php esc_attr_e( 'Open filters', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Filter media', 'media-bridge-for-bricks' ); ?>">
 									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7v6l-4 2v-8z"></path></svg>
 									<span class="uplink-mbb-library-drawer-summary" id="uplink-mbb-library-drawer-summary" aria-live="polite"></span>
-								</button>
+								<span class="screen-reader-text"><?php esc_html_e( 'Open filters', 'media-bridge-for-bricks' ); ?></span></wa-button>
 								<button type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-reorder-media" aria-pressed="false" aria-label="<?php esc_attr_e( 'Reorder', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Reorder', 'media-bridge-for-bricks' ); ?>" hidden><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="currentColor" fill="none"><path d="M22.75 20.75H13.25V13.25H22.75V20.75ZM10.75 7.75H7C4.65279 7.75 2.75 9.65279 2.75 12C2.75 14.3472 4.65279 16.25 7 16.25H8.18945L6.4375 14.498L7.49805 13.4375L11.0586 16.998L7.49805 20.5586L6.4375 19.498L8.18555 17.75H7C3.82436 17.75 1.25 15.1756 1.25 12C1.25 8.82436 3.82436 6.25 7 6.25H10.75V7.75ZM14.75 19.25H21.25V14.75H14.75V19.25ZM22.75 10.75H13.25V3.25H22.75V10.75ZM14.75 9.25H21.25V4.75H14.75V9.25Z" fill="currentColor"></path></svg></button>
-								<div class="uplink-mbb-view-switch" role="group" aria-label="<?php esc_attr_e( 'View mode', 'media-bridge-for-bricks' ); ?>">
-									<button type="button" class="uplink-mbb-view-button" id="uplink-mbb-list-view" aria-label="<?php esc_attr_e( 'List view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'List view', 'media-bridge-for-bricks' ); ?>" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg></button>
-									<button type="button" class="uplink-mbb-view-button" id="uplink-mbb-grid-view" aria-label="<?php esc_attr_e( 'Grid view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Grid view', 'media-bridge-for-bricks' ); ?>" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg></button>
-									<button type="button" class="uplink-mbb-view-button" id="uplink-mbb-masonry-view" aria-label="<?php esc_attr_e( 'Masonry view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Masonry view', 'media-bridge-for-bricks' ); ?>" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="5" rx="1"></rect><rect x="14" y="3" width="7" height="9" rx="1"></rect><rect x="3" y="11" width="8" height="10" rx="1"></rect><rect x="14" y="15" width="7" height="6" rx="1"></rect></svg></button>
-								</div>
-								<button type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-display-options-toggle" aria-expanded="false" aria-controls="uplink-mbb-display-options" aria-label="<?php esc_attr_e( 'Open display options', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Display options', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></button>
+								<wa-button-group label="<?php esc_attr_e( 'View mode', 'media-bridge-for-bricks' ); ?>" class="uplink-mbb-view-switch" role="group" aria-label="<?php esc_attr_e( 'View mode', 'media-bridge-for-bricks' ); ?>">
+									<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-view-button" id="uplink-mbb-list-view" aria-label="<?php esc_attr_e( 'List view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'List view', 'media-bridge-for-bricks' ); ?>" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg><span class="screen-reader-text"><?php esc_html_e( 'List view', 'media-bridge-for-bricks' ); ?></span></wa-button>
+									<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-view-button" id="uplink-mbb-grid-view" aria-label="<?php esc_attr_e( 'Grid view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Grid view', 'media-bridge-for-bricks' ); ?>" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg><span class="screen-reader-text"><?php esc_html_e( 'Grid view', 'media-bridge-for-bricks' ); ?></span></wa-button>
+									<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-view-button" id="uplink-mbb-masonry-view" aria-label="<?php esc_attr_e( 'Masonry view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Masonry view', 'media-bridge-for-bricks' ); ?>" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="5" rx="1"></rect><rect x="14" y="3" width="7" height="9" rx="1"></rect><rect x="3" y="11" width="8" height="10" rx="1"></rect><rect x="14" y="15" width="7" height="6" rx="1"></rect></svg><span class="screen-reader-text"><?php esc_html_e( 'Masonry view', 'media-bridge-for-bricks' ); ?></span></wa-button>
+								</wa-button-group>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-display-options-toggle" aria-expanded="false" aria-controls="uplink-mbb-display-options" aria-label="<?php esc_attr_e( 'Open display options', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Display options', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg><span class="screen-reader-text"><?php esc_html_e( 'Open display options', 'media-bridge-for-bricks' ); ?></span></wa-button>
 							</div>
 							<div class="uplink-mbb-library-drawer-panel uplink-mbb-toolbar-popover" id="uplink-mbb-library-drawer-panel" role="region" aria-label="<?php esc_attr_e( 'Media filters', 'media-bridge-for-bricks' ); ?>" hidden>
-								<div class="uplink-mbb-popover-heading"><h3><?php esc_html_e( 'Filter', 'media-bridge-for-bricks' ); ?></h3><div class="uplink-mbb-popover-heading-actions"><button type="button" class="button" id="uplink-mbb-clear-filters" disabled><?php esc_html_e( 'Clear all', 'media-bridge-for-bricks' ); ?></button><button type="button" class="uplink-mbb-popover-close" data-filter-close aria-label="<?php esc_attr_e( 'Close filters', 'media-bridge-for-bricks' ); ?>">&times;</button></div></div>
+								<div class="uplink-mbb-popover-heading"><h3><?php esc_html_e( 'Filter', 'media-bridge-for-bricks' ); ?></h3><div class="uplink-mbb-popover-heading-actions"><wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button" id="uplink-mbb-clear-filters" disabled><?php esc_html_e( 'Clear all', 'media-bridge-for-bricks' ); ?></wa-button><button type="button" class="uplink-mbb-popover-close" data-filter-close aria-label="<?php esc_attr_e( 'Close filters', 'media-bridge-for-bricks' ); ?>">&times;</button></div></div>
 								<div class="uplink-mbb-library-drawer-primary">
 									<div class="uplink-mbb-library-controls" aria-label="<?php esc_attr_e( 'Media display options', 'media-bridge-for-bricks' ); ?>">
-									<label for="uplink-mbb-type-filter"><?php esc_html_e( 'Media type', 'media-bridge-for-bricks' ); ?>
-									<select id="uplink-mbb-type-filter">
-										<option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option>
-										<option value="image"><?php esc_html_e( 'Images', 'media-bridge-for-bricks' ); ?></option>
-										<option value="audio"><?php esc_html_e( 'Audio', 'media-bridge-for-bricks' ); ?></option>
-										<option value="video"><?php esc_html_e( 'Video', 'media-bridge-for-bricks' ); ?></option>
-										<option value="application"><?php esc_html_e( 'Documents', 'media-bridge-for-bricks' ); ?></option>
-									</select></label>
-									<label for="uplink-mbb-mime-filter"><?php esc_html_e( 'MIME subtype', 'media-bridge-for-bricks' ); ?><select id="uplink-mbb-mime-filter" data-all-mime-types="<?php esc_attr_e( 'All', 'media-bridge-for-bricks' ); ?>"><option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option></select></label>
-									<label for="uplink-mbb-uploader-filter"><?php esc_html_e( 'Uploaded by', 'media-bridge-for-bricks' ); ?><select id="uplink-mbb-uploader-filter" data-all-uploaders="<?php esc_attr_e( 'All', 'media-bridge-for-bricks' ); ?>"><option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option></select></label>
-									<label for="uplink-mbb-attachment-status-filter"><?php esc_html_e( 'Attachment status', 'media-bridge-for-bricks' ); ?><select id="uplink-mbb-attachment-status-filter"><option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option><option value="attached"><?php esc_html_e( 'Attached', 'media-bridge-for-bricks' ); ?></option><option value="unattached"><?php esc_html_e( 'Unattached', 'media-bridge-for-bricks' ); ?></option></select></label>
-					<label for="uplink-mbb-optimization-status-filter"><?php esc_html_e( 'Optimization', 'media-bridge-for-bricks' ); ?><select id="uplink-mbb-optimization-status-filter"><option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option><option value="optimized"><?php esc_html_e( 'Optimized by CIMO', 'media-bridge-for-bricks' ); ?></option><option value="not_optimized"><?php esc_html_e( 'Not optimized', 'media-bridge-for-bricks' ); ?></option></select></label>
+
+									<wa-select size="small" label="<?php esc_attr_e( 'Media type', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-type-filter">
+										<wa-option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></wa-option>
+										<wa-option value="image"><?php esc_html_e( 'Images', 'media-bridge-for-bricks' ); ?></wa-option>
+										<wa-option value="audio"><?php esc_html_e( 'Audio', 'media-bridge-for-bricks' ); ?></wa-option>
+										<wa-option value="video"><?php esc_html_e( 'Video', 'media-bridge-for-bricks' ); ?></wa-option>
+										<wa-option value="application"><?php esc_html_e( 'Documents', 'media-bridge-for-bricks' ); ?></wa-option>
+									</wa-select>
+									<wa-select size="small" label="<?php esc_attr_e( 'MIME subtype', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-mime-filter" data-all-mime-types="<?php esc_attr_e( 'All', 'media-bridge-for-bricks' ); ?>"><wa-option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></wa-option></wa-select>
+									<wa-select size="small" label="<?php esc_attr_e( 'Uploaded by', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-uploader-filter" data-all-uploaders="<?php esc_attr_e( 'All', 'media-bridge-for-bricks' ); ?>"><wa-option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></wa-option></wa-select>
+									<wa-select size="small" label="<?php esc_attr_e( 'Attachment status', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-attachment-status-filter"><wa-option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></wa-option><wa-option value="attached"><?php esc_html_e( 'Attached', 'media-bridge-for-bricks' ); ?></wa-option><wa-option value="unattached"><?php esc_html_e( 'Unattached', 'media-bridge-for-bricks' ); ?></wa-option></wa-select>
+					<wa-select size="small" label="<?php esc_attr_e( 'Optimization', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-optimization-status-filter"><wa-option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></wa-option><wa-option value="optimized"><?php esc_html_e( 'Optimized', 'media-bridge-for-bricks' ); ?></wa-option><wa-option value="not_optimized"><?php esc_html_e( 'Not optimized', 'media-bridge-for-bricks' ); ?></wa-option></wa-select>
 									<label for="uplink-mbb-uploaded-from-filter"><?php esc_html_e( 'Uploaded from', 'media-bridge-for-bricks' ); ?><input type="date" id="uplink-mbb-uploaded-from-filter"></label>
 									<label for="uplink-mbb-uploaded-to-filter"><?php esc_html_e( 'Uploaded to', 'media-bridge-for-bricks' ); ?><input type="date" id="uplink-mbb-uploaded-to-filter"></label>
 									<fieldset class="uplink-mbb-filter-range"><legend><?php esc_html_e( 'Width (px)', 'media-bridge-for-bricks' ); ?></legend><div><input type="number" min="0" id="uplink-mbb-width-min-filter" placeholder="<?php esc_attr_e( 'Minimum', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Minimum width', 'media-bridge-for-bricks' ); ?>"><input type="number" min="0" id="uplink-mbb-width-max-filter" placeholder="<?php esc_attr_e( 'Maximum', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Maximum width', 'media-bridge-for-bricks' ); ?>"></div></fieldset>
@@ -1015,7 +1024,7 @@ final class Native_Media_Library {
 							<div class="uplink-mbb-toolbar-popover uplink-mbb-display-options" id="uplink-mbb-display-options" role="region" aria-label="<?php esc_attr_e( 'Display options', 'media-bridge-for-bricks' ); ?>" hidden>
 								<div class="uplink-mbb-popover-heading"><h3><?php esc_html_e( 'Display', 'media-bridge-for-bricks' ); ?></h3><button type="button" class="uplink-mbb-popover-close" data-display-close aria-label="<?php esc_attr_e( 'Close display options', 'media-bridge-for-bricks' ); ?>">&times;</button></div>
 								<div class="uplink-mbb-grid-size-control"><label for="uplink-mbb-grid-size"><?php esc_html_e( 'Thumbnail size', 'media-bridge-for-bricks' ); ?></label><input type="range" id="uplink-mbb-grid-size" min="180" max="400" step="10" value="240" aria-describedby="uplink-mbb-grid-size-value"><output id="uplink-mbb-grid-size-value" for="uplink-mbb-grid-size">240px</output></div>
-								<div class="uplink-mbb-grid-ratio-control"><span><?php esc_html_e( 'Aspect ratio', 'media-bridge-for-bricks' ); ?></span><div class="uplink-mbb-grid-ratio-options" role="group" aria-label="<?php esc_attr_e( 'Aspect ratio', 'media-bridge-for-bricks' ); ?>"><button type="button" data-grid-ratio="16/9" aria-pressed="false"><?php esc_html_e( '16:9', 'media-bridge-for-bricks' ); ?></button><button type="button" data-grid-ratio="4/3" aria-pressed="true"><?php esc_html_e( '4:3', 'media-bridge-for-bricks' ); ?></button><button type="button" data-grid-ratio="1/1" aria-pressed="false"><?php esc_html_e( '1:1', 'media-bridge-for-bricks' ); ?></button></div></div>
+								<div class="uplink-mbb-grid-ratio-control"><span><?php esc_html_e( 'Aspect ratio', 'media-bridge-for-bricks' ); ?></span><wa-button-group label="<?php esc_attr_e( 'Aspect ratio', 'media-bridge-for-bricks' ); ?>" class="uplink-mbb-grid-ratio-options" role="group" aria-label="<?php esc_attr_e( 'Aspect ratio', 'media-bridge-for-bricks' ); ?>"><wa-button size="small" type="button" appearance="outlined" data-grid-ratio="16/9" aria-pressed="false"><?php esc_html_e( '16:9', 'media-bridge-for-bricks' ); ?></wa-button><wa-button size="small" type="button" appearance="outlined" data-grid-ratio="4/3" aria-pressed="true"><?php esc_html_e( '4:3', 'media-bridge-for-bricks' ); ?></wa-button><wa-button size="small" type="button" appearance="outlined" data-grid-ratio="1/1" aria-pressed="false"><?php esc_html_e( '1:1', 'media-bridge-for-bricks' ); ?></wa-button></wa-button-group></div>
 								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'File name', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="filename"></label>
 								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Author', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="author" checked></label>
 								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Date', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="date" checked></label>
@@ -1024,15 +1033,19 @@ final class Native_Media_Library {
 								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Dimensions', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="dimensions"></label>
 							</div>
 							<div class="uplink-mbb-selection-tools" id="uplink-mbb-selection-tools" hidden>
-									<span id="uplink-mbb-selection-count" aria-live="polite"></span>
-									<span class="uplink-mbb-selection-help" id="uplink-mbb-selection-help"><?php esc_html_e( 'Choose a folder to enable its Add and Remove actions. Shift-click checkboxes to select a range.', 'media-bridge-for-bricks' ); ?></span>
-									<label class="screen-reader-text" for="uplink-mbb-bulk-collection"><?php esc_html_e( 'Choose a folder', 'media-bridge-for-bricks' ); ?></label>
-									<select id="uplink-mbb-bulk-collection" aria-describedby="uplink-mbb-selection-help"></select>
-									<button type="button" class="button" id="uplink-mbb-bulk-add" disabled><?php esc_html_e( 'Add to folder', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" class="button" id="uplink-mbb-bulk-remove" disabled><?php esc_html_e( 'Remove from folder', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" class="button" id="uplink-mbb-bulk-clear"><?php esc_html_e( 'Uncategorize', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" class="button" id="uplink-mbb-bulk-deselect"><?php esc_html_e( 'Clear selection', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" class="button button-link-delete" id="uplink-mbb-bulk-delete"><?php esc_html_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?></button>
+                                    <div class="uplink-mbb-selection-picker">
+                                        <div class="uplink-mbb-selection-picker-label"><label for="uplink-mbb-bulk-collection"><?php esc_html_e( 'Choose a folder', 'media-bridge-for-bricks' ); ?></label><wa-button size="small" appearance="plain" variant="neutral" id="uplink-mbb-selection-help-toggle" aria-label="<?php esc_attr_e( 'About folder assignments', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></svg><span class="screen-reader-text"><?php esc_html_e( 'About folder assignments', 'media-bridge-for-bricks' ); ?></span></wa-button></div>
+                                        <wa-select size="small" label="<?php esc_attr_e( 'Choose a folder', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-bulk-collection"></wa-select>
+                                        <wa-popover for="uplink-mbb-selection-help-toggle" id="uplink-mbb-selection-help" placement="bottom-end"><p><?php esc_html_e( 'Drag images onto a folder to move them. Use Add and Remove for multiple assignments.', 'media-bridge-for-bricks' ); ?></p></wa-popover>
+                                    </div>
+									<wa-button-group class="uplink-mbb-selection-actions" label="<?php esc_attr_e( 'Selected image actions', 'media-bridge-for-bricks' ); ?>">
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-add" aria-label="<?php esc_attr_e( 'Add to folder', 'media-bridge-for-bricks' ); ?>" disabled><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/folder-plus.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Add to folder', 'media-bridge-for-bricks' ); ?></span></wa-button>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-remove" aria-label="<?php esc_attr_e( 'Remove from folder', 'media-bridge-for-bricks' ); ?>" disabled><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/folder-minus.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Remove from folder', 'media-bridge-for-bricks' ); ?></span></wa-button>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-clear" aria-label="<?php esc_attr_e( 'Uncategorize', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/folder-x.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Uncategorize', 'media-bridge-for-bricks' ); ?></span></wa-button>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-deselect" aria-label="<?php esc_attr_e( 'Clear selection', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/square-minus.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Clear selection', 'media-bridge-for-bricks' ); ?></span></wa-button>
+										<wa-button size="small" variant="danger" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-delete" aria-label="<?php esc_attr_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/trash.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?></span></wa-button>
+									</wa-button-group>
+									<span id="uplink-mbb-selection-count" role="status" aria-live="polite"></span>
 							</div>
 						</section>
 						<p id="uplink-mbb-search-status" class="screen-reader-text" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -1067,9 +1080,9 @@ final class Native_Media_Library {
 						<header class="uplink-mbb-attachment-header">
 							<h2 class="uplink-mbb-attachment-eyebrow" id="uplink-mbb-attachment-dialog-title"><?php esc_html_e( 'Attachment details', 'media-bridge-for-bricks' ); ?></h2>
 							<div class="uplink-mbb-attachment-header-actions">
-								<button type="button" class="uplink-mbb-attachment-header-nav" id="uplink-mbb-attachment-previous" aria-label="<?php esc_attr_e( 'Previous attachment', 'media-bridge-for-bricks' ); ?>"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span></button>
-								<button type="button" class="uplink-mbb-attachment-header-nav" id="uplink-mbb-attachment-next" aria-label="<?php esc_attr_e( 'Next attachment', 'media-bridge-for-bricks' ); ?>"><span class="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span></button>
-								<button type="button" class="uplink-mbb-attachment-header-nav" data-attachment-close aria-label="<?php esc_attr_e( 'Close', 'media-bridge-for-bricks' ); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
+								<wa-button-group label="<?php esc_attr_e( 'Image navigation', 'media-bridge-for-bricks' ); ?>"><wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-attachment-header-nav" id="uplink-mbb-attachment-previous" aria-label="<?php esc_attr_e( 'Previous attachment', 'media-bridge-for-bricks' ); ?>"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Previous attachment', 'media-bridge-for-bricks' ); ?></span></wa-button>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-attachment-header-nav" id="uplink-mbb-attachment-next" aria-label="<?php esc_attr_e( 'Next attachment', 'media-bridge-for-bricks' ); ?>"><span class="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Next attachment', 'media-bridge-for-bricks' ); ?></span></wa-button></wa-button-group>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-attachment-header-nav" data-attachment-close aria-label="<?php esc_attr_e( 'Close', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-close-icon" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Close', 'media-bridge-for-bricks' ); ?></span></wa-button>
 							</div>
 						</header>
 						<div class="uplink-mbb-attachment-preview-wrap">
@@ -1078,24 +1091,18 @@ final class Native_Media_Library {
 						<div class="uplink-mbb-attachment-info">
 							<h3 id="uplink-mbb-attachment-title"></h3>
 							<p class="uplink-mbb-attachment-position" id="uplink-mbb-attachment-position" aria-live="polite"></p>
-							<div class="uplink-mbb-attachment-notice" id="uplink-mbb-attachment-notice" role="status" aria-live="polite" aria-atomic="true" hidden><p></p></div>
-							<div class="uplink-mbb-attachment-metadata">
-								<div class="uplink-mbb-attachment-metadata-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Attachment metadata', 'media-bridge-for-bricks' ); ?>">
-									<button type="button" id="uplink-mbb-attachment-main-tab" role="tab" aria-selected="true" aria-controls="uplink-mbb-attachment-main-panel"><?php esc_html_e( 'Main', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" id="uplink-mbb-attachment-file-tab" role="tab" aria-selected="false" aria-controls="uplink-mbb-attachment-file-panel" tabindex="-1"><?php esc_html_e( 'Metadata', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" id="uplink-mbb-attachment-exif-tab" role="tab" aria-selected="false" aria-controls="uplink-mbb-attachment-exif" tabindex="-1" hidden><?php esc_html_e( 'EXIF', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" id="uplink-mbb-attachment-optimization-tab" role="tab" aria-selected="false" aria-controls="uplink-mbb-attachment-optimization" tabindex="-1" hidden><?php esc_html_e( 'Optimization', 'media-bridge-for-bricks' ); ?></button>
-								</div>
-								<div id="uplink-mbb-attachment-main-panel" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-section uplink-mbb-attachment-fields" role="tabpanel" aria-labelledby="uplink-mbb-attachment-main-tab">
-									<label for="uplink-mbb-attachment-title-input"><?php esc_html_e( 'Title', 'media-bridge-for-bricks' ); ?></label>
-									<input type="text" id="uplink-mbb-attachment-title-input">
-									<label for="uplink-mbb-attachment-alt"><?php esc_html_e( 'Alt text', 'media-bridge-for-bricks' ); ?></label>
-									<textarea id="uplink-mbb-attachment-alt" rows="3"></textarea>
+							<wa-callout variant="neutral" appearance="outlined" class="uplink-mbb-attachment-notice" id="uplink-mbb-attachment-notice" role="status" aria-live="polite" aria-atomic="true" hidden><p></p></wa-callout>
+							<wa-tab-group id="uplink-mbb-detail-tabs" active="main" class="uplink-mbb-attachment-metadata">
+								<wa-tab panel="main" id="uplink-mbb-attachment-main-tab" aria-selected="true" aria-controls="uplink-mbb-attachment-main-panel"><?php esc_html_e( 'Main', 'media-bridge-for-bricks' ); ?></wa-tab>
+<wa-tab panel="file" id="uplink-mbb-attachment-file-tab" aria-selected="false" aria-controls="uplink-mbb-attachment-file-panel"><?php esc_html_e( 'Metadata', 'media-bridge-for-bricks' ); ?></wa-tab>
+<wa-tab panel="exif" id="uplink-mbb-attachment-exif-tab" aria-selected="false" aria-controls="uplink-mbb-attachment-exif" hidden><?php esc_html_e( 'EXIF', 'media-bridge-for-bricks' ); ?></wa-tab>
+<wa-tab panel="optimization" id="uplink-mbb-attachment-optimization-tab" aria-selected="false" aria-controls="uplink-mbb-attachment-optimization" hidden><?php esc_html_e( 'Optimization', 'media-bridge-for-bricks' ); ?></wa-tab>
+								<wa-tab-panel name="main" id="uplink-mbb-attachment-main-panel" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-section uplink-mbb-attachment-fields" role="tabpanel" aria-labelledby="uplink-mbb-attachment-main-tab"><div class="uplink-mbb-attachment-field-stack">
+																		<wa-input size="small" label="<?php esc_attr_e( 'Title', 'media-bridge-for-bricks' ); ?>" type="text" id="uplink-mbb-attachment-title-input"></wa-input>
+																		<wa-textarea size="small" label="<?php esc_attr_e( 'Alt text', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-attachment-alt" rows="3"></wa-textarea>
 									<label class="uplink-mbb-decorative-toggle"><input type="checkbox" id="uplink-mbb-attachment-decorative"> <?php esc_html_e( 'Decorative image', 'media-bridge-for-bricks' ); ?></label>
-									<label for="uplink-mbb-attachment-caption"><?php esc_html_e( 'Caption', 'media-bridge-for-bricks' ); ?></label>
-									<textarea id="uplink-mbb-attachment-caption" rows="3"></textarea>
-									<label for="uplink-mbb-attachment-description"><?php esc_html_e( 'Description', 'media-bridge-for-bricks' ); ?></label>
-									<textarea id="uplink-mbb-attachment-description" rows="4"></textarea>
+																		<wa-textarea size="small" label="<?php esc_attr_e( 'Caption', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-attachment-caption" rows="3"></wa-textarea>
+																		<wa-textarea size="small" label="<?php esc_attr_e( 'Description', 'media-bridge-for-bricks' ); ?>" id="uplink-mbb-attachment-description" rows="4"></wa-textarea>
 									<div class="uplink-mbb-attachment-compatibility" id="uplink-mbb-attachment-compatibility" hidden>
 										<form id="uplink-mbb-attachment-compatibility-form"></form>
 									</div>
@@ -1104,8 +1111,8 @@ final class Native_Media_Library {
 										<div id="uplink-mbb-attachment-collection-options"></div>
 										<p><?php esc_html_e( 'Leave every folder unchecked to place this item in Uncategorized.', 'media-bridge-for-bricks' ); ?></p>
 									</fieldset>
-								</div>
-								<div id="uplink-mbb-attachment-file-panel" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-section uplink-mbb-attachment-fields" role="tabpanel" aria-labelledby="uplink-mbb-attachment-file-tab" hidden>
+								</div></wa-tab-panel>
+								<wa-tab-panel name="file" id="uplink-mbb-attachment-file-panel" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-section uplink-mbb-attachment-fields" role="tabpanel" aria-labelledby="uplink-mbb-attachment-file-tab" hidden>
 									<dl class="uplink-mbb-attachment-data-list">
 										<div><dt><?php esc_html_e( 'File name', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-filename"></dd></div>
 										<div><dt><?php esc_html_e( 'Relative file path', 'media-bridge-for-bricks' ); ?></dt><dd class="uplink-mbb-attachment-path-row"><code id="uplink-mbb-attachment-path"></code><button type="button" class="button-link dashicons dashicons-admin-page" id="uplink-mbb-attachment-copy" aria-label="<?php esc_attr_e( 'Copy relative file path', 'media-bridge-for-bricks' ); ?>"></button></dd></div>
@@ -1117,16 +1124,16 @@ final class Native_Media_Library {
 										<div><dt><?php esc_html_e( 'Uploaded', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-date"></dd></div>
 										<div><dt><?php esc_html_e( 'Attachment ID', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-id"></dd></div>
 									</dl>
-								</div>
-								<div class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-exif" id="uplink-mbb-attachment-exif" role="tabpanel" aria-labelledby="uplink-mbb-attachment-exif-tab" hidden><dl></dl></div>
-								<div class="uplink-mbb-attachment-metadata-panel uplink-mbb-optimization-details" id="uplink-mbb-attachment-optimization" role="tabpanel" aria-labelledby="uplink-mbb-attachment-optimization-tab" hidden><div id="uplink-mbb-conversion-controls" hidden></div><div class="uplink-mbb-optimization-groups" id="uplink-mbb-attachment-optimization-list"></div></div>
-							</div>
+								</wa-tab-panel>
+								<wa-tab-panel name="exif" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-exif" id="uplink-mbb-attachment-exif" role="tabpanel" aria-labelledby="uplink-mbb-attachment-exif-tab" hidden><dl></dl></wa-tab-panel>
+								<wa-tab-panel name="optimization" class="uplink-mbb-attachment-metadata-panel uplink-mbb-optimization-details" id="uplink-mbb-attachment-optimization" role="tabpanel" aria-labelledby="uplink-mbb-attachment-optimization-tab" hidden><div id="uplink-mbb-conversion-controls" hidden></div><div class="uplink-mbb-optimization-groups" id="uplink-mbb-attachment-optimization-list"></div></wa-tab-panel>
+							</wa-tab-group>
 							<div class="uplink-mbb-attachment-actions">
 								<a href="#" class="button" id="uplink-mbb-attachment-edit" title="<?php esc_attr_e( 'Edit image', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Edit image', 'media-bridge-for-bricks' ); ?>" hidden><span class="dashicons dashicons-wordpress-alt" aria-hidden="true"></span><span><?php esc_html_e( 'Edit', 'media-bridge-for-bricks' ); ?></span></a>
-								<button type="button" class="button" id="uplink-mbb-attachment-optimize" hidden><?php esc_html_e( 'Optimize', 'media-bridge-for-bricks' ); ?></button>
-								<button type="button" class="button" id="uplink-mbb-attachment-replace" title="<?php esc_attr_e( 'Replace file', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Replace file', 'media-bridge-for-bricks' ); ?>" hidden><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/ai-swap-twotone-rounded.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?><?php esc_html_e( 'Replace', 'media-bridge-for-bricks' ); ?></button>
-								<button type="button" class="button button-primary" id="uplink-mbb-attachment-save-alt" disabled title="<?php esc_attr_e( 'Save changes', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Save changes', 'media-bridge-for-bricks' ); ?>"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/save-twotone-rounded.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?><?php esc_html_e( 'Save', 'media-bridge-for-bricks' ); ?></button>
-								<button type="button" class="button button-link-delete" id="uplink-mbb-attachment-delete" title="<?php esc_attr_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?>"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/delete-02-stroke-sharp.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?><?php esc_html_e( 'Delete', 'media-bridge-for-bricks' ); ?></button>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button" id="uplink-mbb-attachment-optimize" hidden><?php esc_html_e( 'Optimize', 'media-bridge-for-bricks' ); ?></wa-button>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button" id="uplink-mbb-attachment-replace" title="<?php esc_attr_e( 'Replace file', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Replace file', 'media-bridge-for-bricks' ); ?>" hidden><span slot="start" class="uplink-mbb-footer-icon" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/ai-swap-twotone-rounded.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><?php esc_html_e( 'Replace', 'media-bridge-for-bricks' ); ?></wa-button>
+								<wa-button size="small" variant="brand" appearance="outlined" type="button" class="button button-primary" id="uplink-mbb-attachment-save-alt" disabled title="<?php esc_attr_e( 'Save changes', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Save changes', 'media-bridge-for-bricks' ); ?>"><span slot="start" class="uplink-mbb-footer-icon" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/save-twotone-rounded.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><?php esc_html_e( 'Save', 'media-bridge-for-bricks' ); ?></wa-button>
+								<wa-button size="small" variant="danger" appearance="outlined" type="button" class="button button-link-delete" id="uplink-mbb-attachment-delete" title="<?php esc_attr_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?>"><span slot="start" class="uplink-mbb-footer-icon" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/trash.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><?php esc_html_e( 'Delete', 'media-bridge-for-bricks' ); ?></wa-button>
 							</div>
 						</div>
 					</div>
@@ -1879,15 +1886,21 @@ final class Native_Media_Library {
 		$media_ids  = is_array( $media_ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $media_ids ) ) ) ) : array();
 		$collection = absint( $_POST['collection'] ?? 0 );
 		$mode       = sanitize_key( wp_unslash( $_POST['mode'] ?? 'add' ) );
+		$source     = absint( $_POST['source_collection'] ?? 0 );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
-		if ( ! $media_ids || ! in_array( $mode, array( 'add', 'remove', 'clear' ), true ) ) {
+		if ( ! $media_ids || ! in_array( $mode, array( 'add', 'remove', 'clear', 'move' ), true ) ) {
 			wp_send_json_error( array( 'message' => __( 'Choose at least one media item.', 'media-bridge-for-bricks' ) ), 400 );
 		}
 		if ( 'clear' !== $mode && ( ! $collection || ! $this->folders->get_term( $collection ) ) ) {
 			wp_send_json_error( array( 'message' => __( 'Choose a valid folder.', 'media-bridge-for-bricks' ) ), 400 );
 		}
 
-		$errors = $this->assign_media_items( $media_ids, $collection, $mode );
+		if ( 'move' === $mode && $source && ! $this->folders->get_term( $source ) ) {
+			wp_send_json_error( array( 'message' => __( 'Choose a valid source folder.', 'media-bridge-for-bricks' ) ), 400 );
+		}
+		$errors = 'move' === $mode
+			? $this->move_media_items( $media_ids, $source, $collection )
+			: $this->assign_media_items( $media_ids, $collection, $mode );
 
 		if ( $errors ) {
 			wp_send_json_error(
@@ -2267,7 +2280,8 @@ final class Native_Media_Library {
 			'imageEditUrl' => $image_edit_url,
 			'canEdit'     => current_user_can( 'edit_post', $attachment_id ),
 			'canDelete'   => current_user_can( 'delete_post', $attachment_id ),
-			'canConvert' => Image_Conversion::allowed( $attachment_id ) && in_array( get_post_mime_type( $attachment_id ), array( 'image/png', 'image/jpeg', 'image/webp', 'image/avif' ), true ),
+			'canConvert' => ! empty( Plugin::settings()['image_conversion'] ) && Image_Conversion::allowed( $attachment_id ) && in_array( get_post_mime_type( $attachment_id ), array( 'image/png', 'image/jpeg', 'image/webp', 'image/avif' ), true ),
+			'canRestore' => Image_Conversion::allowed( $attachment_id, 'restore' ),
 			'canCompress' => empty( $metadata['cimo'] ) && empty( $metadata['mbb_optimization'] ),
 			'conversion' => Image_Conversion::summary( $attachment_id ),
 			'canOptimize' => empty( $metadata['cimo'] ) && Cimo_Optimization::available() && ! is_wp_error( $plan = Cimo_Optimization::plan( $attachment_id ) ) && (bool) $plan,
@@ -2587,6 +2601,32 @@ final class Native_Media_Library {
 			'_total_original_size' => $original_size,
 			'_total_optimized_size' => $optimized_size,
 		);
+	}
+
+	/** Move out of the viewed collection branch while preserving unrelated memberships. */
+	private function move_media_items( array $media_ids, int $source, int $destination ): array {
+		$taxonomy = $this->folders->taxonomy();
+		$source_ids = $source ? get_term_children( $source, $taxonomy ) : array();
+		if ( is_wp_error( $source_ids ) ) return $media_ids;
+		if ( $source ) $source_ids[] = $source;
+		$source_ids = array_map( 'intval', $source_ids );
+		$assignments = array();
+		$errors = array();
+		// Validate the complete selection before changing any relationship.
+		foreach ( $media_ids as $id ) {
+			if ( 'attachment' !== get_post_type( $id ) || ! current_user_can( 'edit_post', $id ) ) { $errors[] = $id; continue; }
+			$existing = wp_get_object_terms( $id, $taxonomy, array( 'fields' => 'ids' ) );
+			if ( is_wp_error( $existing ) ) { $errors[] = $id; continue; }
+			$existing = array_map( 'intval', $existing );
+			if ( $source && ! array_intersect( $existing, $source_ids ) ) { $errors[] = $id; continue; }
+			$assignments[ $id ] = $source === $destination ? $existing : array_values( array_unique( array_merge( array_diff( $existing, $source_ids ), array( $destination ) ) ) );
+		}
+		if ( $errors ) return $errors;
+		foreach ( $assignments as $id => $terms ) {
+			if ( is_wp_error( wp_set_object_terms( $id, $terms, $taxonomy, false ) ) ) $errors[] = $id;
+		}
+		if ( ! $errors ) do_action( 'uplink_mbb_media_collections_changed', $media_ids, $destination, 'move' );
+		return $errors;
 	}
 
 	private function assign_media_items( array $media_ids, int $collection, string $mode, bool $trusted_command = false ): array {

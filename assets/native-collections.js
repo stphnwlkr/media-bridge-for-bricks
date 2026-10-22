@@ -575,7 +575,7 @@
 		button.className = `uplink-mbb-native-panel-action ${ className }`;
 		button.setAttribute( 'aria-label', label );
 		button.title = label;
-		button.innerHTML = `<span class="dashicons dashicons-${ iconName }" aria-hidden="true"></span>`;
+		button.innerHTML = `<span class="${ iconName === 'trash' ? 'uplink-mbb-trash-icon' : `dashicons dashicons-${ iconName }` }" aria-hidden="true"></span>`;
 		return button;
 	}
 
