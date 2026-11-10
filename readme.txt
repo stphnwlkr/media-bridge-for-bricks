@@ -4,7 +4,7 @@ Tags: media library, folders, image optimization, gallery, bricks
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -191,6 +191,9 @@ No ongoing synchronization runs. Import copies supported source folders and opti
 The plugin preserves its folders, assignments, settings, and metadata.
 
 == Changelog ==
+
+= 1.2.2 =
+* Fixes an issue where clicking a Ramka Gallery thumbnail in Gutenberg could open the image inside the editing frame and trigger an editor error. Thumbnails now select the gallery block in the editor.
 
 = 1.2.1 =
 * Saves changes to title, alt text, caption, and description when you leave a field, including when you click into another field or press Tab. Save also commits changes. Typing no longer triggers save requests.

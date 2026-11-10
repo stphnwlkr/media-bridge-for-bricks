@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Uplink Media Manager
  * Description: Manage WordPress media with folders, compression, galleries and optional Bricks integration.
- * Version: 1.2.1
+ * Version: 1.2.2
  * Author: Stephen Walker
  * License: GPL-3.0-or-later
  * Requires at least: 6.8
@@ -10,8 +10,8 @@
  * Text Domain: uplink-media-manager
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
-define( 'UPLINK_MBB_VERSION', '1.2.1' );
-define( 'UPLINK_MBB_ASSET_VERSION', '1.2.1' );
+define( 'UPLINK_MBB_VERSION', '1.2.2' );
+define( 'UPLINK_MBB_ASSET_VERSION', '1.2.2' );
 define( 'UPLINK_MBB_FILE', __FILE__ );
 define( 'UPLINK_MBB_PATH', plugin_dir_path( __FILE__ ) );
 define( 'UPLINK_MBB_URL', plugin_dir_url( __FILE__ ) );

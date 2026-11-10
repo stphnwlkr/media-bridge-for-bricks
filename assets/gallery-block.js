@@ -5,7 +5,7 @@
 	const el = element.createElement;
 	const { registerBlockType } = blocks;
 	const { InspectorControls, PanelColorSettings, useBlockProps } = blockEditor;
-	const { Button, Modal, PanelBody, Placeholder, RangeControl, SelectControl, ToggleControl } = components;
+	const { Button, Disabled, Modal, PanelBody, Placeholder, RangeControl, SelectControl, ToggleControl } = components;
 	const { __, sprintf } = i18n;
 
 	const collectionOptions = [ { label: __( 'Choose a folder', 'media-bridge-for-bricks' ), value: 0 } ].concat(
@@ -599,7 +599,7 @@
 					)
 				),
 				el( 'div', blockProps, attributes.collectionId
-					? el( ServerSideRender, { block: 'uplinkpress/bricks-ramka-gallery', attributes, skipBlockSupportAttributes: true } )
+					? el( Disabled, null, el( ServerSideRender, { block: 'uplinkpress/bricks-ramka-gallery', attributes, skipBlockSupportAttributes: true } ) )
 					: el( Placeholder, { icon: 'format-gallery', label: __( 'Ramka Gallery', 'uplink-media-manager' ) }, collection )
 				)
 			);
