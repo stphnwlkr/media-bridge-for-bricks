@@ -54,30 +54,54 @@ final class Collection_Gallery {
 			'uplink-mbb-gallery-lightbox',
 			'uplinkMbbGalleryLightbox',
 			array(
-				'slideshowStart' => __( 'Start fullscreen slideshow', 'media-bridge-for-bricks' ),
-				'slideshowPlay' => __( 'Play slideshow', 'media-bridge-for-bricks' ),
-				'slideshowPause' => __( 'Pause slideshow', 'media-bridge-for-bricks' ),
-				'exifLabel'       => __( 'Photo details', 'media-bridge-for-bricks' ),
-				'dialogLabel'     => __( 'Image gallery lightbox', 'media-bridge-for-bricks' ),
-				'closeLabel'      => __( 'Close gallery lightbox', 'media-bridge-for-bricks' ),
-				'previousLabel'   => __( 'Previous image', 'media-bridge-for-bricks' ),
-				'nextLabel'       => __( 'Next image', 'media-bridge-for-bricks' ),
-				'fullscreenEnter' => __( 'Enter fullscreen', 'media-bridge-for-bricks' ),
-				'fullscreenExit'  => __( 'Exit fullscreen', 'media-bridge-for-bricks' ),
-				'zoomIn'          => __( 'Zoom in', 'media-bridge-for-bricks' ),
-				'zoomOut'         => __( 'Zoom out', 'media-bridge-for-bricks' ),
-				'zoomReset'       => __( 'Reset zoom', 'media-bridge-for-bricks' ),
-				'thumbnailsLabel' => __( 'Gallery thumbnails', 'media-bridge-for-bricks' ),
+				'slideshowStart' => __( 'Start fullscreen slideshow', 'uplink-media-manager' ),
+				'slideshowPlay' => __( 'Play slideshow', 'uplink-media-manager' ),
+				'slideshowPause' => __( 'Pause slideshow', 'uplink-media-manager' ),
+				'exifLabel'       => __( 'Photo details', 'uplink-media-manager' ),
+				'dialogLabel'     => __( 'Image gallery lightbox', 'uplink-media-manager' ),
+				'closeLabel'      => __( 'Close gallery lightbox', 'uplink-media-manager' ),
+				'previousLabel'   => __( 'Previous image', 'uplink-media-manager' ),
+				'nextLabel'       => __( 'Next image', 'uplink-media-manager' ),
+				'peekLabel'       => __( 'Switch to Peek view', 'uplink-media-manager' ),
+				'theaterLabel'    => __( 'Switch to Theater view', 'uplink-media-manager' ),
+				'fullscreenEnter' => __( 'Enter fullscreen', 'uplink-media-manager' ),
+				'fullscreenExit'  => __( 'Exit fullscreen', 'uplink-media-manager' ),
+				'zoomIn'          => __( 'Zoom in', 'uplink-media-manager' ),
+				'zoomOut'         => __( 'Zoom out', 'uplink-media-manager' ),
+				'zoomReset'       => __( 'Reset zoom', 'uplink-media-manager' ),
+				'thumbnailsLabel' => __( 'Gallery thumbnails', 'uplink-media-manager' ),
 				/* translators: 1: Current image number. 2: Total number of images. */
-				'showImage'       => __( 'Show image %1$d of %2$d', 'media-bridge-for-bricks' ),
+				'showImage'       => __( 'Show image %1$d of %2$d', 'uplink-media-manager' ),
 				/* translators: 1: Current image number. 2: Total number of images. 3: Optional image title or caption status. */
-				'imageStatus'     => __( 'Image %1$d of %2$d%3$s', 'media-bridge-for-bricks' ),
+				'imageStatus'     => __( 'Image %1$d of %2$d%3$s', 'uplink-media-manager' ),
 			)
 		);
-		register_block_type(
+		$collection_block = register_block_type(
 			UPLINK_MBB_PATH . 'blocks/collection-gallery',
 			array( 'render_callback' => array( $this, 'render_block' ) )
 		);
+		if ( $collection_block ) {
+			wp_register_style( 'uplink-mbb-ramka-gallery', UPLINK_MBB_URL . 'assets/ramka-gallery/viewer.css', array(), UPLINK_MBB_ASSET_VERSION );
+			wp_register_script( 'uplink-mbb-ramka-gallery', UPLINK_MBB_URL . 'assets/ramka-gallery/viewer.js', array( 'react', 'react-dom' ), UPLINK_MBB_ASSET_VERSION, true );
+			$ramka_attributes = array_intersect_key( $collection_block->attributes, array_flip( array( 'collectionId', 'includeChildren', 'sortOrder', 'limit', 'visibleImageLimit', 'lightboxOpeningView' ) ) );
+			$ramka_attributes['limit']['default'] = 14;
+			$ramka_attributes['visibleImageLimit']['default'] = 12;
+			register_block_type(
+				'uplinkpress/bricks-ramka-gallery',
+				array(
+					'api_version' => 3,
+					'title' => __( 'Ramka Gallery', 'uplink-media-manager' ),
+					'description' => __( 'A photo wall with the Ramka demo lightbox.', 'uplink-media-manager' ),
+					'category' => 'media',
+					'icon' => 'format-gallery',
+					'attributes' => $ramka_attributes,
+					'editor_script_handles' => array( 'uplink-mbb-gallery-block' ),
+					'style_handles' => array( 'uplink-mbb-ramka-gallery' ),
+					'view_script_handles' => array( 'uplink-mbb-ramka-gallery' ),
+					'render_callback' => array( $this, 'render_ramka_block' ),
+				)
+			);
+		}
 		add_shortcode( self::SHORTCODE, array( $this, 'render_shortcode' ) );
 		// Preserve beta content without taking over another plugin's shortcode.
 		if ( ! shortcode_exists( self::LEGACY_SHORTCODE ) ) add_shortcode( self::LEGACY_SHORTCODE, array( $this, 'render_shortcode' ) );
@@ -91,18 +115,18 @@ final class Collection_Gallery {
 
 	private function exif_fields(): array {
 		return array(
-			'camera_model' => __( 'Camera', 'media-bridge-for-bricks' ),
-			'lens' => __( 'Lens', 'media-bridge-for-bricks' ),
-			'aperture_display' => __( 'Aperture', 'media-bridge-for-bricks' ),
-			'exposure_display' => __( 'Shutter speed', 'media-bridge-for-bricks' ),
-			'iso' => __( 'ISO', 'media-bridge-for-bricks' ),
-			'focal_display' => __( 'Focal length', 'media-bridge-for-bricks' ),
-			'date_taken' => __( 'Date taken', 'media-bridge-for-bricks' ),
-			'credit' => __( 'Photographer', 'media-bridge-for-bricks' ),
-			'copyright' => __( 'Copyright', 'media-bridge-for-bricks' ),
-			'dimensions' => __( 'Dimensions', 'media-bridge-for-bricks' ),
-			'file_format' => __( 'File format', 'media-bridge-for-bricks' ),
-			'file_size' => __( 'File size', 'media-bridge-for-bricks' ),
+			'camera_model' => __( 'Camera', 'uplink-media-manager' ),
+			'lens' => __( 'Lens', 'uplink-media-manager' ),
+			'aperture_display' => __( 'Aperture', 'uplink-media-manager' ),
+			'exposure_display' => __( 'Shutter speed', 'uplink-media-manager' ),
+			'iso' => __( 'ISO', 'uplink-media-manager' ),
+			'focal_display' => __( 'Focal length', 'uplink-media-manager' ),
+			'date_taken' => __( 'Date taken', 'uplink-media-manager' ),
+			'credit' => __( 'Photographer', 'uplink-media-manager' ),
+			'copyright' => __( 'Copyright', 'uplink-media-manager' ),
+			'dimensions' => __( 'Dimensions', 'uplink-media-manager' ),
+			'file_format' => __( 'File format', 'uplink-media-manager' ),
+			'file_size' => __( 'File size', 'uplink-media-manager' ),
 		);
 	}
 
@@ -150,7 +174,7 @@ final class Collection_Gallery {
 			'imageSizes'  => $sizes,
 			'exifEnabled' => ! empty( $settings['exif_dynamic_data'] ),
 			'exifFields' => $this->exif_fields(),
-			'managerLabel' => '' !== $manager_label ? $manager_label : __( 'Media Bridge', 'media-bridge-for-bricks' ),
+			'managerLabel' => '' !== $manager_label ? $manager_label : __( 'Uplink Media Manager', 'uplink-media-manager' ),
 		);
 	}
 
@@ -163,6 +187,10 @@ final class Collection_Gallery {
 
 	public function render_block( array $attributes, string $content = '', ?WP_Block $block = null ): string {
 		return $this->render( $attributes, true );
+	}
+
+	public function render_ramka_block( array $attributes ): string {
+		return $this->render( $attributes, true, true );
 	}
 
 	public function render_shortcode( array|string $attributes = array() ): string {
@@ -205,6 +233,9 @@ final class Collection_Gallery {
 				'lightbox_thumbnails' => 'true',
 				'lightbox_fullscreen' => 'true',
 				'lightbox_zoom'    => 'true',
+				'lightbox_photo_viewer' => 'false',
+				'lightbox_opening_view' => 'peek',
+				'visible_image_limit' => 0,
 				'lightbox_slideshow' => 'true',
 				'lightbox_autoplay' => 'false',
 				'lightbox_interval' => 5000,
@@ -286,6 +317,9 @@ final class Collection_Gallery {
 				'lightboxThumbnails' => $this->to_bool( $attributes['lightbox_thumbnails'] ),
 				'lightboxFullscreen' => $this->to_bool( $attributes['lightbox_fullscreen'] ),
 				'lightboxZoom'    => $this->to_bool( $attributes['lightbox_zoom'] ),
+				'lightboxPhotoViewer' => $this->to_bool( $attributes['lightbox_photo_viewer'] ),
+				'lightboxOpeningView' => (string) $attributes['lightbox_opening_view'],
+				'visibleImageLimit' => (int) $attributes['visible_image_limit'],
 				'lightboxSlideshow' => $this->to_bool( $attributes['lightbox_slideshow'] ),
 				'lightboxAutoplay' => $this->to_bool( $attributes['lightbox_autoplay'] ),
 				'lightboxInterval' => absint( $attributes['lightbox_interval'] ),
@@ -317,11 +351,11 @@ final class Collection_Gallery {
 		);
 	}
 
-	private function render( array $attributes, bool $is_block ): string {
+	private function render( array $attributes, bool $is_block, bool $ramka = false ): string {
 		$attributes = $this->sanitize_attributes( $attributes );
 		$term       = $this->folders->get_term( $attributes['collectionId'] );
 		if ( ! $term ) {
-			return $this->empty_message( __( 'Choose a folder to display its images.', 'media-bridge-for-bricks' ), $is_block );
+			return $this->empty_message( __( 'Choose a folder to display its images.', 'uplink-media-manager' ), $is_block );
 		}
 
 		$query = new WP_Query(
@@ -332,7 +366,7 @@ final class Collection_Gallery {
 				'posts_per_page' => $attributes['limit'],
 				'orderby'        => array( 'date' => 'date', 'random' => 'rand', 'custom' => 'collection_order' )[ $attributes['sortOrder'] ],
 				'order'          => 'custom' === $attributes['sortOrder'] ? 'ASC' : 'DESC',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- The selected Media Bridge folder is the gallery's dynamic data source.
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- The selected Uplink Media Manager folder is the gallery's dynamic data source.
 				'tax_query'      => array(
 					array(
 						'taxonomy'         => $this->folders->taxonomy(),
@@ -344,7 +378,11 @@ final class Collection_Gallery {
 			)
 		);
 		if ( ! $query->posts ) {
-			return $this->empty_message( __( 'No images were found in this collection.', 'media-bridge-for-bricks' ), $is_block );
+			return $this->empty_message( __( 'No images were found in this collection.', 'uplink-media-manager' ), $is_block );
+		}
+
+		if ( $ramka ) {
+			return $this->render_ramka_gallery( $query->posts, $term, $attributes );
 		}
 
 		wp_enqueue_style( 'uplink-mbb-collection-gallery' );
@@ -430,13 +468,15 @@ final class Collection_Gallery {
 				'data-uplink-mbb-lightbox-interval' => (string) $attributes['lightboxInterval'],
 				'data-uplink-mbb-lightbox-loop' => $attributes['lightboxLoop'] ? 'true' : 'false',
 				'data-uplink-mbb-lightbox-zoom'       => $attributes['lightboxZoom'] ? 'true' : 'false',
+				'data-uplink-mbb-lightbox-photo-viewer' => $attributes['lightboxPhotoViewer'] ? 'true' : 'false',
+				'data-uplink-mbb-lightbox-opening-view' => $attributes['lightboxOpeningView'],
 			);
 		}
 		if ( 'slider' === $attributes['layout'] ) {
 			$data_attributes['data-slider-autoplay'] = $attributes['sliderAutoplay'] ? 'true' : 'false';
 			$data_attributes['data-slider-interval'] = (string) $attributes['sliderInterval'];
 			$data_attributes['role'] = 'region';
-			$data_attributes['aria-roledescription'] = __( 'carousel', 'media-bridge-for-bricks' );
+			$data_attributes['aria-roledescription'] = __( 'carousel', 'uplink-media-manager' );
 			$data_attributes['aria-label'] = $term->name;
 		}
 		$wrapper = $is_block
@@ -480,7 +520,7 @@ final class Collection_Gallery {
 						esc_attr( $attachment_title ),
 						esc_attr( wp_strip_all_tags( $attachment_caption ) ),
 						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Open %s in gallery lightbox', 'media-bridge-for-bricks' ), $attachment_title ) ),
+						esc_attr( sprintf( __( 'Open %s in gallery lightbox', 'uplink-media-manager' ), $attachment_title ) ),
 					$image,
 					esc_attr( wp_json_encode( $this->lightbox_exif( $attachment_id, $attributes ) ) )
 				);
@@ -525,6 +565,25 @@ final class Collection_Gallery {
 			return '';
 		}
 
+		$overflow = '';
+		$visible_limit = $attributes['visibleImageLimit'];
+		if ( 'custom' === $attributes['lightboxMode'] && $visible_limit > 0 && $visible_limit < count( $image_blocks ) ) {
+			$hidden = array_slice( $image_blocks, $visible_limit );
+			$last = $visible_limit - 1;
+			$tile = new \WP_HTML_Tag_Processor( $image_blocks[ $last ]['innerHTML'] );
+			if ( $tile->next_tag( array( 'tag_name' => 'BUTTON', 'class_name' => 'uplink-mbb-custom-lightbox-trigger' ) ) ) {
+				$count = count( $hidden );
+				$tile->set_attribute( 'data-uplink-mbb-gallery-more', number_format_i18n( $count ) );
+				/* translators: %s: Number of additional photos. */
+				$label = _n( 'View %s more photo', 'View %s more photos', $count, 'uplink-media-manager' );
+				$tile->set_attribute( 'aria-label', sprintf( $label, number_format_i18n( $count ) ) );
+				$image_blocks[ $last ]['innerHTML'] = $tile->get_updated_html();
+				$image_blocks[ $last ]['innerContent'] = array( $image_blocks[ $last ]['innerHTML'] );
+				$image_blocks = array_slice( $image_blocks, 0, $visible_limit );
+				$overflow = '<template data-uplink-mbb-gallery-overflow>' . implode( '', array_column( $hidden, 'innerHTML' ) ) . '</template>';
+			}
+		}
+
 		$gallery_class = 'wp-block-gallery has-nested-images columns-' . $attributes['columns'];
 		if ( $attributes['imageCrop'] ) {
 			$gallery_class .= ' is-cropped';
@@ -558,7 +617,7 @@ final class Collection_Gallery {
 		$show_slideshow = $attributes['sliderShowSlideshow'] && $attributes['lightboxSlideshow'] && 'custom' === $attributes['lightboxMode'];
 		if ( 'slider' === $attributes['layout'] && ( count( $image_blocks ) > 1 || $show_slideshow ) ) {
 			$buttons = array();
-			foreach ( array( 'prev' => __( 'Previous', 'media-bridge-for-bricks' ), 'next' => __( 'Next', 'media-bridge-for-bricks' ) ) as $direction => $label ) {
+			foreach ( array( 'prev' => __( 'Previous', 'uplink-media-manager' ), 'next' => __( 'Next', 'uplink-media-manager' ) ) as $direction => $label ) {
 				$path = 'prev' === $direction ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7';
 				$buttons[ $direction ] = sprintf(
 					'<button type="button" data-slider-%1$s aria-label="%2$s"><svg class="uplink-mbb-slider-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="%3$s" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="uplink-mbb-slider-label">%2$s</span></button>',
@@ -567,11 +626,11 @@ final class Collection_Gallery {
 			}
 			$play_button = sprintf(
 				'<button type="button" data-slider-play aria-label="%1$s" aria-pressed="false" data-play-label="%1$s" data-pause-label="%2$s" data-play-text="%3$s" data-pause-text="%4$s"><svg class="uplink-mbb-slider-icon uplink-mbb-slider-play-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor" /></svg><svg class="uplink-mbb-slider-icon uplink-mbb-slider-pause-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor" /></svg><span class="uplink-mbb-slider-label">%3$s</span></button>',
-				esc_attr__( 'Play slideshow', 'media-bridge-for-bricks' ), esc_attr__( 'Pause slideshow', 'media-bridge-for-bricks' ), esc_html__( 'Play', 'media-bridge-for-bricks' ), esc_html__( 'Pause', 'media-bridge-for-bricks' )
+				esc_attr__( 'Play slideshow', 'uplink-media-manager' ), esc_attr__( 'Pause slideshow', 'uplink-media-manager' ), esc_html__( 'Play', 'uplink-media-manager' ), esc_html__( 'Pause', 'uplink-media-manager' )
 			);
 			$slideshow_button = $show_slideshow ? sprintf(
 				'<button type="button" data-slider-slideshow aria-label="%1$s" aria-haspopup="dialog"><svg class="uplink-mbb-slider-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 7l8 5-8 5z" fill="currentColor"/></svg><span class="uplink-mbb-slider-label">%2$s</span></button>',
-				esc_attr__( 'Start fullscreen slideshow', 'media-bridge-for-bricks' ), esc_html__( 'Slideshow', 'media-bridge-for-bricks' )
+				esc_attr__( 'Start fullscreen slideshow', 'uplink-media-manager' ), esc_html__( 'Slideshow', 'uplink-media-manager' )
 			) : '';
 			$controls_markup = '<div class="uplink-mbb-slider-controls" hidden>%1$s<span data-slider-status role="status" aria-live="polite" aria-atomic="true" data-format="%3$s" data-range-format="%4$s"></span>%5$s%6$s%2$s<span class="uplink-mbb-slider-progress" aria-hidden="true"><span></span></span></div>';
 			if ( in_array( $attributes['sliderStatusPosition'], array( 'left', 'right' ), true ) || in_array( $attributes['sliderProgressPlacement'], array( 'opposite-left', 'opposite-right' ), true ) ) {
@@ -581,13 +640,93 @@ final class Collection_Gallery {
 				$controls_markup,
 				$buttons['prev'], $buttons['next'],
 				/* translators: 1: Current image number, 2: Total images. */
-				esc_attr__( 'Image %1$d of %2$d', 'media-bridge-for-bricks' ),
+				esc_attr__( 'Image %1$d of %2$d', 'uplink-media-manager' ),
 				/* translators: 1: First visible image, 2: Last visible image, 3: Total images. */
-				esc_attr__( 'Images %1$d–%2$d of %3$d', 'media-bridge-for-bricks' ),
+				esc_attr__( 'Images %1$d–%2$d of %3$d', 'uplink-media-manager' ),
 				$play_button, $slideshow_button
 			);
 		}
-		return sprintf( '<div %1$s>%2$s</div>', $wrapper, $rendered_gallery );
+		return sprintf( '<div %1$s>%2$s</div>', $wrapper, $rendered_gallery . $overflow );
+	}
+
+	private function render_ramka_gallery( array $attachments, WP_Term $term, array $attributes ): string {
+		$photos = array();
+		foreach ( $attachments as $attachment ) {
+			$id = (int) $attachment->ID;
+			if ( ! Image_Metadata::can_read( $id ) ) {
+				continue;
+			}
+			$full = wp_get_attachment_image_src( $id, 'full' );
+			$thumb = wp_get_attachment_image(
+				$id,
+				'large',
+				false,
+				array( 'loading' => 'lazy', 'sizes' => '(min-width: 768px) 25vw, 33vw', 'draggable' => 'false' )
+			);
+			if ( ! $full || ! $thumb || ! $full[1] || ! $full[2] ) {
+				continue;
+			}
+			$caption = wp_strip_all_tags( (string) wp_get_attachment_caption( $id ) );
+			$photos[] = array(
+				'url' => $full[0],
+				'width' => $full[1],
+				'height' => $full[2],
+				'thumb' => $thumb,
+				'caption' => $caption ?: wp_strip_all_tags( $attachment->post_title ),
+			);
+		}
+		if ( ! $photos ) {
+			return '';
+		}
+
+		$total = count( $photos );
+		$visible = $attributes['visibleImageLimit'] ? min( $total, $attributes['visibleImageLimit'] ) : $total;
+		$more = $total - $visible;
+		$more_count = number_format_i18n( $more );
+		/* translators: %s: Number of additional photos. */
+		$more_label = $more ? sprintf( _n( 'Show %s more photo', 'Show %s more photos', $more, 'uplink-media-manager' ), $more_count ) : '';
+		$options = array(
+			'label' => $term->name,
+			'openingView' => $attributes['lightboxOpeningView'],
+			'moreLabel' => $more_label,
+			'moreCount' => $more_count,
+			'strings' => array(
+				'images' => __( 'Full-size images', 'uplink-media-manager' ),
+				'carousel' => __( 'carousel', 'uplink-media-manager' ),
+				'slide' => __( 'slide', 'uplink-media-manager' ),
+				'peek' => __( 'Switch to Peek layout', 'uplink-media-manager' ),
+				'theater' => __( 'Switch to Theater layout', 'uplink-media-manager' ),
+				'peekName' => __( 'Peek', 'uplink-media-manager' ),
+				'theaterName' => __( 'Theater', 'uplink-media-manager' ),
+				'close' => __( 'Close', 'uplink-media-manager' ),
+				'zoomIn' => __( 'Zoom in', 'uplink-media-manager' ),
+				'zoomOut' => __( 'Zoom out', 'uplink-media-manager' ),
+				'thumbnails' => __( 'Photo thumbnails', 'uplink-media-manager' ),
+				/* translators: 1: Current photo number. 2: Total photos. */
+				'counter' => __( '%1$d of %2$d', 'uplink-media-manager' ),
+			),
+		);
+		$tiles = array();
+		foreach ( $photos as $index => $photo ) {
+			$stack = $more && $index === $visible - 1;
+			$tiles[] = sprintf(
+				'<a class="uplink-ramka-tile" href="%1$s" data-width="%2$d" data-height="%3$d" data-caption="%4$s"%5$s><span class="uplink-ramka-tile-frame">%6$s%7$s</span></a>',
+				esc_url( $photo['url'] ),
+				$photo['width'],
+				$photo['height'],
+				esc_attr( $photo['caption'] ),
+				$stack ? ' aria-label="' . esc_attr( $more_label ) . '"' : '',
+				$photo['thumb'],
+				$stack ? '<span class="uplink-ramka-more" aria-hidden="true">+' . esc_html( $more_count ) . '</span>' : ''
+			);
+		}
+		return sprintf(
+			'<div %1$s><div class="uplink-ramka-grid"%2$s>%3$s</div>%4$s</div>',
+			get_block_wrapper_attributes( array( 'data-uplink-ramka-gallery' => wp_json_encode( $options ) ) ),
+			12 === $visible ? ' data-demo-wall' : '',
+			implode( '', array_slice( $tiles, 0, $visible ) ),
+			$more ? '<template>' . implode( '', array_slice( $tiles, $visible ) ) . '</template>' : ''
+		);
 	}
 
 	private function sanitize_progress_color( string $color ): string {
@@ -677,6 +816,9 @@ final class Collection_Gallery {
 			'lightboxThumbnails' => ! array_key_exists( 'lightboxThumbnails', $attributes ) || ! empty( $attributes['lightboxThumbnails'] ),
 			'lightboxFullscreen' => ! array_key_exists( 'lightboxFullscreen', $attributes ) || ! empty( $attributes['lightboxFullscreen'] ),
 			'lightboxZoom'    => ! array_key_exists( 'lightboxZoom', $attributes ) || ! empty( $attributes['lightboxZoom'] ),
+			'lightboxPhotoViewer' => ! empty( $attributes['lightboxPhotoViewer'] ),
+			'lightboxOpeningView' => 'theater' === ( $attributes['lightboxOpeningView'] ?? 'peek' ) ? 'theater' : 'peek',
+			'visibleImageLimit' => max( 0, min( 100, (int) ( $attributes['visibleImageLimit'] ?? 0 ) ) ),
 			'lightboxSizeSlug' => in_array( $lightbox_size, $sizes, true ) ? $lightbox_size : 'full',
 			'lightboxThumbnailPosition' => in_array( $lightbox_strip, array( 'horizontal', 'vertical' ), true ) ? $lightbox_strip : 'horizontal',
 			'lightboxInfoPosition' => in_array( $lightbox_info, array( 'top', 'bottom' ), true ) ? $lightbox_info : 'bottom',

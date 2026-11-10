@@ -1,4 +1,4 @@
-( function () {
+( async function () {
 	'use strict';
 
 	const config = window.uplinkMbbNativeMedia;
@@ -6,6 +6,28 @@
 	if ( ! config || ! library ) {
 		return;
 	}
+
+	await Promise.all( ['wa-button','wa-button-group','wa-input','wa-textarea','wa-select','wa-option','wa-tab-group','wa-tab','wa-tab-panel','wa-badge','wa-tag','wa-callout','wa-popover'].map( tag => customElements.whenDefined( tag ) ) );
+
+	library.closest( '.uplink-mbb-native-wrap' ).querySelectorAll( 'wa-button[id][aria-label]:not(#uplink-mbb-selection-help-toggle)' ).forEach( control => {
+		const tooltip = document.createElement( 'wa-tooltip' ); tooltip.setAttribute( 'for', control.id ); tooltip.textContent = control.getAttribute( 'title' ) || control.getAttribute( 'aria-label' ); control.removeAttribute( 'title' ); library.closest( '.uplink-mbb-native-wrap' ).append( tooltip );
+	} );
+
+	// Keep the state announced by the focusable shadow button in sync with its host.
+	async function mirrorButtonState( control ) {
+		await control.updateComplete;
+		const button = control.shadowRoot?.querySelector( 'button, a' );
+		if ( ! button ) return;
+		for ( const name of [ 'aria-pressed', 'aria-expanded', 'aria-controls' ] ) {
+			if ( control.hasAttribute( name ) ) button.setAttribute( name, control.getAttribute( name ) );
+			else button.removeAttribute( name );
+		}
+		if ( 'ariaControlsElements' in button ) button.ariaControlsElements = ( control.getAttribute( 'aria-controls' ) || '' ).split( /\s+/ ).map( id => document.getElementById( id ) ).filter( Boolean );
+	}
+	library.closest( '.uplink-mbb-native-wrap' ).querySelectorAll( 'wa-button' ).forEach( mirrorButtonState );
+	new MutationObserver( changes => {
+		for ( const change of changes ) if ( change.target.matches( 'wa-button' ) ) mirrorButtonState( change.target );
+	} ).observe( library.closest( '.uplink-mbb-native-wrap' ), { subtree: true, attributes: true, attributeFilter: [ 'aria-pressed', 'aria-expanded', 'aria-controls' ] } );
 
 	const elements = {
 		wrap: document.querySelector( '.uplink-mbb-native-wrap' ),
@@ -97,7 +119,6 @@
 		attachmentTitle: document.getElementById( 'uplink-mbb-attachment-title' ),
 		attachmentFilename: document.getElementById( 'uplink-mbb-attachment-filename' ),
 		attachmentTitleInput: document.getElementById( 'uplink-mbb-attachment-title-input' ),
-		attachmentPosition: document.getElementById( 'uplink-mbb-attachment-position' ),
 		attachmentNotice: document.getElementById( 'uplink-mbb-attachment-notice' ),
 		attachmentFullPath: document.getElementById( 'uplink-mbb-attachment-full-path' ),
 		attachmentCopyFull: document.getElementById( 'uplink-mbb-attachment-copy-full' ),
@@ -142,8 +163,67 @@
 		childDeleteDescription: document.getElementById( 'uplink-mbb-child-delete-description' ),
 		promoteChildren: document.getElementById( 'uplink-mbb-promote-children' ),
 	};
+	// These panels behave as modal dialogs, including when controls use shadow DOM.
+	const modalPanels = [ elements.collectionManagerModal, elements.attachmentModal, elements.modal, elements.childDeleteModal ].filter( Boolean );
+	const inertSiblings = new Set();
+	const modalTriggers = new Map();
+	let activeModalPanel = null;
+	function modalControls( panel ) {
+		return Array.from( panel.querySelectorAll( 'button, a[href], input, select, textarea, [tabindex], wa-button, wa-input, wa-textarea, wa-select, wa-tab' ) ).filter( control => {
+			if ( control.disabled || control.hasAttribute( 'disabled' ) || ! control.getClientRects().length || control.closest( '[hidden], [inert]' ) ) return false;
+			if ( control.matches( 'wa-tab' ) ) return control.getAttribute( 'aria-selected' ) === 'true';
+			return control.matches( 'wa-button, wa-input, wa-textarea, wa-select' ) || control.tabIndex >= 0;
+		} );
+	}
+	function syncModalAccessibility() {
+		for ( const sibling of inertSiblings ) sibling.inert = false;
+		inertSiblings.clear();
+		const previous = activeModalPanel;
+		activeModalPanel = modalPanels.filter( panel => ! panel.hidden ).pop() || null;
+		if ( activeModalPanel && activeModalPanel !== previous && ! modalTriggers.has( activeModalPanel ) ) modalTriggers.set( activeModalPanel, document.activeElement );
+		// Native upload and replacement dialogs manage their own focus while above a panel.
+		if ( document.querySelector( 'dialog[open], .media-modal:not([style*="display: none"])' ) ) return;
+		if ( activeModalPanel ) {
+			let branch = activeModalPanel;
+			while ( branch.parentElement && branch !== document.body ) {
+				for ( const sibling of branch.parentElement.children ) {
+					if ( sibling !== branch && ! sibling.inert && ! sibling.matches( 'script, style, link, wa-tooltip, [aria-live], [role="status"], [role="alert"]' ) ) {
+						sibling.inert = true;
+						inertSiblings.add( sibling );
+					}
+				}
+				branch = branch.parentElement;
+			}
+		}
+		if ( previous && previous !== activeModalPanel && previous.hidden ) {
+			const trigger = modalTriggers.get( previous );
+			modalTriggers.delete( previous );
+			if ( trigger?.isConnected && ! trigger.closest( '[hidden], [inert]' ) ) trigger.focus();
+		}
+	}
+	new MutationObserver( changes => {
+		if ( changes.some( change => modalPanels.includes( change.target ) || change.target.matches?.( 'dialog, .media-modal' ) || Array.from( change.addedNodes ).some( node => node.matches?.( 'dialog, .media-modal' ) ) ) ) syncModalAccessibility();
+	} ).observe( document.body, { subtree: true, childList: true, attributes: true, attributeFilter: [ 'hidden', 'open', 'style' ] } );
+	document.addEventListener( 'keydown', event => {
+		if ( event.key !== 'Tab' || ! activeModalPanel || document.querySelector( 'dialog[open], .media-modal:not([style*="display: none"])' ) ) return;
+		const controls = modalControls( activeModalPanel );
+		const focused = document.activeElement;
+		const index = controls.indexOf( focused );
+		if ( ! controls.length ) return;
+		if ( event.shiftKey && index <= 0 ) {
+			event.preventDefault(); controls[ controls.length - 1 ].focus();
+		} else if ( ! event.shiftKey && ( index < 0 || index === controls.length - 1 ) ) {
+			event.preventDefault(); controls[ 0 ].focus();
+		}
+	}, true );
+	// role=group does not support aria-orientation, which the bundled component adds.
+	for ( const group of elements.wrap.querySelectorAll( 'wa-button-group' ) ) {
+		await group.updateComplete;
+		group.removeAttribute( 'aria-orientation' );
+	}
 	let attachmentTrigger = null;
 	let currentAttachment = null;
+	let activeDetailTab = null;
 	let currentCompatSnapshot = '';
 	let attachmentSaving = false;
 	let attachmentCompatGeneration = 0;
@@ -364,11 +444,14 @@
 			mime: true,
 			fileSize: true,
 			dimensions: false,
+			exif: Boolean( config.showExif ),
 		},
 	};
 
 	function createElement( tag, className, text ) {
-		const element = document.createElement( tag );
+		const useButton = tag === 'button' && /(?:^| )button(?: |$)/.test( className || '' );
+		const element = document.createElement( useButton ? 'wa-button' : tag );
+		if ( useButton ) { element.setAttribute( 'size', 'small' ); element.setAttribute( 'variant', className.includes( 'button-link-delete' ) ? 'danger' : 'neutral' ); element.setAttribute( 'appearance', 'outlined' ); }
 		if ( className ) {
 			element.className = className;
 		}
@@ -490,6 +573,8 @@
 	}
 
 	function applyPalette( palette ) {
+		elements.wrap.classList.toggle( 'wa-dark', colorLuminance( palette.surface || '#ffffff' ) < 0.35 );
+		elements.wrap.classList.toggle( 'wa-light', colorLuminance( palette.surface || '#ffffff' ) >= 0.35 );
 		Object.entries( palette || {} ).forEach( ( [ name, value ] ) => {
 			if ( paletteVariableNames[ name ] ) {
 				elements.wrap.style.setProperty( `--mbb-${ paletteVariableNames[ name ] }`, value );
@@ -897,11 +982,11 @@
 
 		const selectedMime = state.mimeSubtype;
 		elements.mimeFilter.replaceChildren();
-		const allMimeTypes = createElement( 'option', '', elements.mimeFilter.dataset.allMimeTypes || 'All' );
+		const allMimeTypes = createElement( 'wa-option', '', elements.mimeFilter.dataset.allMimeTypes || 'All' );
 		allMimeTypes.value = '';
 		elements.mimeFilter.append( allMimeTypes );
 		state.mimeTypes.filter( ( mime ) => ! state.type || mime.type === state.type ).forEach( ( mime ) => {
-			const option = createElement( 'option', '', mime.label );
+			const option = createElement( 'wa-option', '', mime.label );
 			option.value = mime.value;
 			elements.mimeFilter.append( option );
 		} );
@@ -909,11 +994,11 @@
 
 		const selectedUploader = String( state.uploadedBy );
 		elements.uploaderFilter.replaceChildren();
-		const allUploaders = createElement( 'option', '', elements.uploaderFilter.dataset.allUploaders || 'All' );
+		const allUploaders = createElement( 'wa-option', '', elements.uploaderFilter.dataset.allUploaders || 'All' );
 		allUploaders.value = '';
 		elements.uploaderFilter.append( allUploaders );
 		state.uploaders.forEach( ( uploader ) => {
-			const option = createElement( 'option', '', uploader.label );
+			const option = createElement( 'wa-option', '', uploader.label );
 			option.value = String( uploader.value );
 			elements.uploaderFilter.append( option );
 		} );
@@ -934,6 +1019,23 @@
 		elements.clearFilters.disabled = ! hasActiveFilters;
 		elements.clearFilters.classList.toggle( 'is-active', hasActiveFilters );
 		updateDrawerSummary();
+		renderActiveFilters();
+	}
+
+	function renderActiveFilters() {
+		let row = document.getElementById( 'uplink-mbb-active-filters' );
+		if ( ! row ) { row = createElement( 'div', 'uplink-mbb-active-filters wa-cluster wa-gap-s' ); row.id = 'uplink-mbb-active-filters'; elements.searchStatus.before( row ); }
+		row.replaceChildren();
+		const filters = [ [ 'search', elements.searchInput ], [ 'type', elements.typeFilter ], [ 'mimeSubtype', elements.mimeFilter ], [ 'uploadedBy', elements.uploaderFilter ], [ 'attachmentStatus', elements.attachmentStatusFilter ], [ 'optimizationStatus', elements.optimizationStatusFilter ], [ 'uploadedFrom', elements.uploadedFromFilter ], [ 'uploadedTo', elements.uploadedToFilter ], [ 'widthMin', elements.widthMinFilter ], [ 'widthMax', elements.widthMaxFilter ], [ 'heightMin', elements.heightMinFilter ], [ 'heightMax', elements.heightMaxFilter ], [ 'fileSizeMin', elements.fileSizeMinFilter ], [ 'fileSizeMax', elements.fileSizeMaxFilter ], [ 'missingAlt', elements.missingAltFilter ] ];
+		for ( const [ key, control ] of filters ) {
+			if ( ! state[ key ] ) continue;
+			const label = control.getAttribute( 'label' ) || control.getAttribute( 'aria-label' ) || control.labels?.[ 0 ]?.textContent?.trim() || key;
+			const option = Array.from( control.children ).find( item => item.value === String( state[ key ] ) );
+			const tag = createElement( 'wa-tag', '', label + ( state[ key ] === true ? '' : ': ' + ( option?.textContent || state[ key ] ) ) );
+			tag.setAttribute( 'with-remove', '' ); tag.setAttribute( 'size', 's' );
+			tag.addEventListener( 'wa-remove', () => { state[ key ] = key === 'missingAlt' ? false : ''; if ( key === 'type' ) state.mimeSubtype = ''; state.page = 1; loadState(); } ); row.append( tag );
+		}
+		row.hidden = ! row.childElementCount;
 	}
 
 	function setDrawerOpen( open ) {
@@ -1006,29 +1108,23 @@
 		return button;
 	}
 
-	function addDropTarget( element, collection, mode = 'add' ) {
+	function addDropTarget( element, collection, mode = 'move' ) {
+		const canDrop = () => Boolean( config.canAssign && draggedMedia && ! draggedCollection && ! state.reorderMode && ! mediaOrderSaving );
 		element.addEventListener( 'dragover', ( event ) => {
-			if ( draggedCollection || state.reorderMode || mediaOrderSaving ) {
-				return;
-			}
-			event.preventDefault();
-			if ( event.dataTransfer ) {
-				event.dataTransfer.dropEffect = 'move';
-			}
+			if ( ! canDrop() ) return;
+			event.preventDefault(); event.stopPropagation();
+			event.dataTransfer.dropEffect = 'move';
 			element.classList.add( 'is-drop-target' );
 		} );
-		element.addEventListener( 'dragleave', () => element.classList.remove( 'is-drop-target' ) );
+		element.addEventListener( 'dragleave', event => { if ( ! element.contains( event.relatedTarget ) ) element.classList.remove( 'is-drop-target' ); } );
 		element.addEventListener( 'drop', async ( event ) => {
-			if ( draggedCollection || state.reorderMode || mediaOrderSaving ) {
-				return;
-			}
-			event.preventDefault();
 			element.classList.remove( 'is-drop-target' );
-			const transferred = event.dataTransfer.getData( 'text/plain' ).split( ',' ).map( Number ).filter( Boolean );
-			const ids = transferred.length ? transferred : Array.from( state.selected );
-			if ( ids.length ) {
-				await assignMedia( ids, collection, mode );
-			}
+			if ( ! canDrop() ) return;
+			event.preventDefault(); event.stopPropagation();
+			const ids = [ ...draggedMedia.ids ], source = draggedMedia.collection;
+			if ( mode === 'move' && source === Number( collection ) ) return;
+			finishMediaDrag();
+			await assignMedia( ids, collection, mode, source, true );
 		} );
 	}
 
@@ -1290,7 +1386,7 @@
 			button.type = 'button';
 			const labelElement = createElement( 'span', 'uplink-mbb-health-label', label );
 			button.classList.toggle( 'is-active', state.healthFilter === key );
-			button.append( labelElement, createElement( 'span', 'uplink-mbb-health-count', String( state.health.counts?.[ key ] || 0 ) ) );
+			button.append( labelElement, createElement( 'wa-badge', 'uplink-mbb-health-count', String( state.health.counts?.[ key ] || 0 ) ) );
 			button.addEventListener( 'click', () => {
 				state.healthFilter = key;
 				state.page = 1;
@@ -1302,11 +1398,12 @@
 		const activeFilter = filters.find( ( [ key ] ) => key === state.healthFilter ) || filters[ 0 ];
 		elements.healthDescription.textContent = activeFilter[ 2 ];
 		elements.healthDescription.hidden = false;
+		document.dispatchEvent( new CustomEvent( 'uplink-mbb-health-render', { detail: { ids: 'missing_sizes' === state.healthFilter ? ( state.health.ids?.missing_sizes || [] ) : [] } } ) );
 		const issueCount = Number( state.health.counts?.all_issues || 0 );
 		elements.healthTabCount.textContent = String( issueCount );
 		const total = Number( state.health.total || 0 );
 		const healthy = Number( state.health.counts?.healthy || 0 );
-		elements.healthProgress.style.width = `${ total ? Math.round( ( healthy / total ) * 100 ) : 100 }%`;
+		elements.healthProgress.value = total ? Math.round( ( healthy / total ) * 100 ) : 100;
 		elements.healthStatus.textContent = `${ healthy } of ${ total } ${ config.strings.healthy } · ${ config.strings.scannedNow }`;
 	}
 
@@ -1421,7 +1518,7 @@
 			edit.setAttribute( 'aria-label', `${ config.strings.editCollection }: ${ collection.name }` );
 			edit.addEventListener( 'click', () => openCollectionModal( collection ) );
 
-			const remove = createElement( 'button', 'button-link dashicons dashicons-trash' );
+			const remove = createElement( 'button', 'button-link uplink-mbb-trash-icon' );
 			remove.type = 'button';
 			remove.title = config.strings.deleteCollection;
 			remove.setAttribute( 'aria-label', `${ config.strings.deleteCollection }: ${ collection.name }` );
@@ -1456,11 +1553,11 @@
 
 	function renderBulkCollections() {
 		elements.bulkCollection.replaceChildren();
-		const placeholder = createElement( 'option', '', config.strings.chooseCollection );
+		const placeholder = createElement( 'wa-option', '', config.strings.chooseCollection );
 		placeholder.value = '';
 		elements.bulkCollection.append( placeholder );
 		state.collections.forEach( ( collection ) => {
-			const option = createElement( 'option', '', collectionOptionLabel( collection ) );
+			const option = createElement( 'wa-option', '', collectionOptionLabel( collection ) );
 			option.value = String( collection.id );
 			elements.bulkCollection.append( option );
 		} );
@@ -1511,11 +1608,14 @@
 	}
 
 	function finishMediaDrag() {
+		const wasDragging = Boolean( draggedMedia );
 		draggedMedia = null;
 		clearMediaDropMarkers();
 		mediaDragGhost?.remove();
 		mediaDragGhost = null;
 		elements.grid.querySelectorAll( '.is-dragging' ).forEach( ( card ) => card.classList.remove( 'is-dragging' ) );
+		elements.tree.querySelectorAll( '.is-drop-target' ).forEach( node => node.classList.remove( 'is-drop-target' ) );
+		if ( wasDragging ) updateSelectionTools();
 	}
 
 	function mediaDropAt( x, y ) {
@@ -1711,7 +1811,7 @@
 			selectLabel.append( checkbox, createElement( 'span', 'uplink-mbb-media-select-text', config.strings.selectMedia ) );
 			let removeMedia = null;
 			if ( media.canDelete ) {
-				removeMedia = createElement( 'button', 'uplink-mbb-media-delete dashicons dashicons-trash' );
+				removeMedia = createElement( 'button', 'uplink-mbb-media-delete uplink-mbb-trash-icon' );
 				removeMedia.type = 'button';
 				removeMedia.title = config.strings.deleteMedia;
 				removeMedia.setAttribute( 'aria-label', `${ config.strings.deleteMedia }: ${ media.title }` );
@@ -1843,7 +1943,7 @@
 
 			bindMediaReordering( card, media );
 			card.addEventListener( 'dragstart', ( event ) => {
-				if ( mediaOrderSaving ) {
+				if ( mediaOrderSaving || ! config.canAssign || ! media.canEdit ) {
 					event.preventDefault();
 					return;
 				}
@@ -1854,9 +1954,9 @@
 					document.querySelectorAll( '.uplink-mbb-media-select input' ).forEach( ( input ) => {
 						input.checked = Number( input.value ) === media.id;
 					} );
-					updateSelectionTools();
+					// Keep the grid still while the pointer is dragging.
 				}
-				draggedMedia = { collection: state.collection, ids: state.media.filter( ( item ) => state.selected.has( item.id ) ).map( ( item ) => item.id ) };
+				draggedMedia = { collection: state.mode === 'library' && state.filter === 'collection' ? Number( state.collection ) : 0, ids: state.reorderMode ? state.media.filter( ( item ) => state.selected.has( item.id ) ).map( item => item.id ) : [ ...state.selected ] };
 				event.dataTransfer.effectAllowed = 'move';
 				event.dataTransfer.setData( 'text/plain', Array.from( state.selected ).join( ',' ) );
 				if ( state.reorderMode ) {
@@ -1986,15 +2086,17 @@
 		}
 	}
 
-	async function assignMedia( ids, collection, mode ) {
+	async function assignMedia( ids, collection, mode, source = 0, fromDrag = false ) {
 		try {
 			await request( 'uplink_mbb_assign_media', {
 				media_ids: JSON.stringify( ids ),
 				collection,
 				mode,
+				source_collection: source,
 			} );
+			if ( fromDrag ) ids.forEach( id => state.selected.delete( id ) );
 			const name = state.collections.find( ( item ) => item.id === Number( collection ) )?.name || config.strings.uncategorized;
-			showNotice( 'clear' === mode ? config.strings.clear : `${ 'remove' === mode ? config.strings.remove : config.strings.add }: ${ name }` );
+			showNotice( 'clear' === mode ? config.strings.clear : `${ mode === 'move' ? config.strings.movedTo : mode === 'remove' ? config.strings.remove : config.strings.add }: ${ name }` );
 			await loadState();
 		} catch ( error ) {
 			showNotice( error.message, 'error' );
@@ -2022,6 +2124,7 @@
 		elements.collectionParent.value = String( collection ? collection.parent : parent );
 
 		elements.modal.hidden = false;
+		syncModalAccessibility();
 		document.body.classList.add( 'uplink-mbb-modal-open' );
 		window.setTimeout( () => elements.collectionName.focus(), 0 );
 	}
@@ -2038,6 +2141,7 @@
 		elements.childDeleteDescription.textContent = description;
 		childDeleteTrigger = trigger;
 		elements.childDeleteModal.hidden = false;
+		syncModalAccessibility();
 		document.body.classList.add( 'uplink-mbb-modal-open' );
 		window.setTimeout( () => elements.promoteChildren.focus(), 0 );
 		return new Promise( ( resolve ) => {
@@ -2110,6 +2214,7 @@
 		elements.collectionManagerNotice.hidden = true;
 		renderCollectionManager();
 		elements.collectionManagerModal.hidden = false;
+		syncModalAccessibility();
 		document.body.classList.add( 'uplink-mbb-modal-open' );
 		window.setTimeout( () => elements.bulkCollectionNames.focus(), 0 );
 	}
@@ -2182,6 +2287,7 @@
 		showAttachment( media );
 		setAttachmentMetadataTab( 'main' );
 		elements.attachmentModal.hidden = false;
+		syncModalAccessibility();
 		elements.attachmentModal.classList.add( 'is-expanded' );
 		elements.wrap.classList.add( 'has-attachment-inspector' );
 		document.body.classList.add( 'uplink-mbb-modal-open' );
@@ -2228,6 +2334,13 @@
 		}
 	}
 
+	function resetAttachmentTabScroll() {
+		requestAnimationFrame( () => {
+			const body = document.getElementById( 'uplink-mbb-detail-tabs' ).shadowRoot?.querySelector( '[part="body"]' );
+			if ( body ) body.scrollTop = 0;
+		} );
+	}
+
 	function setAttachmentMetadataTab( requestedTab, moveFocus = false ) {
 		if ( requestedTab === 'exif' ) requestAnimationFrame( () => window.uplinkMbbExifMap?.refresh( elements.attachmentExif ) );
 		const exifAvailable = ! elements.attachmentExifTab.hidden;
@@ -2237,6 +2350,9 @@
 			|| ( 'optimization' === requestedTab && optimizationAvailable )
 			? requestedTab
 			: 'main';
+		if ( activeDetailTab !== activeTab ) resetAttachmentTabScroll();
+		activeDetailTab = activeTab;
+		document.getElementById( 'uplink-mbb-detail-tabs' ).active = activeTab;
 		const tabs = [
 			[ 'main', elements.attachmentMainTab, elements.attachmentMainPanel ],
 			[ 'file', elements.attachmentFileTab, elements.attachmentFilePanel ],
@@ -2282,7 +2398,7 @@
 				optimizationList.append( row );
 			} );
 			const hasOptimization = Boolean( elements.attachmentOptimizationList.childElementCount );
-			elements.attachmentOptimizationTab.hidden = ! media.isImage;
+			elements.attachmentOptimizationTab.hidden = ! media.isImage; elements.attachmentOptimizationTab.disabled = elements.attachmentOptimizationTab.hidden;
 			if ( ! media.isImage && 'true' === elements.attachmentOptimizationTab.getAttribute( 'aria-selected' ) ) {
 				setAttachmentMetadataTab( 'main' );
 			}
@@ -2290,6 +2406,7 @@
 	}
 
 	function showAttachment( media ) {
+		if ( currentAttachment?.id !== media.id ) resetAttachmentTabScroll();
 		currentAttachment = media;
 		clearAttachmentNotice();
 		elements.attachmentPreview.replaceChildren();
@@ -2336,8 +2453,8 @@
 			exifList.append( row );
 		} );
 		window.uplinkMbbExifMap?.render( elements.attachmentExif, media.location );
-		const hasExif = Boolean( exifList.childElementCount );
-		elements.attachmentExifTab.hidden = ! hasExif;
+		const hasExif = Boolean( state.display.exif && ( exifList.childElementCount || media.location ) );
+		elements.attachmentExifTab.hidden = ! hasExif; elements.attachmentExifTab.disabled = elements.attachmentExifTab.hidden;
 		if ( ! hasExif && 'true' === elements.attachmentExifTab.getAttribute( 'aria-selected' ) ) {
 			setAttachmentMetadataTab( 'main' );
 		}
@@ -2386,6 +2503,10 @@
 		elements.attachmentOptimize.textContent = window.uplinkMbbCimo?.strings.optimize || 'Optimize';
 		elements.attachmentOptimize.title = window.uplinkMbbCimo?.strings.help || '';
 		elements.attachmentReplace.disabled = Boolean( media.conversion ) || Boolean( window.uplinkMbbCimo?.busy );
+		elements.attachmentReplace.title = media.conversion ? config.strings.restoreBeforeReplace : '';
+		const replacementTooltip = elements.wrap.querySelector( `wa-tooltip[for="${ elements.attachmentReplace.id }"]` );
+		if ( replacementTooltip ) replacementTooltip.textContent = media.conversion ? config.strings.restoreBeforeReplace : config.strings.replaceFile;
+		elements.attachmentReplace.setAttribute( 'aria-label', media.conversion ? `${ config.strings.replaceFile }. ${ config.strings.restoreBeforeReplace }` : config.strings.replaceFile );
 		elements.attachmentDelete.disabled = Boolean( window.uplinkMbbCimo?.busy );
 		elements.attachmentDelete.hidden = ! media.canDelete;
 		updateAttachmentSaveState();
@@ -2451,7 +2572,6 @@
 	function updateAttachmentNavigation() {
 		const index = currentAttachment ? state.media.findIndex( ( media ) => media.id === currentAttachment.id ) : -1;
 		if ( index < 0 ) {
-			elements.attachmentPosition.textContent = '';
 			elements.attachmentPrevious.disabled = true;
 			elements.attachmentNext.disabled = true;
 			return;
@@ -2459,7 +2579,6 @@
 		const pageSize = Number( config.pageSize ) || 40;
 		const absoluteIndex = config.pagination ? ( ( state.pagination.page - 1 ) * pageSize ) + index : index;
 		const total = Number( state.pagination.total ) || state.media.length;
-		elements.attachmentPosition.textContent = total ? `${ absoluteIndex + 1 } of ${ total }` : '';
 		elements.attachmentPrevious.disabled = attachmentNavigationBusy || absoluteIndex <= 0;
 		elements.attachmentNext.disabled = attachmentNavigationBusy || infiniteLoading || absoluteIndex >= total - 1;
 	}
@@ -2773,6 +2892,7 @@
 	} );
 	elements.libraryTab.addEventListener( 'click', () => setWorkspaceMode( 'library' ) );
 	elements.healthTab.addEventListener( 'click', () => setWorkspaceMode( 'health' ) );
+	document.addEventListener( 'uplink-mbb-image-sizes-saved', async () => { await loadHealth( true ); loadState(); } );
 	elements.healthRescan.addEventListener( 'click', async () => {
 		await loadHealth( true );
 		state.page = 1;
@@ -2787,11 +2907,20 @@
 			toggle.addEventListener( 'change', () => {
 				state.display[ toggle.dataset.displayField ] = toggle.checked;
 			try {
-				window.localStorage.setItem( 'uplinkMbbDisplay', JSON.stringify( state.display ) );
+				window.localStorage.setItem( 'uplinkMbbDisplay', JSON.stringify( { ...state.display, exifDefault: Boolean( config.showExif ), exifDefaultVersion: config.showExifVersion } ) );
 			} catch ( error ) {
 				// Storage can be unavailable in privacy-restricted browser sessions.
 			}
-			renderGrid();
+			if ( 'exif' === toggle.dataset.displayField && currentAttachment ) {
+				window.uplinkMbbExifMap?.render( elements.attachmentExif, currentAttachment.location );
+		const hasExif = Boolean( toggle.checked && ( elements.attachmentExif.querySelector( 'dl' )?.childElementCount || currentAttachment.location ) );
+				elements.attachmentExifTab.hidden = ! hasExif; elements.attachmentExifTab.disabled = elements.attachmentExifTab.hidden;
+				if ( ! hasExif ) {
+					setAttachmentMetadataTab( 'main' );
+				}
+			} else {
+				renderGrid();
+			}
 		} );
 	} );
 	function setView( view ) {
@@ -2910,13 +3039,14 @@
 	const conversionDisabledState = new WeakMap();
 	document.addEventListener( 'uplink-mbb-conversion-busy', event => {
 		window.uplinkMbbConversionBusy = event.detail;
-		elements.attachmentModal.querySelectorAll( '[data-attachment-close], input, textarea, #uplink-mbb-attachment-previous, #uplink-mbb-attachment-next, #uplink-mbb-attachment-replace, #uplink-mbb-attachment-delete' ).forEach( node => {
+		elements.attachmentModal.querySelectorAll( '[data-attachment-close], input, textarea, wa-input, wa-textarea, #uplink-mbb-attachment-previous, #uplink-mbb-attachment-next, #uplink-mbb-attachment-replace, #uplink-mbb-attachment-delete' ).forEach( node => {
 			if ( node.closest( '#uplink-mbb-conversion-controls' ) ) return;
 			if ( event.detail ) { conversionDisabledState.set( node, node.disabled ); node.disabled = true; }
 			else if ( conversionDisabledState.has( node ) ) { node.disabled = conversionDisabledState.get( node ); conversionDisabledState.delete( node ); }
 		} );
 		if ( ! event.detail ) { updateAttachmentNavigation(); updateAttachmentSaveState(); }
 	} );
+	document.getElementById( 'uplink-mbb-detail-tabs' ).addEventListener( 'wa-tab-show', event => setAttachmentMetadataTab( event.detail.name ) );
 	elements.attachmentModal.addEventListener( 'input', updateAttachmentSaveState );
 	elements.attachmentModal.addEventListener( 'change', updateAttachmentSaveState );
 	elements.attachmentDecorative.addEventListener( 'change', () => {
@@ -2995,20 +3125,7 @@
 	elements.attachmentNext.addEventListener( 'click', () => navigateAttachment( 1 ) );
 	[ elements.attachmentMainTab, elements.attachmentFileTab, elements.attachmentExifTab, elements.attachmentOptimizationTab ].forEach( ( tab ) => {
 		tab.addEventListener( 'click', () => setAttachmentMetadataTab( tab.id.replace( 'uplink-mbb-attachment-', '' ).replace( '-tab', '' ) ) );
-		tab.addEventListener( 'keydown', ( event ) => {
-			if ( ! [ 'ArrowLeft', 'ArrowRight', 'Home', 'End' ].includes( event.key ) ) {
-				return;
-			}
-			event.preventDefault();
-			const tabs = [ elements.attachmentMainTab, elements.attachmentFileTab, elements.attachmentExifTab, elements.attachmentOptimizationTab ].filter( ( item ) => ! item.hidden );
-			const current = tabs.indexOf( tab );
-			let next = current;
-			if ( 'Home' === event.key ) next = 0;
-			if ( 'End' === event.key ) next = tabs.length - 1;
-			if ( 'ArrowLeft' === event.key ) next = ( current - 1 + tabs.length ) % tabs.length;
-			if ( 'ArrowRight' === event.key ) next = ( current + 1 ) % tabs.length;
-			setAttachmentMetadataTab( tabs[ next ].id.replace( 'uplink-mbb-attachment-', '' ).replace( '-tab', '' ), true );
-		} );
+
 	} );
 	elements.modal.querySelectorAll( '[data-modal-close]' ).forEach( ( button ) => button.addEventListener( 'click', closeCollectionModal ) );
 	elements.attachmentModal.querySelectorAll( '[data-attachment-close]' ).forEach( ( button ) => button.addEventListener( 'click', handleAttachmentClose ) );
@@ -3028,7 +3145,8 @@
 			closeInfoPopup( true );
 			return;
 		}
-		const editing = event.target.matches?.( 'input, textarea, select, [contenteditable="true"]' );
+		const editing = event.composedPath().some( node => node.matches?.( 'input, textarea, select, wa-input, wa-textarea, wa-select, wa-slider, wa-tab, [contenteditable="true"]' ) );
+		if ( event.defaultPrevented ) return;
 		if ( ! elements.attachmentModal.hidden && ! editing && ( 'ArrowLeft' === event.key || 'ArrowRight' === event.key ) ) {
 			event.preventDefault();
 			navigateAttachment( 'ArrowLeft' === event.key ? -1 : 1 );
@@ -3071,11 +3189,12 @@
 			openAttachmentModal( attachment, elements.upload );
 		};
 		frame.uplinkMbbRefreshUploadResults = () => loadState();
-		frame.uplinkMbbHandleCreatedAttachment = ( id ) => {
+		frame.uplinkMbbHandleCreatedAttachment = ( id, destination = frame.uplinkMbbUploadDestinationId ) => {
 			createdAttachmentChain = createdAttachmentChain.then( async () => {
 				const attachmentId = Number( id );
 				if ( ! attachmentId ) return;
-				const destinationId = Number( frame.uplinkMbbUploadDestinationId ) || 0;
+				await window.uplinkMbbImageSizeRepair?.afterUpload( attachmentId );
+				const destinationId = Number( destination ) || 0;
 
 				if ( destinationId ) {
 					try {
@@ -3146,6 +3265,8 @@
 		const savedDisplay = JSON.parse( window.localStorage.getItem( 'uplinkMbbDisplay' ) || '{}' );
 		if ( savedDisplay && 'object' === typeof savedDisplay ) {
 			Object.keys( state.display ).forEach( ( field ) => {
+				// A changed administrator default takes precedence over an older browser override.
+				if ( 'exif' === field && ( savedDisplay.exifDefault !== Boolean( config.showExif ) || savedDisplay.exifDefaultVersion !== config.showExifVersion ) ) return;
 				if ( 'boolean' === typeof savedDisplay[ field ] ) {
 					state.display[ field ] = savedDisplay[ field ];
 				}

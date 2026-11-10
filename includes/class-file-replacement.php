@@ -14,7 +14,7 @@ final class File_Replacement {
 
 	public function attachment_field( array $fields, $post ): array {
 		if ( ! empty( Plugin::settings()['file_replacement'] ) && current_user_can( 'upload_files' ) && current_user_can( 'edit_post', $post->ID ) ) {
-			$fields['uplink_mbb_replace'] = array( 'label' => __( 'File', 'media-bridge-for-bricks' ), 'input' => 'html', 'html' => sprintf( '<button type="button" class="button" data-mbb-replace-id="%d" data-mbb-replace-name="%s">%s</button>', $post->ID, esc_attr( wp_basename( (string) get_attached_file( $post->ID ) ) ), esc_html__( 'Replace file', 'media-bridge-for-bricks' ) ) );
+			$fields['uplink_mbb_replace'] = array( 'label' => __( 'File', 'uplink-media-manager' ), 'input' => 'html', 'html' => sprintf( '<button type="button" class="button" data-mbb-replace-id="%d" data-mbb-replace-name="%s">%s</button>', $post->ID, esc_attr( wp_basename( (string) get_attached_file( $post->ID ) ) ), esc_html__( 'Replace file', 'uplink-media-manager' ) ) );
 		}
 		return $fields;
 	}
@@ -23,46 +23,48 @@ final class File_Replacement {
 		if ( empty( Plugin::settings()['file_replacement'] ) || ! current_user_can( 'upload_files' ) ) return;
 		Upload_Workspace::assets();
 		wp_enqueue_style( 'uplink-mbb-file-replacement', UPLINK_MBB_URL . 'assets/file-replacement.css', array(), UPLINK_MBB_ASSET_VERSION );
+		Upload_Workspace::ui_assets( array( 'uplink-mbb-file-replacement' ) );
 		wp_enqueue_script( 'uplink-mbb-file-replacement', UPLINK_MBB_URL . 'assets/file-replacement.js', array( 'uplink-mbb-upload-workspace' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script( 'uplink-mbb-file-replacement', 'uplinkMbbReplacement', array(
 			'appearance' => Plugin::settings()['appearance'],
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce' => wp_create_nonce( 'uplink_mbb_replace_file' ),
 			'strings' => array(
-				'title' => __( 'Replace file', 'media-bridge-for-bricks' ),
-				'file' => __( 'Replacement file', 'media-bridge-for-bricks' ),
-				'keep' => __( 'Keep the existing filename and URL', 'media-bridge-for-bricks' ),
-				'savedAs' => __( 'Will be saved as:', 'media-bridge-for-bricks' ),
-				'keptNameHelp' => __( 'The selected file will replace the existing file. Its filename and URL will stay the same.', 'media-bridge-for-bricks' ),
-				'keepHelp' => __( 'Requires the same file type after optimization. The file changes everywhere this URL is used. Cached copies may take time to refresh.', 'media-bridge-for-bricks' ),
-				'new' => __( 'Use the replacement filename and type', 'media-bridge-for-bricks' ),
-				'newHelp' => __( 'Creates a new file URL. Links written directly into content are not rewritten. Existing files are retained so those links keep working.', 'media-bridge-for-bricks' ),
-				'preserve' => __( 'The attachment ID, title, alt text, captions, folders, and custom order stay the same.', 'media-bridge-for-bricks' ),
-				'cancel' => __( 'Cancel', 'media-bridge-for-bricks' ),
-				'saving' => __( 'Replacing…', 'media-bridge-for-bricks' ),
-				'saved' => __( 'File replaced.', 'media-bridge-for-bricks' ),
-				'error' => __( 'The file could not be replaced.', 'media-bridge-for-bricks' ),
+				'title' => __( 'Replace file', 'uplink-media-manager' ),
+				'file' => __( 'Replacement file', 'uplink-media-manager' ),
+				'keep' => __( 'Keep the existing filename and URL', 'uplink-media-manager' ),
+				'savedAs' => __( 'Will be saved as:', 'uplink-media-manager' ),
+				'keptNameHelp' => __( 'The selected file will replace the existing file. Its filename and URL will stay the same.', 'uplink-media-manager' ),
+				'keepHelp' => __( 'Requires the same file type after optimization. The file changes everywhere this URL is used. Cached copies may take time to refresh.', 'uplink-media-manager' ),
+				'new' => __( 'Use the replacement filename and type', 'uplink-media-manager' ),
+				'newHelp' => __( 'Creates a new file URL. Links written directly into content are not rewritten. Existing files are retained so those links keep working.', 'uplink-media-manager' ),
+				'preserve' => __( 'The attachment ID, title, alt text, captions, folders, and custom order stay the same.', 'uplink-media-manager' ),
+				'close' => __( 'Close', 'uplink-media-manager' ),
+				'cancel' => __( 'Cancel', 'uplink-media-manager' ),
+				'saving' => __( 'Replacing…', 'uplink-media-manager' ),
+				'saved' => __( 'File replaced.', 'uplink-media-manager' ),
+				'error' => __( 'The file could not be replaced.', 'uplink-media-manager' ),
 			),
 		) );
 	}
 
 	public function ajax_replace(): void {
 		check_ajax_referer( 'uplink_mbb_replace_file', 'nonce' );
-		if ( empty( Plugin::settings()['file_replacement'] ) ) wp_send_json_error( array( 'message' => __( 'Media Bridge file replacement is disabled in settings.', 'media-bridge-for-bricks' ) ), 403 );
+		if ( empty( Plugin::settings()['file_replacement'] ) ) wp_send_json_error( array( 'message' => __( 'Uplink Media Manager file replacement is disabled in settings.', 'uplink-media-manager' ) ), 403 );
 		$id = absint( $_POST['attachment_id'] ?? 0 );
 		$mode = sanitize_key( wp_unslash( $_POST['mode'] ?? '' ) );
-		if ( Image_Conversion::active( $id ) ) wp_send_json_error( array( 'message' => __( 'Restore the original in the Optimization tab before replacing this file.', 'media-bridge-for-bricks' ) ), 409 );
 		if ( ! current_user_can( 'upload_files' ) || ! current_user_can( 'edit_post', $id ) || 'attachment' !== get_post_type( $id ) ) {
-			wp_send_json_error( array( 'message' => __( 'You cannot replace this attachment.', 'media-bridge-for-bricks' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'You cannot replace this attachment.', 'uplink-media-manager' ) ), 403 );
 		}
+		if ( Image_Conversion::active( $id ) ) wp_send_json_error( array( 'message' => __( 'Restore the original in the Optimization tab before replacing this file.', 'uplink-media-manager' ) ), 409 );
 		if ( ! in_array( $mode, array( 'keep', 'new' ), true ) || empty( $_FILES['file'] ) ) {
-			wp_send_json_error( array( 'message' => __( 'Choose a replacement file and how to name it.', 'media-bridge-for-bricks' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Choose a replacement file and how to name it.', 'uplink-media-manager' ) ), 400 );
 		}
-		if ( absint( $_FILES['file']['size'] ?? 0 ) > wp_max_upload_size() ) wp_send_json_error( array( 'message' => __( 'The replacement exceeds the upload size limit.', 'media-bridge-for-bricks' ) ), 400 );
+		if ( absint( $_FILES['file']['size'] ?? 0 ) > wp_max_upload_size() ) wp_send_json_error( array( 'message' => __( 'The replacement exceeds the upload size limit.', 'uplink-media-manager' ) ), 400 );
 		// An atomic option prevents two replacements of the same attachment running together.
 		$lock = 'uplink_mbb_replacing_' . $id;
 		if ( ! add_option( $lock, time(), '', false ) ) {
-			wp_send_json_error( array( 'message' => __( 'A replacement is already in progress for this attachment.', 'media-bridge-for-bricks' ) ), 409 );
+			wp_send_json_error( array( 'message' => __( 'A replacement is already in progress for this attachment.', 'uplink-media-manager' ) ), 409 );
 		}
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -90,14 +92,14 @@ final class File_Replacement {
 		$backups = array();
 		$generated = array( $staged );
 		$committed = false;
-		if ( $staged === $old_file ) return new \WP_Error( 'same_file', __( 'Choose a new upload to replace this file.', 'media-bridge-for-bricks' ) );
+		if ( $staged === $old_file ) return new \WP_Error( 'same_file', __( 'Choose a new upload to replace this file.', 'uplink-media-manager' ) );
 		try {
-			if ( ! in_array( $mode, array( 'keep', 'new' ), true ) ) throw new \RuntimeException( __( 'Invalid replacement option.', 'media-bridge-for-bricks' ) );
+			if ( ! in_array( $mode, array( 'keep', 'new' ), true ) ) throw new \RuntimeException( __( 'Invalid replacement option.', 'uplink-media-manager' ) );
 			$base = realpath( wp_get_upload_dir()['basedir'] );
-			if ( ! $base || ! realpath( $staged ) || ! str_starts_with( realpath( $staged ), $base . DIRECTORY_SEPARATOR ) ) throw new \RuntimeException( __( 'The replacement must be stored in the local uploads directory.', 'media-bridge-for-bricks' ) );
-			if ( 'keep' === $mode && ( ! $old_file || ! is_file( $old_file ) || ! str_starts_with( realpath( $old_file ), $base . DIRECTORY_SEPARATOR ) || ! wp_is_writable( $old_file ) ) ) throw new \RuntimeException( __( 'The existing file must be writable in the local uploads directory to keep its URL.', 'media-bridge-for-bricks' ) );
+			if ( ! $base || ! realpath( $staged ) || ! str_starts_with( realpath( $staged ), $base . DIRECTORY_SEPARATOR ) ) throw new \RuntimeException( __( 'The replacement must be stored in the local uploads directory.', 'uplink-media-manager' ) );
+			if ( 'keep' === $mode && ( ! $old_file || ! is_file( $old_file ) || ! str_starts_with( realpath( $old_file ), $base . DIRECTORY_SEPARATOR ) || ! wp_is_writable( $old_file ) ) ) throw new \RuntimeException( __( 'The existing file must be writable in the local uploads directory to keep its URL.', 'uplink-media-manager' ) );
 			// Generate against an isolated staging attachment so hooks cannot update the live record mid-replacement.
-			$temp_id = wp_insert_attachment( array( 'post_mime_type' => $upload['type'], 'post_title' => 'Media Bridge replacement staging', 'post_status' => 'inherit' ), $staged, 0, true );
+			$temp_id = wp_insert_attachment( array( 'post_mime_type' => $upload['type'], 'post_title' => 'Uplink Media Manager replacement staging', 'post_status' => 'inherit' ), $staged, 0, true );
 			if ( is_wp_error( $temp_id ) ) throw new \RuntimeException( $temp_id->get_error_message() );
 			try {
 				$metadata = wp_generate_attachment_metadata( $temp_id, $staged );
@@ -114,11 +116,11 @@ final class File_Replacement {
 				delete_post_meta( $temp_id, '_wp_attachment_metadata' );
 				wp_delete_attachment( $temp_id, true );
 			}
-			if ( str_starts_with( $upload['type'], 'image/' ) && 'image/svg+xml' !== $upload['type'] && empty( $metadata['width'] ) ) throw new \RuntimeException( __( 'WordPress could not process the replacement image.', 'media-bridge-for-bricks' ) );
+			if ( str_starts_with( $upload['type'], 'image/' ) && 'image/svg+xml' !== $upload['type'] && empty( $metadata['width'] ) ) throw new \RuntimeException( __( 'WordPress could not process the replacement image.', 'uplink-media-manager' ) );
 			$final_type = wp_check_filetype_and_ext( $staged, wp_basename( $staged ) );
-			if ( empty( $final_type['type'] ) ) throw new \RuntimeException( __( 'The processed replacement has an unsupported file type.', 'media-bridge-for-bricks' ) );
+			if ( empty( $final_type['type'] ) ) throw new \RuntimeException( __( 'The processed replacement has an unsupported file type.', 'uplink-media-manager' ) );
 			$upload['type'] = $final_type['type'];
-			if ( 'keep' === $mode && ( $old_mime !== $upload['type'] || strtolower( pathinfo( $old_file, PATHINFO_EXTENSION ) ) !== strtolower( pathinfo( $staged, PATHINFO_EXTENSION ) ) ) ) throw new \RuntimeException( __( 'Keeping the URL requires the same file type and extension. Choose the other option to use a different type.', 'media-bridge-for-bricks' ) );
+			if ( 'keep' === $mode && ( $old_mime !== $upload['type'] || strtolower( pathinfo( $old_file, PATHINFO_EXTENSION ) ) !== strtolower( pathinfo( $staged, PATHINFO_EXTENSION ) ) ) ) throw new \RuntimeException( __( 'Keeping the URL requires the same file type and extension. Choose the other option to use a different type.', 'uplink-media-manager' ) );
 			$target = $staged;
 			if ( 'keep' === $mode ) {
 				$target = $old_file;
@@ -147,11 +149,11 @@ final class File_Replacement {
 					$writes[ $destination ] = $variant['path'];
 				}
 				foreach ( $writes as $destination => $source ) {
-					if ( is_link( $destination ) ) throw new \RuntimeException( __( 'Linked files cannot be replaced.', 'media-bridge-for-bricks' ) );
+					if ( is_link( $destination ) ) throw new \RuntimeException( __( 'Linked files cannot be replaced.', 'uplink-media-manager' ) );
 					$backup = is_file( $destination ) ? wp_tempnam( 'mbb-replacement-backup' ) : null;
-					if ( is_file( $destination ) && ( ! $backup || ! copy( $destination, $backup ) ) ) throw new \RuntimeException( __( 'Could not back up the existing file.', 'media-bridge-for-bricks' ) );
+					if ( is_file( $destination ) && ( ! $backup || ! copy( $destination, $backup ) ) ) throw new \RuntimeException( __( 'Could not back up the existing file.', 'uplink-media-manager' ) );
 					$backups[ $destination ] = $backup;
-					if ( ! copy( $source, $destination ) ) throw new \RuntimeException( __( 'Could not write the replacement file.', 'media-bridge-for-bricks' ) );
+					if ( ! copy( $source, $destination ) ) throw new \RuntimeException( __( 'Could not write the replacement file.', 'uplink-media-manager' ) );
 				}
 				$metadata['file'] = _wp_relative_upload_path( $old_file );
 				$metadata['sizes'] = $new_sizes;
@@ -164,7 +166,7 @@ final class File_Replacement {
 			// Do not let metadata-preservation filters carry information from the old bytes forward.
 			delete_post_meta( $id, '_wp_attachment_metadata' );
 			wp_update_attachment_metadata( $id, $metadata );
-			if ( get_attached_file( $id, true ) !== $target || wp_get_attachment_metadata( $id ) !== $metadata ) throw new \RuntimeException( __( 'Could not save replacement metadata.', 'media-bridge-for-bricks' ) );
+			if ( get_attached_file( $id, true ) !== $target || wp_get_attachment_metadata( $id ) !== $metadata ) throw new \RuntimeException( __( 'Could not save replacement metadata.', 'uplink-media-manager' ) );
 			delete_post_meta( $id, '_wp_attachment_backup_sizes' );
 			clean_post_cache( $id );
 			$committed = true;

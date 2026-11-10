@@ -3,6 +3,9 @@ namespace UplinkPress\MediaBridgeForBricks;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+// Bricks defines these interfaces when its theme loads, after WordPress plugins.
+if ( interface_exists( '\\Bricks\\Media_Folder_Provider' ) && interface_exists( '\\Bricks\\Media_Folder_Item_Provider' ) && interface_exists( '\\Bricks\\Media_Folder_Item_Assignment_Provider' ) && ! class_exists( __NAMESPACE__ . '\\Bricks_Folder_Provider', false ) ) {
+
 /** Bricks 2.4 provider. No copies or synchronization of folder relationships. */
 final class Bricks_Folder_Provider extends Folder_Provider implements \Bricks\Media_Folder_Provider, \Bricks\Media_Folder_Item_Provider, \Bricks\Media_Folder_Item_Assignment_Provider {
 	public function get_id() { return $this->id(); }
@@ -46,14 +49,14 @@ final class Bricks_Folder_Provider extends Folder_Provider implements \Bricks\Me
 		$attachment_id = absint( $attachment_id );
 		$folder_id = absint( $folder_id );
 		if ( ! $this->can_assign() || 'attachment' !== get_post_type( $attachment_id ) || ! current_user_can( 'edit_post', $attachment_id ) ) {
-			return new \WP_Error( 'media_folder_not_allowed', __( 'You cannot move this attachment.', 'media-bridge-for-bricks' ) );
+			return new \WP_Error( 'media_folder_not_allowed', __( 'You cannot move this attachment.', 'uplink-media-manager' ) );
 		}
-		if ( $folder_id && ! $this->get_term( $folder_id ) ) return new \WP_Error( 'media_folder_not_found', __( 'The folder no longer exists.', 'media-bridge-for-bricks' ) );
+		if ( $folder_id && ! $this->get_term( $folder_id ) ) return new \WP_Error( 'media_folder_not_found', __( 'The folder no longer exists.', 'uplink-media-manager' ) );
 		$result = $this->set_object_terms( $attachment_id, $folder_id ? array( $folder_id ) : array() );
 		return is_wp_error( $result ) ? $result : true;
 	}
 	public function manage_folder( $input ) {
-		if ( ! $this->can_manage() ) return new \WP_Error( 'media_folder_not_allowed', __( 'You cannot manage media folders.', 'media-bridge-for-bricks' ) );
+		if ( ! $this->can_manage() ) return new \WP_Error( 'media_folder_not_allowed', __( 'You cannot manage media folders.', 'uplink-media-manager' ) );
 		if ( ! is_array( $input ) ) return new \WP_Error( 'media_folder_invalid', 'Invalid folder request.' );
 		foreach ( array( 'operation', 'folderId', 'name', 'parent', 'position' ) as $key ) {
 			if ( isset( $input[ $key ] ) && ! is_scalar( $input[ $key ] ) ) return new \WP_Error( 'media_folder_invalid', 'Invalid folder request.' );
@@ -116,4 +119,6 @@ final class Bricks_Folder_Provider extends Folder_Provider implements \Bricks\Me
 		if ( ! $matches ) wp_send_json_error( array( 'code' => 'media_upload_folder_mismatch', 'message' => 'The uploaded file is not in its intended folder.' ), 400 );
 		wp_send_json_success( array( 'attachmentId' => $id, 'folderId' => $folder ) );
 	}
+}
+
 }

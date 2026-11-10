@@ -39,7 +39,7 @@ abstract class Taxonomy_Provider implements Provider_Interface {
 		unset( $args['name'] );
 
 		if ( '' === $name ) {
-			return new WP_Error( 'uplink_mbb_empty_term_name', __( 'A folder must have a name.', 'media-bridge-for-bricks' ) );
+			return new WP_Error( 'uplink_mbb_empty_term_name', __( 'A folder must have a name.', 'uplink-media-manager' ) );
 		}
 
 		return wp_insert_term( $name, $this->taxonomy(), $args );
@@ -47,7 +47,7 @@ abstract class Taxonomy_Provider implements Provider_Interface {
 
 	public function update_term( int $term_id, array $args ): array|WP_Error {
 		if ( ! $this->get_term( $term_id ) ) {
-			return new WP_Error( 'uplink_mbb_invalid_term', __( 'The folder no longer exists.', 'media-bridge-for-bricks' ) );
+			return new WP_Error( 'uplink_mbb_invalid_term', __( 'The folder no longer exists.', 'uplink-media-manager' ) );
 		}
 
 		return wp_update_term( $term_id, $this->taxonomy(), $this->sanitize_term_args( $args, false ) );

@@ -42,7 +42,7 @@ self.onmessage=async({data})=>{
   canvas.width=0;canvas.height=0;
   self.postMessage({id,blob:output,preview:preview?visual:null});
  }catch(error){
-  const raw=String(error.message||error);console.warn('Media Bridge '+format+' encoder:',raw);
+  const raw=String(error.message||error);console.warn('Uplink Media Manager '+format+' encoder:',raw);
   const friendly=/Aborted|WebAssembly|unreachable|memory access|out of memory/i.test(raw)
    ? 'The '+format.toUpperCase()+' encoder stopped unexpectedly. Try again or choose another format. Original files have not changed.' : raw;
   self.postMessage({id,error:friendly});

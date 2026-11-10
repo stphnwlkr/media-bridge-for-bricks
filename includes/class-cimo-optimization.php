@@ -11,8 +11,8 @@ final class Cimo_Optimization {
 			&& current_user_can( 'edit_posts' ) && current_user_can( 'edit_others_posts' );
 	}
 	public static function plan( int $id ) {
-		if ( ! self::available() ) return new \WP_Error( 'cimo_unavailable', __( 'Post-upload optimization requires active Cimo Pro and permission to optimize media.', 'media-bridge-for-bricks' ) );
-		if ( 'attachment' !== get_post_type( $id ) || ! current_user_can( 'edit_post', $id ) ) return new \WP_Error( 'cimo_forbidden', __( 'You cannot optimize this attachment.', 'media-bridge-for-bricks' ) );
+		if ( ! self::available() ) return new \WP_Error( 'cimo_unavailable', __( 'Post-upload optimization requires active Cimo Pro and permission to optimize media.', 'uplink-media-manager' ) );
+		if ( 'attachment' !== get_post_type( $id ) || ! current_user_can( 'edit_post', $id ) ) return new \WP_Error( 'cimo_forbidden', __( 'You cannot optimize this attachment.', 'uplink-media-manager' ) );
 		$mime = get_post_mime_type( $id );
 		if ( ! in_array( $mime, array( 'image/jpeg', 'image/png', 'image/webp' ), true ) ) return array();
 		$meta = wp_get_attachment_metadata( $id );
@@ -54,14 +54,14 @@ final class Cimo_Optimization {
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'uplink_mbb_cimo_optimize' ),
 			'restUrl' => rest_url( 'cimo/v1/' ), 'restNonce' => wp_create_nonce( 'wp_rest' ),
 			'strings' => array(
-				'unavailable' => __( 'Cimo Pro optimization is unavailable. Reload this page after activating Cimo Pro.', 'media-bridge-for-bricks' ),
-				'failed' => __( 'Optimization failed. Review the image in Cimo\'s Bulk Optimization screen.', 'media-bridge-for-bricks' ),
-				'optimize' => __( 'Optimize', 'media-bridge-for-bricks' ),
+				'unavailable' => __( 'Cimo Pro optimization is unavailable. Reload this page after activating Cimo Pro.', 'uplink-media-manager' ),
+				'failed' => __( 'Optimization failed. Review the image in Cimo\'s Bulk Optimization screen.', 'uplink-media-manager' ),
+				'optimize' => __( 'Optimize', 'uplink-media-manager' ),
 				/* translators: %1$d: Current file index. %2$d: Total files. */
-				'progress' => __( 'Optimizing %1$d of %2$d…', 'media-bridge-for-bricks' ),
+				'progress' => __( 'Optimizing %1$d of %2$d…', 'uplink-media-manager' ),
 				/* translators: %1$d: Optimized file count. %2$d: Unchanged file count. %3$d: Failed file count. */
-				'complete' => __( '%1$d sizes optimized, %2$d unchanged, %3$d failed.', 'media-bridge-for-bricks' ),
-				'help' => __( 'Optimizes the full image and remaining generated sizes with Cimo Pro. File formats and dimensions stay the same. Cimo keeps backups for its Restore action. Keep this page open until it finishes.', 'media-bridge-for-bricks' ),
+				'complete' => __( '%1$d sizes optimized, %2$d unchanged, %3$d failed.', 'uplink-media-manager' ),
+				'help' => __( 'Optimizes the full image and remaining generated sizes with Cimo Pro. File formats and dimensions stay the same. Cimo keeps backups for its Restore action. Keep this page open until it finishes.', 'uplink-media-manager' ),
 			),
 		) );
 	}

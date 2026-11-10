@@ -57,7 +57,7 @@
 
 	if ( resetForm ) {
 		resetForm.addEventListener( 'submit', ( event ) => {
-			if ( ! window.confirm( messages.resetConfirm || 'Reset all Media Bridge settings to their defaults?' ) ) {
+			if ( ! window.confirm( messages.resetConfirm || 'Reset all Uplink Media Manager settings to their defaults?' ) ) {
 				event.preventDefault();
 				return;
 			}

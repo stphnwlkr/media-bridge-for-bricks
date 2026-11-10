@@ -12,67 +12,122 @@ final class Image_Conversion {
 		add_action( 'uplink_mbb_conversion_expire', array( self::class, 'expire' ) );
 		add_filter( 'wp_get_attachment_image', array( self::class, 'picture' ), 30 );
 		add_filter( 'the_content', array( self::class, 'picture' ), 30 );
-		add_filter( 'bricks/frontend/render_data', array( self::class, 'picture' ), 30 );
+		add_filter( 'render_block', array( self::class, 'picture' ), 30 );
+	}
+	/** Formats enabled by the administrator, in the order used by preview cards. */
+	public static function enabled_formats(): array {
+		$settings = Plugin::settings();
+		return array_values( array_filter( array( 'webp', 'avif', 'jxl', 'jpg' ), static fn( string $format ): bool => ! empty( $settings[ 'compression_' . $format ] ) ) );
 	}
 	public static function assets(): void {
-		if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'upload_files' ) ) return;
+		if ( ! current_user_can( 'upload_files' ) || ( ! self::role_allowed( 'compress' ) && ! self::role_allowed( 'restore' ) ) ) return;
+		wp_enqueue_script_module( 'uplink-mbb-optimization-components', UPLINK_MBB_URL . 'assets/optimization-components.js', array(), UPLINK_MBB_ASSET_VERSION );
+		wp_enqueue_style( 'uplink-mbb-optimization-theme', UPLINK_MBB_URL . 'assets/vendor/webawesome/theme.css', array(), UPLINK_MBB_ASSET_VERSION );
 		wp_enqueue_style( 'uplink-mbb-image-conversion', UPLINK_MBB_URL . 'assets/image-conversion.css', array( 'uplink-mbb-native-media' ), UPLINK_MBB_ASSET_VERSION );
+		Upload_Workspace::ui_assets( array( 'uplink-mbb-image-conversion' ) );
 		wp_enqueue_script( 'uplink-mbb-image-conversion', UPLINK_MBB_URL . 'assets/image-conversion.js', array( 'uplink-mbb-native-media' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script( 'uplink-mbb-image-conversion', 'uplinkMbbConversion', array(
-			'ajaxUrl' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'uplink_mbb_image_conversion' ), 'worker' => UPLINK_MBB_URL . 'assets/image-encode-worker.js?v=' . UPLINK_MBB_ASSET_VERSION,
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'uplink_mbb_image_conversion' ), 'enabled' => ! empty( Plugin::settings()['image_conversion'] ), 'formats' => self::enabled_formats(), 'settingsUrl' => admin_url( 'upload.php?page=media-bridge-for-bricks&tab=compression#uplink-mbb-compression-settings' ), 'worker' => UPLINK_MBB_URL . 'assets/image-encode-worker.js?v=' . UPLINK_MBB_ASSET_VERSION,
 			'strings' => array(
-				'title' => __( 'Image compression and formats', 'media-bridge-for-bricks' ),
-				'help' => __( 'Preview formats before choosing. Every image size is converted after you choose a result. Processing stays in your browser and needs no Cimo Pro license. Originals, attachment details and folders are preserved for restoration.', 'media-bridge-for-bricks' ),
-				'qualityHelp' => __( 'Quality scales differ between formats. Open the previews to compare detail and transparency; a smaller file is not always the better result.', 'media-bridge-for-bricks' ),
-				'compare' => __( 'Compare WebP, AVIF and JPEG XL', 'media-bridge-for-bricks' ),
-				'applyCompression' => __( 'Apply compression', 'media-bridge-for-bricks' ),
-				'compress' => __( 'Compress current format', 'media-bridge-for-bricks' ),
-				'restore' => __( 'Restore originals', 'media-bridge-for-bricks' ),
-				'restoring' => __( 'Restoring files and image references…', 'media-bridge-for-bricks' ),
-				'restored' => __( 'Original image and references restored.', 'media-bridge-for-bricks' ),
-				'processing' => __( 'Processing image', 'media-bridge-for-bricks' ),
-				'keepOpen' => __( 'Keep this window open until processing finishes.', 'media-bridge-for-bricks' ),
-				'preparing' => __( 'Checking original files and generated sizes…', 'media-bridge-for-bricks' ),
-				'ready' => __( 'Full-image previews are ready. Other sizes are encoded only after you choose a result. Final savings for all sizes will be saved in this tab.', 'media-bridge-for-bricks' ),
-				'restoreFirst' => __( 'Restore the original before making another conversion.', 'media-bridge-for-bricks' ),
-				'compareFirst' => __( 'Compare the image before converting it.', 'media-bridge-for-bricks' ),
-				'failed' => __( 'Image conversion failed.', 'media-bridge-for-bricks' ),
-				'encoderFailed' => __( 'The local image encoder could not load. Check whether your browser or site policy blocks workers or WebAssembly.', 'media-bridge-for-bricks' ),
-				'fetchFailed' => __( 'An original image size could not be downloaded.', 'media-bridge-for-bricks' ),
-				'before' => __( 'Before', 'media-bridge-for-bricks' ), 'after' => __( 'After', 'media-bridge-for-bricks' ), 'size' => __( 'Image size', 'media-bridge-for-bricks' ), 'savings' => __( 'Saved', 'media-bridge-for-bricks' ), 'quality' => __( 'Quality', 'media-bridge-for-bricks' ), 'date' => __( 'Completed', 'media-bridge-for-bricks' ), 'automatic' => __( 'Automatic', 'media-bridge-for-bricks' ),
-				'files' => __( 'files', 'media-bridge-for-bricks' ),
-				'preview' => __( 'comparison preview', 'media-bridge-for-bricks' ),
-				'openPreview' => __( 'Open full-size preview', 'media-bridge-for-bricks' ),
-				'jxlHelp' => __( 'JPEG XL is served through picture sources with the original image as fallback. Existing picture elements, CSS backgrounds and external links keep their original format.', 'media-bridge-for-bricks' ),
-				'useJxl' => __( 'Use JPEG XL with fallback', 'media-bridge-for-bricks' ),
-				'view' => __( 'View saved result', 'media-bridge-for-bricks' ),
-				'updating' => __( 'Saving the restoration record and updating image references…', 'media-bridge-for-bricks' ),
+				'sizesTitle' => __( 'Image sizes', 'uplink-media-manager' ),
+				'allSizes' => __( 'All sizes', 'uplink-media-manager' ), 'mainOnly' => __( 'Main image only', 'uplink-media-manager' ), 'chooseSizes' => __( 'Selected sizes', 'uplink-media-manager' ),
+				'excludedSize' => __( 'Excluded in Settings. Check to include for this image.', 'uplink-media-manager' ),
+				'exclusionsHint' => __( 'All sizes honors Settings exclusions. Choose Selected sizes to override them for this image.', 'uplink-media-manager' ),
+				'sizeHint' => __( 'Includes existing WordPress and custom sizes. Sizes that share a file are processed together once. Unselected files keep their current format.', 'uplink-media-manager' ),
+				'scopeLabel' => __( 'Optimize', 'uplink-media-manager' ), 'tooLarge' => __( 'A file exceeds the 40-megapixel limit. Choose the main image or select smaller sizes.', 'uplink-media-manager' ),
+				'sizeInventory' => __( 'Available image files', 'uplink-media-manager' ), 'originalUpload' => __( 'Original upload', 'uplink-media-manager' ), 'selectionEmpty' => __( 'Select at least one image size before applying compression.', 'uplink-media-manager' ),
+				'selectedFiles' => __( 'files selected', 'uplink-media-manager' ), 'totalFiles' => __( 'files available', 'uplink-media-manager' ),
+				'previewOnly' => __( 'Previews show the main image. Only your selected sizes will be saved.', 'uplink-media-manager' ),
+				'title' => __( 'Optimize image', 'uplink-media-manager' ),
+				'help' => __( 'Compare your enabled formats at suggested quality settings, then fine-tune the result you prefer. Your files change only when you choose a format. Originals are kept for restoration.', 'uplink-media-manager' ),
+				'mainPreview' => __( 'Main image preview', 'uplink-media-manager' ), 'previewBadge' => __( 'Preview', 'uplink-media-manager' ),
+				'qualityHelp' => __( 'Drag an image divider to compare. Adjust quality below the image.', 'uplink-media-manager' ),
+				'compare' => __( 'Generate format previews', 'uplink-media-manager' ),
+				'applyCompression' => __( 'Apply compression', 'uplink-media-manager' ),
+				'compress' => __( 'Compress current format', 'uplink-media-manager' ),
+				'restore' => __( 'Restore originals', 'uplink-media-manager' ),
+				'restoring' => __( 'Restoring files and image references…', 'uplink-media-manager' ),
+				'restored' => __( 'Original image and references restored.', 'uplink-media-manager' ),
+				'processing' => __( 'Processing image', 'uplink-media-manager' ),
+				'keepOpen' => __( 'Keep this window open until processing finishes.', 'uplink-media-manager' ),
+				'preparing' => __( 'Checking original files and generated sizes…', 'uplink-media-manager' ),
+				'ready' => __( 'Previews are ready. Choose image sizes and apply your preferred format. Savings for the selected files will be saved in this tab.', 'uplink-media-manager' ),
+				'restoreFirst' => __( 'Restore the original before making another conversion.', 'uplink-media-manager' ),
+				'compareFirst' => __( 'Compare the image before converting it.', 'uplink-media-manager' ),
+				'failed' => __( 'Image conversion failed.', 'uplink-media-manager' ),
+				'encoderFailed' => __( 'The local image encoder could not load. Check whether your browser or site policy blocks workers or WebAssembly.', 'uplink-media-manager' ),
+				'fetchFailed' => __( 'An original image size could not be downloaded.', 'uplink-media-manager' ),
+				'before' => __( 'Before', 'uplink-media-manager' ), 'after' => __( 'After', 'uplink-media-manager' ), 'size' => __( 'Image size', 'uplink-media-manager' ), 'savings' => __( 'Saved', 'uplink-media-manager' ), 'quality' => __( 'Quality', 'uplink-media-manager' ), 'date' => __( 'Completed', 'uplink-media-manager' ), 'automatic' => __( 'Automatic', 'uplink-media-manager' ),
+				'files' => __( 'files', 'uplink-media-manager' ),
+				'preview' => __( 'comparison preview', 'uplink-media-manager' ),
+				'preparingPreview' => __( 'Preparing preview…', 'uplink-media-manager' ),
+				'retryPreview' => __( 'Retry preview', 'uplink-media-manager' ),
+				'releaseQuality' => __( 'Release to update the preview.', 'uplink-media-manager' ),
+				'smallerFile' => __( 'Smaller file', 'uplink-media-manager' ),
+				'moreDetail' => __( 'More detail', 'uplink-media-manager' ),
+				'jxlInfo' => __( 'About JPEG XL', 'uplink-media-manager' ),
+				'closeInfo' => __( 'Close information', 'uplink-media-manager' ),
+				'compressionSettings' => __( 'Compression settings', 'uplink-media-manager' ),
+				'noFormats' => __( 'No output formats are enabled. Select at least one format in Compression settings.', 'uplink-media-manager' ),
+				'currentOptimized' => __( 'This image is already optimized in the enabled format. Enable another output format to compare.', 'uplink-media-manager' ),
+				'jxlSummary' => __( 'Original-format fallback included', 'uplink-media-manager' ),
 				/* translators: %s: Image format. */
-				'convert' => __( 'Convert to %s', 'media-bridge-for-bricks' ),
+				'useFormat' => __( 'Optimize to %s', 'uplink-media-manager' ),
+				/* translators: %s: Image format. */
+				'inspectFormat' => __( 'Inspect %s comparison', 'uplink-media-manager' ),
+				/* translators: %s: Percentage reduction in file size. */
+				'smallerResult' => __( '%s%% smaller', 'uplink-media-manager' ),
+				/* translators: %s: Percentage increase in file size. */
+				'largerResult' => __( '%s%% larger', 'uplink-media-manager' ),
+				'original' => __( 'Original', 'uplink-media-manager' ),
+				'compressed' => __( 'Compressed', 'uplink-media-manager' ),
+				'compareTitle' => __( 'Original and compressed', 'uplink-media-manager' ),
+				'compareHelp' => __( 'Drag the divider or use the arrow keys to compare. Press Escape to close.', 'uplink-media-manager' ),
+				'openCompare' => __( 'Inspect', 'uplink-media-manager' ),
+				'close' => __( 'Close comparison', 'uplink-media-manager' ),
+				'previewNeeded' => __( 'Preview this format to compare image quality and file size.', 'uplink-media-manager' ),
+				/* translators: %s: Image format. */
+				'compareImages' => __( '%s original and compressed comparison', 'uplink-media-manager' ),
+				/* translators: %s: Image format. */
+				'previewFormat' => __( 'Preview %s', 'uplink-media-manager' ),
+				/* translators: %s: Image format. */
+				'inspectShort' => __( 'Inspect %s', 'uplink-media-manager' ),
+				'openPreview' => __( 'Open full-size preview', 'uplink-media-manager' ),
+				'jxlHelp' => __( 'JPEG XL is served through picture sources with the original image as fallback. Existing picture elements, CSS backgrounds and external links keep their original format.', 'uplink-media-manager' ),
+				'useJxl' => __( 'Use JPEG XL with fallback', 'uplink-media-manager' ),
+				'view' => __( 'View saved result', 'uplink-media-manager' ),
+				'updating' => __( 'Saving the restoration record and updating image references…', 'uplink-media-manager' ),
+				/* translators: %s: Image format. */
+				'convert' => __( 'Convert to %s', 'uplink-media-manager' ),
 				/* translators: %s: Saved format. */
-				'saved' => __( '%s optimization saved. Original files are retained. Restore before converting again or replacing this file.', 'media-bridge-for-bricks' ),
+				'saved' => __( '%s optimization saved. Original files are retained. Restore before converting again or replacing this file.', 'uplink-media-manager' ),
 				/* translators: %1$d: Current file. %2$d: Total files. */
-				'previewProgress' => __( 'Preparing preview %1$d of %2$d…', 'media-bridge-for-bricks' ),
+				'previewProgress' => __( 'Preparing preview %1$d of %2$d…', 'uplink-media-manager' ),
 				/* translators: %1$d: Current file. %2$d: Total files. */
-				'progress' => __( 'Encoding %1$d of %2$d…', 'media-bridge-for-bricks' ),
+				'progress' => __( 'Encoding %1$d of %2$d…', 'uplink-media-manager' ),
 				/* translators: %1$d: Current file. %2$d: Total files. */
-				'saving' => __( 'Saving size %1$d of %2$d…', 'media-bridge-for-bricks' ),
+				'saving' => __( 'Saving size %1$d of %2$d…', 'uplink-media-manager' ),
 				/* translators: %1$s: Encoded bytes. %2$s: Percentage saved. %3$d: File count. */
-				'previewTotal' => __( 'Full image: %1$s · %2$s%% smaller', 'media-bridge-for-bricks' ),
+				'previewTotal' => __( 'Full image: %1$s · %2$s%% smaller', 'uplink-media-manager' ),
 				/* translators: %1$d: File count. %2$d: Updated reference records. */
-				'complete' => __( 'Saved %1$d files and updated %2$d reference records. Original backups are retained.', 'media-bridge-for-bricks' ),
+				'complete' => __( 'Saved %1$d files and updated %2$d reference records. Original backups are retained.', 'uplink-media-manager' ),
 			),
 		) );
 	}
-	public static function allowed( int $id ): bool {
-		return 'attachment' === get_post_type( $id ) && current_user_can( 'manage_options' ) && current_user_can( 'upload_files' ) && current_user_can( 'edit_others_posts' ) && current_user_can( 'edit_post', $id );
+	/** Role grants never override WordPress upload or attachment-edit permissions. */
+	public static function role_allowed( string $action ): bool {
+		$key = 'restore' === $action ? 'restoration_roles' : 'compression_roles';
+		return (bool) array_intersect( wp_get_current_user()->roles, (array) Plugin::settings()[ $key ] );
+	}
+	public static function allowed( int $id, string $action = 'compress' ): bool {
+		return 'attachment' === get_post_type( $id ) && self::role_allowed( $action ) && current_user_can( 'upload_files' ) && current_user_can( 'edit_post', $id );
 	}
 	public static function active( int $id ): bool { return (bool) get_post_meta( $id, self::BACKUP, true ); }
 	public static function summary( int $id ): ?array {
 		$backup = get_post_meta( $id, self::BACKUP, true );
 		if ( ! $backup ) return null;
 		$total = 0; foreach ( $backup['converted'] as $file ) if ( is_file( $file ) ) $total += filesize( $file );
-		return array( 'format' => $backup['format'], 'before' => array_sum( array_column( $backup['sources'], 'bytes' ) ), 'after' => $total, 'sizes' => count( $backup['converted'] ), 'references' => $backup['changed'], 'quality' => $backup['quality'] ?? null, 'date' => wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $backup['created'] ), 'rows' => $backup['rows'] ?? array() );
+		return array( 'scope' => $backup['scope'] ?? 'all', 'format' => $backup['format'], 'before' => array_sum( array_column( $backup['sources'], 'bytes' ) ), 'after' => $total, 'sizes' => count( $backup['converted'] ), 'references' => $backup['changed'], 'quality' => $backup['quality'] ?? null, 'date' => wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $backup['created'] ), 'rows' => $backup['rows'] ?? array() );
 	}
 	public static function delete_files( int $id ): void {
 		$files = get_post_meta( $id, '_uplink_mbb_conversion_files', true );
@@ -85,70 +140,133 @@ final class Image_Conversion {
 	private static function fail( string $message ): void { throw new \RuntimeException( esc_html( $message ) ); }
 	private static function local( string $path ): string {
 		$base = realpath( wp_get_upload_dir()['basedir'] ); $real = realpath( $path );
-		if ( ! $base || ! $real || ! str_starts_with( $real, $base . DIRECTORY_SEPARATOR ) || ! is_file( $real ) || ! is_readable( $real ) || is_link( $path ) ) self::fail( __( 'Every image size must be a readable local uploads file.', 'media-bridge-for-bricks' ) );
+		if ( ! $base || ! $real || ! str_starts_with( $real, $base . DIRECTORY_SEPARATOR ) || ! is_file( $real ) || ! is_readable( $real ) || is_link( $path ) ) self::fail( __( 'Every image size must be a readable local uploads file.', 'uplink-media-manager' ) );
 		return $real;
 	}
 	private static function snapshot( int $id ): array {
 		return array( 'file' => get_post_meta( $id, '_wp_attached_file', true ), 'metadata' => wp_get_attachment_metadata( $id ), 'mime' => get_post_mime_type( $id ), 'editor_backups' => get_post_meta( $id, '_wp_attachment_backup_sizes', true ) );
 	}
 	public static function begin( int $id ): array {
-		if ( ! self::allowed( $id ) ) self::fail( __( 'Only administrators who can edit this image may convert it and update site references.', 'media-bridge-for-bricks' ) );
+		if ( empty( Plugin::settings()['image_conversion'] ) ) self::fail( __( 'Image compression is disabled in settings.', 'uplink-media-manager' ) );
+		if ( ! self::enabled_formats() ) self::fail( __( 'Select at least one output format in Compression settings.', 'uplink-media-manager' ) );
+		if ( ! self::allowed( $id ) ) self::fail( __( 'You do not have permission to compress this image.', 'uplink-media-manager' ) );
 		if ( self::active( $id ) ) return array( 'restore' => true, 'format' => get_post_meta( $id, self::BACKUP, true )['format'] );
 		$old = self::snapshot( $id );
-		if ( ! in_array( $old['mime'], array( 'image/png', 'image/jpeg', 'image/webp', 'image/avif' ), true ) || empty( $old['metadata']['width'] ) ) self::fail( __( 'Choose a local PNG, JPEG, WebP or AVIF image.', 'media-bridge-for-bricks' ) );
+		if ( ! in_array( $old['mime'], array( 'image/png', 'image/jpeg', 'image/webp', 'image/avif' ), true ) || empty( $old['metadata']['width'] ) ) self::fail( __( 'Choose a local PNG, JPEG, WebP or AVIF image.', 'uplink-media-manager' ) );
 		$path = self::local( get_attached_file( $id, true ) ); $meta = $old['metadata'];
 		$source = array( 'full' => wp_basename( $path ) );
 		foreach ( $meta['sizes'] ?? array() as $key => $size ) $source[ $key ] = $size['file'];
 		if ( ! empty( $meta['original_image'] ) ) $source['original_image'] = $meta['original_image'];
 		$files = array(); $aliases = array(); $seen = array();
 		foreach ( $source as $key => $name ) {
-			if ( ! is_string( $name ) || wp_basename( $name ) !== $name ) self::fail( __( 'An image size has an invalid filename.', 'media-bridge-for-bricks' ) );
+			if ( ! is_string( $name ) || wp_basename( $name ) !== $name ) self::fail( __( 'An image size has an invalid filename.', 'uplink-media-manager' ) );
 			$file = self::local( dirname( $path ) . '/' . $name );
 			if ( isset( $seen[ $file ] ) ) { $aliases[ $key ] = $seen[ $file ]; continue; }
 			$info = wp_getimagesize( $file );
-			if ( ! $info || $info[0] * $info[1] > 40000000 ) self::fail( __( 'An image size cannot be decoded or exceeds the 40-megapixel conversion limit.', 'media-bridge-for-bricks' ) );
+			if ( ! $info ) self::fail( __( 'An image size cannot be decoded.', 'uplink-media-manager' ) );
 			$seen[ $file ] = $key;
-			$files[ $key ] = array( 'path' => $file, 'name' => $name, 'url' => trailingslashit( dirname( wp_get_attachment_url( $id ) ) ) . rawurlencode( $name ), 'width' => $info[0], 'height' => $info[1], 'bytes' => filesize( $file ), 'hash' => hash_file( 'sha256', $file ) );
+			$files[ $key ] = array( 'available' => $info[0] * $info[1] <= 40000000, 'path' => $file, 'name' => $name, 'url' => trailingslashit( dirname( wp_get_attachment_url( $id ) ) ) . rawurlencode( $name ), 'width' => $info[0], 'height' => $info[1], 'bytes' => filesize( $file ), 'hash' => hash_file( 'sha256', $file ) );
 		}
-		if ( count( $files ) > 100 ) self::fail( __( 'This attachment exceeds the 100-file conversion limit.', 'media-bridge-for-bricks' ) );
+		if ( count( $files ) > 100 ) self::fail( __( 'This attachment exceeds the 100-file conversion limit.', 'uplink-media-manager' ) );
+		foreach ( self::excluded_keys( $files, $aliases ) as $key ) $files[ $key ]['excluded'] = true;
 		$token = wp_generate_uuid4();
 		$job = array( 'owner' => get_current_user_id(), 'id' => $id, 'old' => $old, 'files' => $files, 'aliases' => $aliases, 'staged' => array(), 'format' => '', 'quality' => null, 'expires' => time() + 7200 );
 		add_option( 'uplink_mbb_conversion_' . $token, $job, '', false );
 		wp_schedule_single_event( time() + 7200, 'uplink_mbb_conversion_expire', array( $token ) );
 		foreach ( $files as &$file ) unset( $file['path'], $file['hash'] ); unset( $file );
-		return array( 'token' => $token, 'files' => $files, 'restore' => false, 'mime' => $old['mime'], 'canCompress' => empty( $meta['cimo'] ) && empty( $meta['mbb_optimization'] ) );
+		return array( 'token' => $token, 'files' => $files, 'aliases' => $aliases, 'restore' => false, 'mime' => $old['mime'], 'canCompress' => true );
+	}
+	/** An excluded alias excludes its shared physical file as well. */
+	private static function excluded_keys( array $files, array $aliases ): array {
+		$excluded = array();
+		foreach ( (array) Plugin::settings()['compression_excluded_sizes'] as $name ) {
+			$key = $aliases[ $name ] ?? $name;
+			if ( isset( $files[ $key ] ) ) $excluded[] = $key;
+		}
+		return array_values( array_unique( $excluded ) );
+	}
+	/** Select only files from the server-created manifest, before staging starts. */
+	public static function select_sizes( string $token, string $scope, array $sizes = array() ): array {
+		$job = self::job( $token );
+		if ( ! in_array( $scope, array( 'all', 'main', 'selected' ), true ) ) self::fail( __( 'Choose a valid image-size option.', 'uplink-media-manager' ) );
+		$all = $job['all_files'] ?? $job['files'];
+		$keys = 'all' === $scope ? array_values( array_diff( array_keys( $all ), self::excluded_keys( $all, $job['aliases'] ) ) ) : ( 'main' === $scope ? array( 'full' ) : $sizes );
+		if ( ! $keys ) self::fail( __( 'Select at least one image size.', 'uplink-media-manager' ) );
+		$selected = array();
+		foreach ( $keys as $key ) {
+			if ( ! is_string( $key ) ) self::fail( __( 'Invalid image size.', 'uplink-media-manager' ) );
+			$key = $job['aliases'][ $key ] ?? $key;
+			if ( ! isset( $all[ $key ] ) ) self::fail( __( 'This image size does not exist for the attachment.', 'uplink-media-manager' ) );
+			if ( isset( $all[ $key ]['available'] ) && ! $all[ $key ]['available'] ) self::fail( __( 'A selected file exceeds the 40-megapixel limit. Choose the main image or smaller sizes.', 'uplink-media-manager' ) );
+			$selected[ $key ] = $all[ $key ];
+		}
+		if ( $job['staged'] && array_keys( $selected ) !== array_keys( $job['files'] ) ) self::fail( __( 'Size selection cannot change after encoding has started.', 'uplink-media-manager' ) );
+		$job['all_files'] = $all; $job['files'] = $selected; $job['scope'] = $scope;
+		update_option( 'uplink_mbb_conversion_' . $token, $job, false );
+		return array( 'sizes' => array_keys( $selected ), 'count' => count( $selected ), 'scope' => $scope );
 	}
 	private static function job( string $token ): array {
-		if ( ! preg_match( '/^[a-f0-9-]{36}$/D', $token ) ) self::fail( __( 'Invalid conversion session.', 'media-bridge-for-bricks' ) );
+		if ( ! preg_match( '/^[a-f0-9-]{36}$/D', $token ) ) self::fail( __( 'Invalid conversion session.', 'uplink-media-manager' ) );
 		$job = get_option( 'uplink_mbb_conversion_' . $token );
-		if ( ! is_array( $job ) || $job['expires'] < time() || $job['owner'] !== get_current_user_id() || ! self::allowed( $job['id'] ) ) self::fail( __( 'This conversion session expired or belongs to another administrator.', 'media-bridge-for-bricks' ) );
+		if ( ! is_array( $job ) || $job['expires'] < time() || $job['owner'] !== get_current_user_id() || ! self::allowed( $job['id'] ) ) self::fail( __( 'This conversion session expired or belongs to another user.', 'uplink-media-manager' ) );
 		return $job;
 	}
 	public static function stage( string $token, string $key, string $format, array $upload, int $quality = 75 ): array {
 		$job = self::job( $token );
-		if ( ! isset( self::FORMATS[ $format ], $job['files'][ $key ] ) || ( $job['format'] && $job['format'] !== $format ) ) self::fail( __( 'Invalid image size or conversion format.', 'media-bridge-for-bricks' ) );
-		if ( ! empty( $upload['error'] ) || empty( $upload['tmp_name'] ) || ! is_uploaded_file( $upload['tmp_name'] ) || filesize( $upload['tmp_name'] ) > wp_max_upload_size() ) self::fail( __( 'The converted file exceeds the upload limit or is not a valid upload.', 'media-bridge-for-bricks' ) );
+		if ( ! isset( $job['scope'] ) ) self::fail( __( 'Choose image sizes before encoding.', 'uplink-media-manager' ) );
+		if ( isset( $job['files'][ $key ]['available'] ) && ! $job['files'][ $key ]['available'] ) self::fail( __( 'This file exceeds the 40-megapixel conversion limit.', 'uplink-media-manager' ) );
+		if ( empty( Plugin::settings()['image_conversion'] ) || ! in_array( $format, self::enabled_formats(), true ) ) self::fail( __( 'This compression format is disabled in settings.', 'uplink-media-manager' ) );
+		if ( ! isset( self::FORMATS[ $format ], $job['files'][ $key ] ) || ( $job['format'] && $job['format'] !== $format ) ) self::fail( __( 'Invalid image size or conversion format.', 'uplink-media-manager' ) );
+		if ( ! empty( $upload['error'] ) || empty( $upload['tmp_name'] ) || ! is_uploaded_file( $upload['tmp_name'] ) || filesize( $upload['tmp_name'] ) > wp_max_upload_size() ) self::fail( __( 'The converted file exceeds the upload limit or is not a valid upload.', 'uplink-media-manager' ) );
 		if ( 'png' === $format ) $quality = 0;
-		if ( $quality < 0 || $quality > 100 || ( 'png' !== $format && $quality < 1 ) || ( isset( $job['quality'] ) && $job['quality'] !== $quality ) ) self::fail( __( 'Invalid or inconsistent quality setting.', 'media-bridge-for-bricks' ) );
+		if ( $quality < 0 || $quality > 100 || ( 'png' !== $format && $quality < 1 ) || ( isset( $job['quality'] ) && $job['quality'] !== $quality ) ) self::fail( __( 'Invalid or inconsistent quality setting.', 'uplink-media-manager' ) );
 		$expected = $job['files'][ $key ]; $path = $upload['tmp_name'];
 		if ( 'jxl' === $format ) {
 			$head = file_get_contents( $path, false, null, 0, 12 );
-			if ( ! str_starts_with( $head, "\xff\x0a" ) && "\x00\x00\x00\x0cJXL \x0d\x0a\x87\x0a" !== $head ) self::fail( __( 'The uploaded file is not JPEG XL.', 'media-bridge-for-bricks' ) );
+			if ( ! str_starts_with( $head, "\xff\x0a" ) && "\x00\x00\x00\x0cJXL \x0d\x0a\x87\x0a" !== $head ) self::fail( __( 'The uploaded file is not JPEG XL.', 'uplink-media-manager' ) );
 		} else {
 			$info = wp_getimagesize( $path );
-			if ( ! $info || $info['mime'] !== self::FORMATS[ $format ] || $info[0] !== $expected['width'] || $info[1] !== $expected['height'] ) self::fail( __( 'Converted dimensions or format do not match the original image size.', 'media-bridge-for-bricks' ) );
+			if ( ! $info || $info['mime'] !== self::FORMATS[ $format ] || $info[0] !== $expected['width'] || $info[1] !== $expected['height'] ) self::fail( __( 'Converted dimensions or format do not match the original image size.', 'uplink-media-manager' ) );
 		}
-		$temp = wp_tempnam( 'mbb-conversion' );
-		// phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- Upload origin, actual MIME and dimensions were validated above; keep staging outside public uploads.
-		if ( ! $temp || ! move_uploaded_file( $path, $temp ) ) self::fail( __( 'Could not stage the converted file.', 'media-bridge-for-bricks' ) );
+		if ( ! function_exists( 'wp_handle_upload' ) ) require_once ABSPATH . 'wp-admin/includes/file.php';
+		// Keep uncommitted images outside public uploads while retaining WordPress upload checks.
+		$staging_dir = static function ( $dirs ) {
+			$dirs['path'] = untrailingslashit( get_temp_dir() );
+			$dirs['basedir'] = $dirs['path'];
+			$dirs['subdir'] = '';
+			$dirs['url'] = '';
+			$dirs['baseurl'] = '';
+			$dirs['error'] = false;
+			return $dirs;
+		};
+		$upload['name'] = 'mbb-conversion-' . wp_generate_uuid4() . '.' . $format;
+		$upload['type'] = self::FORMATS[ $format ];
+		// WordPress cannot read JPEG XL dimensions yet. Accept only this staged file,
+		// whose signature was checked above and whose real MIME is verified by fileinfo.
+		$jxl_type = static function ( $checked, $file, $filename ) use ( $path, $format ) {
+			if ( 'jxl' === $format && $file === $path && 'jxl' === strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) ) && class_exists( '\finfo' ) && 'image/jxl' === ( new \finfo( FILEINFO_MIME_TYPE ) )->file( $file ) ) {
+				return array( 'ext' => 'jxl', 'type' => 'image/jxl', 'proper_filename' => false );
+			}
+			return $checked;
+		};
+		add_filter( 'upload_dir', $staging_dir );
+		if ( 'jxl' === $format ) add_filter( 'wp_check_filetype_and_ext', $jxl_type, 10, 3 );
+		try {
+			$handled = wp_handle_upload( $upload, array( 'test_form' => false, 'mimes' => array( $format => self::FORMATS[ $format ] ) ) );
+		} finally {
+			remove_filter( 'upload_dir', $staging_dir );
+			if ( 'jxl' === $format ) remove_filter( 'wp_check_filetype_and_ext', $jxl_type, 10 );
+		}
+		if ( ! empty( $handled['error'] ) || empty( $handled['file'] ) ) self::fail( __( 'Could not stage the converted file.', 'uplink-media-manager' ) );
+		$temp = $handled['file'];
 		if ( isset( $job['staged'][ $key ] ) ) wp_delete_file( $job['staged'][ $key ] );
 		$job['staged'][ $key ] = $temp; $job['format'] = $format; $job['quality'] = $quality;
 		update_option( 'uplink_mbb_conversion_' . $token, $job, false );
 		return array( 'saved' => true );
 	}
 	private static function unchanged( array $job ): void {
-		if ( self::active( $job['id'] ) || self::snapshot( $job['id'] ) !== $job['old'] ) self::fail( __( 'This image changed after comparison. Compare it again before converting.', 'media-bridge-for-bricks' ) );
-		foreach ( $job['files'] as $file ) if ( hash_file( 'sha256', self::local( $file['path'] ) ) !== $file['hash'] ) self::fail( __( 'An original file changed after comparison. Compare it again.', 'media-bridge-for-bricks' ) );
+		if ( self::active( $job['id'] ) || self::snapshot( $job['id'] ) !== $job['old'] ) self::fail( __( 'This image changed after comparison. Compare it again before converting.', 'uplink-media-manager' ) );
+		foreach ( $job['all_files'] ?? $job['files'] as $file ) if ( hash_file( 'sha256', self::local( $file['path'] ) ) !== $file['hash'] ) self::fail( __( 'An original file changed after comparison. Compare it again.', 'uplink-media-manager' ) );
 	}
 	private static function save_attachment( int $id, array $data ): void {
 		$result = wp_update_post( array( 'ID' => $id, 'post_mime_type' => $data['mime'] ), true );
@@ -158,37 +276,42 @@ final class Image_Conversion {
 		if ( $data['editor_backups'] ) update_post_meta( $id, '_wp_attachment_backup_sizes', wp_slash( $data['editor_backups'] ) );
 		else delete_post_meta( $id, '_wp_attachment_backup_sizes' );
 		clean_post_cache( $id );
-		if ( self::snapshot( $id ) !== $data ) self::fail( __( 'Could not save image metadata.', 'media-bridge-for-bricks' ) );
+		if ( self::snapshot( $id ) !== $data ) self::fail( __( 'Could not save image metadata.', 'uplink-media-manager' ) );
 	}
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Explicit transaction boundaries; data values use prepared statements and caches are invalidated.
 	public static function commit( string $token ): array {
 		global $wpdb;
 		$job = self::job( $token ); $id = $job['id'];
+		if ( empty( Plugin::settings()['image_conversion'] ) ) self::fail( __( 'Image compression is disabled in settings.', 'uplink-media-manager' ) );
 		self::unchanged( $job );
-		if ( count( $job['staged'] ) !== count( $job['files'] ) ) self::fail( __( 'Every original and generated size must finish conversion before saving.', 'media-bridge-for-bricks' ) );
-		$format = $job['format']; $mime = self::FORMATS[ $format ];
-		if ( $mime === $job['old']['mime'] && ( ! empty( $job['old']['metadata']['cimo'] ) || ! empty( $job['old']['metadata']['mbb_optimization'] ) ) ) self::fail( __( 'This image already has optimization data. Choose a different format.', 'media-bridge-for-bricks' ) );
+		foreach ( $job['files'] as $file ) if ( isset( $file['available'] ) && ! $file['available'] ) self::fail( __( 'A selected file exceeds the conversion limit.', 'uplink-media-manager' ) );
+		if ( count( $job['staged'] ) !== count( $job['files'] ) ) self::fail( __( 'Every original and generated size must finish conversion before saving.', 'uplink-media-manager' ) );
+		$format = $job['format'];
+		if ( ! in_array( $format, self::enabled_formats(), true ) ) self::fail( __( 'This compression format is disabled in settings.', 'uplink-media-manager' ) );
+		$mime = self::FORMATS[ $format ];
 		$journal = array(); $written = array(); $urls = array(); $destinations = array(); $started = false;
 		$old_jxl_index = get_option( 'uplink_mbb_jxl_sources', array() );
 		try {
 			foreach ( $job['files'] as $key => $file ) {
-				if ( ! is_file( $job['staged'][ $key ] ) ) self::fail( __( 'A staged file is missing. Compare the image again.', 'media-bridge-for-bricks' ) );
+				if ( ! is_file( $job['staged'][ $key ] ) ) self::fail( __( 'A staged file is missing. Compare the image again.', 'uplink-media-manager' ) );
 				$dir = dirname( $file['path'] );
 				$name = wp_unique_filename( $dir, pathinfo( $file['name'], PATHINFO_FILENAME ) . '-mbb-' . substr( $token, 0, 8 ) . '.' . $format );
 				$target = $dir . '/' . $name;
-				if ( is_link( $target ) || ! copy( $job['staged'][ $key ], $target ) ) self::fail( __( 'Could not save a converted image size.', 'media-bridge-for-bricks' ) );
+				if ( is_link( $target ) || ! copy( $job['staged'][ $key ], $target ) ) self::fail( __( 'Could not save a converted image size.', 'uplink-media-manager' ) );
 				$written[] = $target; $destinations[ $key ] = array( 'path' => $target, 'file' => $name, 'bytes' => filesize( $target ) );
 				$urls[ $file['url'] ] = trailingslashit( dirname( $file['url'] ) ) . rawurlencode( $name );
 			}
 			$new = $job['old'];
 			if ( 'jxl' !== $format ) {
-				$new['editor_backups'] = '';
-				$new['file'] = _wp_relative_upload_path( $destinations['full']['path'] ); $new['mime'] = $mime;
-				$new['metadata']['file'] = $new['file']; $new['metadata']['filesize'] = $destinations['full']['bytes'];
+				if ( isset( $destinations['full'] ) ) {
+					$new['editor_backups'] = '';
+					$new['file'] = _wp_relative_upload_path( $destinations['full']['path'] ); $new['mime'] = $mime;
+					$new['metadata']['file'] = $new['file']; $new['metadata']['filesize'] = $destinations['full']['bytes'];
+				}
 				unset( $new['metadata']['cimo'] );
 				$new['metadata']['mbb_optimization'] = array( 'format' => $format, 'sizes' => count( $written ) );
-				foreach ( $new['metadata']['sizes'] ?? array() as $key => $size ) { $target = $destinations[ $job['aliases'][ $key ] ?? $key ]; $size['file'] = $target['file']; $size['mime-type'] = $mime; $size['filesize'] = $target['bytes']; $new['metadata']['sizes'][ $key ] = $size; }
-				if ( isset( $new['metadata']['original_image'] ) ) $new['metadata']['original_image'] = $destinations[ $job['aliases']['original_image'] ?? 'original_image' ]['file'];
+				foreach ( $new['metadata']['sizes'] ?? array() as $key => $size ) { $target = $destinations[ $job['aliases'][ $key ] ?? $key ] ?? null; if ( ! $target ) continue; $size['file'] = $target['file']; $size['mime-type'] = $mime; $size['filesize'] = $target['bytes']; $new['metadata']['sizes'][ $key ] = $size; }
+				if ( isset( $new['metadata']['original_image'], $destinations[ $job['aliases']['original_image'] ?? 'original_image' ] ) ) $new['metadata']['original_image'] = $destinations[ $job['aliases']['original_image'] ?? 'original_image' ]['file'];
 			}
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Current-site transaction groups reference and attachment changes.
 			$wpdb->query( 'START TRANSACTION' ); $started = true;
@@ -197,10 +320,10 @@ final class Image_Conversion {
 				$index = get_option( 'uplink_mbb_jxl_sources', array() ); $index[ $id ] = $urls; update_option( 'uplink_mbb_jxl_sources', $index, false );
 			} else { $changed = Image_References::update( $urls, $journal ); self::save_attachment( $id, $new ); }
 			$rows = array(); foreach ( $job['files'] as $key => $source ) $rows[] = array( 'size' => $key, 'width' => $source['width'], 'height' => $source['height'], 'before' => $source['bytes'], 'after' => $destinations[ $key ]['bytes'] );
-			$backup = array( 'quality' => $job['quality'], 'rows' => $rows, 'format' => $format, 'old' => $job['old'], 'new' => $new, 'sources' => $job['files'], 'urls' => $urls, 'converted' => $written, 'created' => time(), 'changed' => $changed );
+			$backup = array( 'scope' => $job['scope'] ?? 'all', 'quality' => $job['quality'], 'rows' => $rows, 'format' => $format, 'old' => $job['old'], 'new' => $new, 'sources' => $job['files'], 'urls' => $urls, 'converted' => $written, 'created' => time(), 'changed' => $changed );
 			$retained = get_post_meta( $id, '_uplink_mbb_conversion_files', true );
 				update_post_meta( $id, '_uplink_mbb_conversion_files', array_values( array_unique( array_merge( is_array( $retained ) ? $retained : array(), $written, array_column( $job['files'], 'path' ) ) ) ) );
-			if ( ! add_post_meta( $id, self::BACKUP, wp_slash( $backup ), true ) ) self::fail( __( 'Could not save the restoration record.', 'media-bridge-for-bricks' ) );
+			if ( ! add_post_meta( $id, self::BACKUP, wp_slash( $backup ), true ) ) self::fail( __( 'Could not save the restoration record.', 'uplink-media-manager' ) );
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Commit only after restoration data exists.
 			$wpdb->query( 'COMMIT' );
 			self::expire( $token ); Image_Metadata::invalidate( $id ); self::refresh();
@@ -213,17 +336,17 @@ final class Image_Conversion {
 	}
 	public static function restore( int $id ): array {
 		global $wpdb;
-		if ( ! self::allowed( $id ) ) self::fail( __( 'You cannot restore this image.', 'media-bridge-for-bricks' ) );
+		if ( ! self::allowed( $id, 'restore' ) ) self::fail( __( 'You cannot restore this image.', 'uplink-media-manager' ) );
 		$backup = get_post_meta( $id, self::BACKUP, true );
-		if ( ! $backup || self::snapshot( $id ) !== ( 'jxl' === $backup['format'] ? $backup['old'] : $backup['new'] ) ) self::fail( __( 'The attachment changed after conversion. Restore is unavailable until those changes are resolved.', 'media-bridge-for-bricks' ) );
-		foreach ( $backup['sources'] as $file ) if ( hash_file( 'sha256', self::local( $file['path'] ) ) !== $file['hash'] ) self::fail( __( 'An original backup is missing or changed. Nothing was restored.', 'media-bridge-for-bricks' ) );
+		if ( ! $backup || self::snapshot( $id ) !== ( 'jxl' === $backup['format'] ? $backup['old'] : $backup['new'] ) ) self::fail( __( 'The attachment changed after conversion. Restore is unavailable until those changes are resolved.', 'uplink-media-manager' ) );
+		foreach ( $backup['sources'] as $file ) if ( hash_file( 'sha256', self::local( $file['path'] ) ) !== $file['hash'] ) self::fail( __( 'An original backup is missing or changed. Nothing was restored.', 'uplink-media-manager' ) );
 		$journal = array(); $wpdb->query( 'START TRANSACTION' );
 		try {
 			$changed = 0;
 			if ( 'jxl' === $backup['format'] ) { $index = get_option( 'uplink_mbb_jxl_sources', array() ); unset( $index[ $id ] ); update_option( 'uplink_mbb_jxl_sources', $index, false ); }
 			else { $changed = Image_References::update( array_flip( $backup['urls'] ), $journal ); self::save_attachment( $id, $backup['old'] ); }
 			delete_post_meta( $id, self::BACKUP );
-			if ( self::active( $id ) ) self::fail( __( 'Could not complete restoration.', 'media-bridge-for-bricks' ) );
+			if ( self::active( $id ) ) self::fail( __( 'Could not complete restoration.', 'uplink-media-manager' ) );
 			$wpdb->query( 'COMMIT' ); Image_Metadata::invalidate( $id ); self::refresh();
 			return array( 'restored' => true, 'references' => $changed );
 		} catch ( \Throwable $error ) { $wpdb->query( 'ROLLBACK' ); Image_References::rollback( $journal ); self::save_attachment( $id, $backup['new'] ); update_post_meta( $id, self::BACKUP, wp_slash( $backup ) ); throw $error; }
@@ -231,8 +354,7 @@ final class Image_Conversion {
 	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	private static function refresh(): void {
 		delete_transient( 'uplink_mbb_media_health_v3' );
-		// Regenerate Bricks CSS after URL updates. Other page/CDN caches retain working original URLs.
-		try { if ( class_exists( '\Bricks\Assets_Files' ) ) \Bricks\Assets_Files::regenerate_css_files(); } catch ( \Throwable $error ) { /* Saved files and references remain valid if a CSS rebuild fails. */ }
+
 	}
 	public static function expire( string $token ): void {
 		$job = get_option( 'uplink_mbb_conversion_' . $token );
@@ -241,8 +363,9 @@ final class Image_Conversion {
 	public function ajax(): void {
 		check_ajax_referer( 'uplink_mbb_image_conversion', 'nonce' );
 		$id = absint( $_POST['attachment_id'] ?? 0 );
-		if ( ! self::allowed( $id ) ) wp_send_json_error( array( 'message' => __( 'You cannot convert this attachment.', 'media-bridge-for-bricks' ) ), 403 );
-		$mode = sanitize_key( wp_unslash( $_POST['mode'] ?? '' ) ); $token = sanitize_text_field( wp_unslash( $_POST['token'] ?? '' ) );
+		$mode = sanitize_key( wp_unslash( $_POST['mode'] ?? '' ) );
+		if ( ! self::allowed( $id, 'restore' === $mode ? 'restore' : 'compress' ) ) wp_send_json_error( array( 'message' => __( 'You do not have permission for this image action.', 'uplink-media-manager' ) ), 403 );
+		$token = sanitize_text_field( wp_unslash( $_POST['token'] ?? '' ) );
 		$lock = 'uplink_mbb_replacing_' . $id;
 		global $wpdb;
 		$old_lock = get_option( $lock );
@@ -251,16 +374,17 @@ final class Image_Conversion {
 			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", $lock, $old_lock ) ); wp_cache_delete( $lock, 'options' );
 		}
 		$lock_owner = time() . ':' . wp_generate_uuid4();
-		if ( ! add_option( $lock, $lock_owner, '', false ) ) wp_send_json_error( array( 'message' => __( 'This attachment is already being changed. Try again shortly.', 'media-bridge-for-bricks' ) ), 409 );
+		if ( ! add_option( $lock, $lock_owner, '', false ) ) wp_send_json_error( array( 'message' => __( 'This attachment is already being changed. Try again shortly.', 'uplink-media-manager' ) ), 409 );
 		try {
-			if ( in_array( $mode, array( 'stage', 'commit', 'cancel', 'validate' ), true ) && self::job( $token )['id'] !== $id ) self::fail( __( 'The conversion session does not match this attachment.', 'media-bridge-for-bricks' ) );
+			if ( in_array( $mode, array( 'select', 'stage', 'commit', 'cancel', 'validate' ), true ) && self::job( $token )['id'] !== $id ) self::fail( __( 'The conversion session does not match this attachment.', 'uplink-media-manager' ) );
 			if ( 'begin' === $mode ) $result = self::begin( $id );
+			elseif ( 'select' === $mode ) $result = self::select_sizes( $token, sanitize_key( wp_unslash( $_POST['scope'] ?? '' ) ), isset( $_POST['sizes'] ) && is_array( $_POST['sizes'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['sizes'] ) ) : array() );
 			elseif ( 'stage' === $mode ) $result = self::stage( $token, sanitize_text_field( wp_unslash( $_POST['size'] ?? '' ) ), sanitize_key( wp_unslash( $_POST['format'] ?? '' ) ), $_FILES['file'] ?? array(), absint( $_POST['quality'] ?? 0 ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Upload provenance, size, actual MIME and dimensions are validated in stage().
 			elseif ( 'validate' === $mode ) { self::unchanged( self::job( $token ) ); $result = array( 'valid' => true ); }
 			elseif ( 'commit' === $mode ) $result = self::commit( $token );
 			elseif ( 'restore' === $mode ) $result = self::restore( $id );
 			elseif ( 'cancel' === $mode ) { self::expire( $token ); $result = array( 'cancelled' => true ); }
-			else self::fail( __( 'Invalid conversion action.', 'media-bridge-for-bricks' ) );
+			else self::fail( __( 'Invalid conversion action.', 'uplink-media-manager' ) );
 		} catch ( \Throwable $error ) { $result = new \WP_Error( 'conversion_failed', $error->getMessage() ); }
 		finally {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Release only this request's mutex.

@@ -8,6 +8,43 @@
 
 	let uploadCollection = 0;
 	const uploaders = new Set();
+	const libraryViews = new Set();
+	const completedUploads = new WeakSet();
+	let uploadRefreshTimer = null;
+	let uploadRefreshVersion = 0;
+
+	// Taxonomy-filtered WordPress queries do not observe the global upload queue.
+	// Requery the current view after uploads finish, including Cimo-processed files.
+	function scheduleLibraryRefresh() {
+		window.clearTimeout( uploadRefreshTimer );
+		uploadRefreshTimer = window.setTimeout( () => {
+			for ( const view of libraryViews ) {
+				if ( ! view.el?.isConnected ) { libraryViews.delete( view ); continue; }
+				if ( view.uplinkMbbNativeListMode ) continue;
+				view.collection?.props?.set( 'uplink_mbb_refresh', `${ Date.now() }-${ ++uploadRefreshVersion }` );
+				const panel = view.uplinkMbbNativeCollectionsPanel;
+				if ( panel?.isConnected ) refreshCollectionState( view, panel ).catch( () => {} );
+			}
+		}, 150 );
+	}
+
+	function watchUpload( attachment ) {
+		const complete = () => {
+			if ( ! attachment.get( 'id' ) || attachment.get( 'uploading' ) || completedUploads.has( attachment ) ) return;
+			completedUploads.add( attachment );
+			attachment.off( 'change sync', complete );
+			scheduleLibraryRefresh();
+		};
+		attachment.on( 'change sync', complete );
+		complete();
+	}
+	wp.Uploader?.queue?.on( 'add', watchUpload );
+	wp.Uploader?.queue?.each( watchUpload );
+	wp.media.model?.Attachments?.all?.on( 'destroy', scheduleLibraryRefresh );
+	$( document ).ajaxSuccess( ( event, xhr, settings, response ) => {
+		const action = typeof settings.data === 'string' ? new URLSearchParams( settings.data ).get( 'action' ) : settings.data?.action;
+		if ( [ 'save-attachment-compat', 'save-attachment', 'delete-post', 'delete-attachment' ].includes( action ) && response?.success !== false ) scheduleLibraryRefresh();
+	} );
 	const childrenByParent = new Map();
 	const collapsedCollections = new Set();
 	let collectionOrderSaving = false;
@@ -575,7 +612,7 @@
 		button.className = `uplink-mbb-native-panel-action ${ className }`;
 		button.setAttribute( 'aria-label', label );
 		button.title = label;
-		button.innerHTML = `<span class="dashicons dashicons-${ iconName }" aria-hidden="true"></span>`;
+		button.innerHTML = `<span class="${ iconName === 'trash' ? 'uplink-mbb-trash-icon' : `dashicons dashicons-${ iconName }` }" aria-hidden="true"></span>`;
 		return button;
 	}
 
@@ -872,6 +909,7 @@
 	}
 
 	function createPanel( view ) {
+		libraryViews.add( view );
 		if ( ! view?.el || view.uplinkMbbNativeCollectionsPanel?.isConnected ) {
 			return;
 		}
@@ -1190,11 +1228,16 @@
 	function updateUploadParams() {
 		if ( window.wpUploaderInit?.multipart_params ) {
 			window.wpUploaderInit.multipart_params.uplink_mbb_collection = uploadCollection;
+			window.wpUploaderInit.multipart_params.uplink_mbb_collection_nonce = config.nonce;
 		}
 		if ( window.uploader?.settings?.multipart_params ) {
 			window.uploader.settings.multipart_params.uplink_mbb_collection = uploadCollection;
+			window.uploader.settings.multipart_params.uplink_mbb_collection_nonce = config.nonce;
 		}
-		uploaders.forEach( ( uploader ) => uploader.param?.( 'uplink_mbb_collection', uploadCollection ) );
+		uploaders.forEach( ( uploader ) => {
+			uploader.param?.( 'uplink_mbb_collection', uploadCollection );
+			uploader.param?.( 'uplink_mbb_collection_nonce', config.nonce );
+		} );
 	}
 
 	function createDestinationSelect() {
@@ -1290,7 +1333,11 @@
 		uploaderPrototype.init = function () {
 			uploaders.add( this );
 			this.param?.( 'uplink_mbb_collection', uploadCollection );
-			return originalUploaderInit.apply( this, arguments );
+			this.param?.( 'uplink_mbb_collection_nonce', config.nonce );
+			const result = originalUploaderInit.apply( this, arguments );
+			this.uploader?.bind?.( 'FileUploaded', scheduleLibraryRefresh );
+			this.uploader?.bind?.( 'UploadComplete', scheduleLibraryRefresh );
+			return result;
 		};
 	}
 

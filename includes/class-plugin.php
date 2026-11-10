@@ -9,65 +9,86 @@ final class Plugin {
 	public static function bricks_is_active(): bool {
 		return defined( 'BRICKS_VERSION' ) && version_compare( BRICKS_VERSION, '2.4', '>=' );
 	}
+	public static function bricks_interfaces_available(): bool {
+		return interface_exists( '\\Bricks\\Media_Folder_Provider' )
+			&& interface_exists( '\\Bricks\\Media_Folder_Item_Provider' )
+			&& interface_exists( '\\Bricks\\Media_Folder_Item_Assignment_Provider' );
+	}
+	/** Load only after Bricks is ready, including recovery from an earlier skipped include. */
+	public static function load_bricks_provider(): bool {
+		if ( ! self::bricks_is_active() || ! self::bricks_interfaces_available() ) return false;
+		if ( ! class_exists( __NAMESPACE__ . '\\Bricks_Folder_Provider', false ) ) {
+			require UPLINK_MBB_PATH . 'includes/class-bricks-folder-provider.php';
+		}
+		return class_exists( __NAMESPACE__ . '\\Bricks_Folder_Provider', false );
+	}
 	public static function bootstrap(): void {
 		add_action( 'bricks/media_folder_providers/register', static function ( $registry ) {
-			require_once UPLINK_MBB_PATH . 'includes/class-bricks-folder-provider.php';
+			if ( ! self::load_bricks_provider() ) return;
 			$registry::register( new Bricks_Folder_Provider() );
 		} );
 		add_filter( 'bricks/media_folder_provider', static function ( $selected, $available, $post_type ) {
 			return 'attachment' === $post_type && ! empty( self::settings()['prefer_media_bridge_folders'] ) && isset( $available['media-bridge'] ) ? 'media-bridge' : $selected;
 		}, 10, 3 );
 		Upload_Workspace::register_cimo_integration();
-		// Themes load after plugins_loaded. Register Bricks integration after its interfaces exist.
+		// Start shared WordPress features after the theme loads; Bricks integration is optional.
 		add_action( 'after_setup_theme', array( self::class, 'boot' ), 30 );
 	}
 	public static function activate(): void {
-		$theme = wp_get_theme();
-		if ( 'bricks' !== $theme->get_template() ) {
-			wp_die( esc_html__( 'Media Bridge for Bricks requires the Bricks theme.', 'media-bridge-for-bricks' ), '', array( 'back_link' => true ) );
-		}
 		add_option( self::SETTINGS_OPTION, self::defaults(), '', false );
 	}
 	public static function boot(): void {
-		if ( ! self::bricks_is_active() || ! interface_exists( '\Bricks\Media_Folder_Provider' ) ) {
-			add_action( 'admin_notices', static function () {
-				if ( current_user_can( 'activate_plugins' ) ) echo '<div class="notice notice-error"><p>' . esc_html__( 'Media Bridge for Bricks requires Bricks 2.4 or later.', 'media-bridge-for-bricks' ) . '</p></div>';
-			} );
-			return;
-		}
 		if ( self::$instance ) return;
 		self::$instance = new self();
 	}
 	private function __construct() {
-		require_once UPLINK_MBB_PATH . 'includes/class-bricks-folder-provider.php';
 		$folders = new Folder_Provider();
 		add_action( 'init', array( $folders, 'register' ) );
 		add_action( 'admin_init', array( $folders, 'maybe_recount' ), 20 );
 		new Native_Media_Library( $folders, is_admin() );
+		add_action( 'wp_enqueue_media', array( Upload_Workspace::class, 'native_assets' ), 30 );
+		add_action( 'admin_enqueue_scripts', static function ( $hook ) {
+			if ( 'media-new.php' === $hook ) Upload_Workspace::native_assets();
+		}, 20 );
 		new File_Replacement();
 		new Image_Conversion();
+		new Image_Sizes();
 		new Folder_Import();
 		new Folder_Cleanup();
 		add_action( 'wp_ajax_uplink_mbb_cimo_plan', array( Cimo_Optimization::class, 'ajax_plan' ) );
-		new Bricks_Dynamic_Data();
 		if ( ! empty( self::settings()['collection_gallery'] ) ) new Collection_Gallery( $folders );
-		add_action( 'wp_ajax_bricks_verify_media_upload_folder', array( Bricks_Folder_Provider::class, 'verify_upload' ), 1 );
+		if ( self::load_bricks_provider() ) {
+			new Bricks_Dynamic_Data();
+			add_action( 'wp_ajax_bricks_verify_media_upload_folder', array( Bricks_Folder_Provider::class, 'verify_upload' ), 1 );
+		}
+		// Metadata caching also needs invalidation when Bricks is absent.
+		foreach ( array( 'add_attachment', 'edit_attachment', 'delete_attachment' ) as $hook ) add_action( $hook, array( Image_Metadata::class, 'invalidate' ) );
+		add_action( 'updated_post_meta', array( self::class, 'invalidate_image_meta' ), 10, 4 );
+		add_action( 'added_post_meta', array( self::class, 'invalidate_image_meta' ), 10, 4 );
+		add_action( 'deleted_post_meta', array( self::class, 'invalidate_image_meta' ), 10, 4 );
 		if ( is_admin() ) new Admin();
 		add_action( 'admin_enqueue_scripts', array( self::class, 'toast_assets' ), 1 );
 	}
+	public static function invalidate_image_meta( $meta_id, $object_id, $meta_key, $value ): void {
+		if ( in_array( $meta_key, array( '_wp_attachment_metadata', '_wp_attached_file', '_wp_attachment_image_alt' ), true ) ) Image_Metadata::invalidate( (int) $object_id );
+	}
 	public static function toast_assets(): void {
 		if ( ! current_user_can( 'upload_files' ) ) return;
+		$screen = get_current_screen();
+		if ( ! $screen || ( ! in_array( $screen->base, array( 'upload', 'media', 'post' ), true ) && ! in_array( $screen->id, array( 'media_page_bricks-media-folders', 'media_page_media-bridge-for-bricks' ), true ) ) ) return;
 		wp_enqueue_style( 'uplink-mbb-toasts', UPLINK_MBB_URL . 'assets/toasts.css', array(), UPLINK_MBB_ASSET_VERSION );
 		wp_enqueue_script( 'uplink-mbb-toasts', UPLINK_MBB_URL . 'assets/toasts.js', array(), UPLINK_MBB_ASSET_VERSION, false );
-		wp_localize_script( 'uplink-mbb-toasts', 'uplinkMbbToastStrings', array( 'dismiss' => __( 'Dismiss notification', 'media-bridge-for-bricks' ) ) );
+		wp_localize_script( 'uplink-mbb-toasts', 'uplinkMbbToastStrings', array( 'dismiss' => __( 'Dismiss notification', 'uplink-media-manager' ) ) );
 	}
 	public static function defaults(): array {
 		$defaults = array(
 			'default_media_screen' => 1,
-			'manager_label' => 'Media Bridge', 'native_media_collections' => 1,
+			'manager_label' => 'Uplink Media Manager', 'native_media_collections' => 1,
 			'native_pagination' => 0, 'parent_count_display' => 'direct', 'prefer_media_bridge_folders' => 0,
 			'appearance' => 'auto', 'file_replacement' => 1, 'collection_gallery' => 1,
-			'cimo_integration' => 1, 'exif_dynamic_data' => 1, 'exif_gps' => 0, 'exif_map' => 0,
+			'compression_excluded_sizes' => array(), 'image_conversion' => 1, 'compression_webp' => 1, 'compression_avif' => 1, 'compression_jxl' => 0, 'compression_jpg' => 0,
+			'compression_roles' => array( 'administrator' ), 'restoration_roles' => array( 'administrator' ),
+			'show_exif' => 1, 'show_exif_revision' => '0', 'cimo_integration' => 1, 'exif_dynamic_data' => 1, 'exif_gps' => 0, 'exif_map' => 0,
 		);
 		foreach ( self::appearance_defaults() as $mode => $colors ) {
 			foreach ( $colors as $name => $value ) $defaults[ $mode . '_' . $name ] = $value;
@@ -245,6 +266,7 @@ final class Plugin {
 				$saved[ $mode . '_card' ] = $saved[ $mode . '_surface' ];
 			}
 		}
+		if ( isset( $saved['manager_label'] ) && 'Media Bridge' === $saved['manager_label'] ) $saved['manager_label'] = 'Uplink Media Manager';
 		return wp_parse_args( $saved, self::defaults() );
 	}
 

@@ -25,11 +25,12 @@ final class Exif_Map {
 		wp_enqueue_style( 'uplink-mbb-exif-map', UPLINK_MBB_URL . 'assets/exif-map.css', array( 'uplink-mbb-leaflet' ), UPLINK_MBB_ASSET_VERSION );
 		wp_enqueue_script( 'uplink-mbb-exif-map', UPLINK_MBB_URL . 'assets/exif-map.js', array( $handle ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script( 'uplink-mbb-exif-map', 'uplinkMbbExifMapStrings', array(
-			'location' => __( 'Photo location', 'media-bridge-for-bricks' ),
-			'satellite' => __( 'Satellite', 'media-bridge-for-bricks' ),
-			'streets' => __( 'OpenStreetMap', 'media-bridge-for-bricks' ),
-			'open' => __( 'Open in OpenStreetMap', 'media-bridge-for-bricks' ),
-			'error' => __( 'Map imagery could not be loaded. You can still open the location in OpenStreetMap.', 'media-bridge-for-bricks' ),
+			'location' => __( 'Photo location', 'uplink-media-manager' ),
+			'satellite' => __( 'Satellite', 'uplink-media-manager' ),
+			'streets' => __( 'OpenStreetMap', 'uplink-media-manager' ),
+			'openGoogle' => __( 'Open in Google Maps', 'uplink-media-manager' ),
+			'openApple' => __( 'Open in Apple Maps', 'uplink-media-manager' ),
+			'error' => __( 'Map imagery could not be loaded. Use the links below to open the location in Google Maps or Apple Maps.', 'uplink-media-manager' ),
 		) );
 	}
 }

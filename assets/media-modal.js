@@ -6,6 +6,9 @@
 		return;
 	}
 
+	let activeUploadFrame = null;
+	const watchedUploads = new WeakSet();
+
 	function patchManagerUploadTransition() {
 		const libraryPrototype = wp.media.controller?.Library?.prototype;
 		if ( ! libraryPrototype || libraryPrototype.uplinkMbbManagerUploadPatched || 'function' !== typeof libraryPrototype.uploading ) {
@@ -193,21 +196,19 @@
 		}
 	}
 
-	async function refreshAfterUpload( frame, attachment ) {
+	async function refreshAfterUpload( frame, attachment, collection ) {
 		const id = Number( attachment.get( 'id' ) || attachment.id );
 		if ( ! id ) {
 			return;
 		}
+		await window.uplinkMbbImageSizeRepair?.afterUpload( id, text => frame.$el.find( '.uplink-mbb-upload-progress-text' ).text( text ) );
 		if ( 'function' === typeof frame.uplinkMbbHandleCreatedAttachment ) {
-			await frame.uplinkMbbHandleCreatedAttachment( id );
+			await frame.uplinkMbbHandleCreatedAttachment( id, collection );
 			return;
 		}
 
-		const hasUploadDestination = undefined !== frame.uplinkMbbUploadDestinationId;
-		const collection = hasUploadDestination ? Number( frame.uplinkMbbUploadDestinationId ) || 0 : Number( frame.uplinkMbbCollectionId ) || 0;
-		const shouldAssign = hasUploadDestination ? Boolean( collection ) : 'collection' === frame.uplinkMbbCollectionFilter && collection;
 		try {
-			if ( shouldAssign ) {
+			if ( collection ) {
 				await request( 'uplink_mbb_assign_media', {
 					media_ids: JSON.stringify( [ id ] ),
 					collection,
@@ -225,17 +226,21 @@
 	}
 
 	function watchUpload( frame, attachment ) {
+		const hasUploadDestination = undefined !== frame.uplinkMbbUploadDestinationId;
+		const collection = hasUploadDestination ? Number( frame.uplinkMbbUploadDestinationId ) || 0
+			: 'collection' === frame.uplinkMbbCollectionFilter ? Number( frame.uplinkMbbCollectionId ) || 0 : 0;
 		let handled = false;
 		const complete = () => {
 			if ( handled || attachment.get( 'uploading' ) || ! ( attachment.get( 'id' ) || attachment.id ) ) {
 				return;
 			}
 			handled = true;
-			attachment.off( 'change:uploading change:id', complete );
-			refreshAfterUpload( frame, attachment );
+			attachment.off( 'change:uploading change:id change sync', complete );
+			refreshAfterUpload( frame, attachment, collection );
 		};
 
-		attachment.on( 'change:uploading change:id', complete );
+		// Also observe REST uploads that clear uploading silently before the final fetch.
+		attachment.on( 'change:uploading change:id change sync', complete );
 		complete();
 	}
 
@@ -1428,10 +1433,20 @@
 		selectPrototype.bindHandlers = function () {
 			originalBindHandlers.apply( this, arguments );
 			patchManagerUploadTransition();
+			const handleUpload = ( attachment ) => {
+				if ( activeUploadFrame !== this || watchedUploads.has( attachment ) ) return;
+				watchedUploads.add( attachment );
+				this.uplinkMbbTrackUpload?.( attachment );
+				watchUpload( this, attachment );
+			};
 			this.on( 'select', function () {
 				this.state().get( 'selection' )?.each( normalizeAttachmentIdentity );
 			}, this );
 			this.on( 'open', function () {
+				// The queue is global. Closed frames must not assign future uploads.
+				activeUploadFrame = this;
+				this.stopListening( wp.Uploader.queue, 'add', handleUpload );
+				this.listenTo( wp.Uploader.queue, 'add', handleUpload );
 				applyFrameTheme( this );
 				if ( this.acf?.get && this.acf?.set && ! this.uplinkMbbAcfSelectionPatched ) {
 					const acfSelect = this.acf.get( 'select' );
@@ -1456,12 +1471,10 @@
 				window.requestAnimationFrame( () => renderUploadWorkspace( this ) );
 			}, this );
 			this.on( 'close', function () {
+				this.stopListening( wp.Uploader.queue, 'add', handleUpload );
+				if ( activeUploadFrame === this ) activeUploadFrame = null;
 				restoreCimoOptimization( this );
 			}, this );
-			this.listenTo( wp.Uploader.queue, 'add', function ( attachment ) {
-				this.uplinkMbbTrackUpload?.( attachment );
-				watchUpload( this, attachment );
-			} );
 			this.on( 'content:render:uplink-mbb-collections', function () {
 				this.$el.removeClass( 'hide-toolbar' );
 				this.content.set( new CollectionsView( { controller: this } ) );

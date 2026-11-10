@@ -6,13 +6,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /** Shared taxonomy storage for the WordPress views and Bricks provider. */
 class Folder_Provider extends Taxonomy_Provider {
 	public function id(): string { return 'media-bridge'; }
-	public function label(): string { return __( 'Media Bridge folders', 'media-bridge-for-bricks' ); }
+	public function label(): string { return __( 'Uplink Media Manager folders', 'uplink-media-manager' ); }
 	public function taxonomy(): string { return 'mbb_folder'; }
 	public function max_depth(): ?int { return null; }
 	public function order_meta_key(): string { return '_uplink_mbb_position'; }
 	public function register(): void {
 		register_taxonomy( $this->taxonomy(), 'attachment', array(
-			'label' => __( 'Media folders', 'media-bridge-for-bricks' ),
+			'label' => __( 'Media folders', 'uplink-media-manager' ),
 			'hierarchical' => true, 'public' => false, 'show_ui' => false,
 			'show_in_rest' => false, 'query_var' => false, 'rewrite' => false,
 			// Media folders count assignments, including unattached media and unpublished parents.

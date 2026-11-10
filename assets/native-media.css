@@ -711,6 +711,8 @@ body.media_page_bricks-media-folders #wpfooter {
 	flex-direction: column;
 	box-sizing: border-box;
 	height: 100%;
+	min-height: calc(100vh - 32px);
+	padding: 18px;
 	margin: 0;
 	overflow: hidden;
 	background: var(--mbb-background);
@@ -818,8 +820,15 @@ body.media_page_bricks-media-folders #wpfooter {
 
 .uplink-mbb-native-title-row {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
+}
+
+.uplink-mbb-heading-version {
+	color: var(--mbb-muted);
+	font-size: 12px;
+	white-space: nowrap;
 }
 
 .uplink-mbb-native-heading h1 {
@@ -2801,12 +2810,6 @@ body.uplink-mbb-resizing-collections * {
 	word-break: break-word;
 }
 
-.uplink-mbb-attachment-position {
-	margin: 0 0 18px;
-	color: var(--mbb-muted);
-	font-size: 12px;
-}
-
 .uplink-mbb-attachment-section {
 	display: grid;
 	gap: 8px;
@@ -3292,13 +3295,6 @@ body.uplink-mbb-modal-open {
 	overflow: hidden;
 }
 
-.uplink-mbb-native-wrap.uplink-mbb-theme-dark {
-	min-height: calc(100vh - 32px);
-	padding: 18px;
-	margin-top: 0;
-	background: var(--mbb-background);
-}
-
 .uplink-mbb-native-wrap.uplink-mbb-theme-dark input[type="search"],
 .uplink-mbb-native-wrap.uplink-mbb-theme-dark input[type="text"],
 .uplink-mbb-native-wrap.uplink-mbb-theme-dark textarea,
@@ -3365,9 +3361,6 @@ body.uplink-mbb-modal-open {
 		--mbb-control: #2c3338;
 		--mbb-control-border: #59636e;
 		--mbb-float: rgba(44, 51, 56, 0.96);
-		min-height: calc(100vh - 32px);
-		padding: 18px;
-		margin-top: 0;
 		background: var(--mbb-background);
 	}
 

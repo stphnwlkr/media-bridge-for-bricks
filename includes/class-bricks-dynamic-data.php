@@ -25,18 +25,13 @@ final class Bricks_Dynamic_Data {
 		add_filter( 'bricks/dynamic_data/render_tag', array( $this, 'render_tag' ), 20, 3 );
 		add_filter( 'bricks/dynamic_data/render_content', array( $this, 'render_content' ), 20, 3 );
 		add_filter( 'bricks/frontend/render_data', array( $this, 'render_content' ), 20, 2 );
-		foreach ( array( 'add_attachment', 'edit_attachment', 'delete_attachment' ) as $hook ) add_action( $hook, array( Image_Metadata::class, 'invalidate' ) );
-		foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) as $hook ) add_action( $hook, array( $this, 'invalidate_meta' ), 10, 4 );
-	}
-	public function invalidate_meta( $meta_id, $object_id, $meta_key, $value ): void {
-		if ( in_array( $meta_key, array( '_wp_attachment_metadata', '_wp_attached_file', '_wp_attachment_image_alt' ), true ) ) Image_Metadata::invalidate( (int) $object_id );
 	}
 	public function tags( $tags ): array {
 		$tags = is_array( $tags ) ? $tags : array();
 		if ( empty( Plugin::settings()['exif_dynamic_data'] ) ) return $tags;
 		foreach ( self::fields() as $name => $field ) {
 			if ( in_array( $name, array( 'latitude', 'longitude', 'altitude' ), true ) && empty( Plugin::settings()['exif_gps'] ) ) continue;
-			$tags[] = array( 'name' => '{mbb_exif_' . $name . '}', 'label' => $field[0], 'group' => 'Media Bridge · EXIF', 'provider' => 'media_bridge' );
+			$tags[] = array( 'name' => '{mbb_exif_' . $name . '}', 'label' => $field[0], 'group' => 'Uplink Media Manager · EXIF', 'provider' => 'media_bridge' );
 		}
 		return $tags;
 	}

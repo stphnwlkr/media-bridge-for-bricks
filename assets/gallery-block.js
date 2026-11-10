@@ -51,7 +51,10 @@
 			const blockProps = useBlockProps( { className: 'uplink-mbb-gallery-editor', ref: previewRef } );
 			const openLightboxPreview = () => {
 				const images = previewRef.current
-					? Array.from( previewRef.current.querySelectorAll( '.wp-block-image img' ) ).map( ( image ) => {
+					? [
+						...previewRef.current.querySelectorAll( '.wp-block-image img' ),
+						...( previewRef.current.querySelector( 'template[data-uplink-mbb-gallery-overflow]' )?.content.querySelectorAll( '.wp-block-image img' ) || [] ),
+					].map( ( image ) => {
 						const trigger = image.closest( '.uplink-mbb-custom-lightbox-trigger' );
 						return {
 							src: trigger ? trigger.dataset.uplinkMbbSrc : ( image.currentSrc || image.src ),
@@ -67,7 +70,7 @@
 				setPreviewImages( images );
 			};
 			const collectionControl = el( SelectControl, {
-				label: sprintf( __( '%s folder', 'media-bridge-for-bricks' ), config.managerLabel || __( 'Media Bridge', 'media-bridge-for-bricks' ) ),
+				label: sprintf( __( '%s folder', 'media-bridge-for-bricks' ), config.managerLabel || __( 'Uplink Media Manager', 'media-bridge-for-bricks' ) ),
 				value: attributes.collectionId,
 				options: collectionOptions,
 				onChange: ( value ) => setAttributes( { collectionId: Number( value ) } ),
@@ -228,6 +231,30 @@
 							onChange: ( value ) => setAttributes( { lightboxMode: value } ),
 						} ),
 						attributes.lightboxMode === 'custom' && el( ToggleControl, {
+							label: __( 'Peek and Theater viewer', 'uplink-media-manager' ),
+							checked: attributes.lightboxPhotoViewer,
+							help: __( 'Let visitors switch between Peek with neighboring photos and Theater with one photo.', 'uplink-media-manager' ),
+							onChange: ( value ) => setAttributes( { lightboxPhotoViewer: value } ),
+						} ),
+						attributes.lightboxMode === 'custom' && attributes.lightboxPhotoViewer && el( SelectControl, {
+							label: __( 'Opening view', 'uplink-media-manager' ),
+							value: attributes.lightboxOpeningView,
+							options: [
+								{ label: __( 'Peek', 'uplink-media-manager' ), value: 'peek' },
+								{ label: __( 'Theater', 'uplink-media-manager' ), value: 'theater' },
+							],
+							help: __( 'Applies when the gallery opens without fullscreen slideshow autoplay.', 'uplink-media-manager' ),
+							onChange: ( value ) => setAttributes( { lightboxOpeningView: value } ),
+						} ),
+						attributes.lightboxMode === 'custom' && el( RangeControl, {
+							label: __( 'Photos visible on page', 'uplink-media-manager' ),
+							value: attributes.visibleImageLimit,
+							min: 0,
+							max: 100,
+							help: __( 'Use 0 to show all photos. A +N tile opens the remaining photos in the lightbox.', 'uplink-media-manager' ),
+							onChange: ( value ) => setAttributes( { visibleImageLimit: value } ),
+						} ),
+						attributes.lightboxMode === 'custom' && el( ToggleControl, {
 							label: __( 'Show title in lightbox', 'media-bridge-for-bricks' ),
 							checked: attributes.lightboxShowTitle,
 							onChange: ( value ) => setAttributes( { lightboxShowTitle: value } ),
@@ -333,7 +360,7 @@
 					),
 					attributes.lightboxMode === 'custom' && el( PanelBody, { className: 'uplink-mbb-settings-panel', title: __( 'Lightbox Photo Details', 'media-bridge-for-bricks' ), initialOpen: false },
 						el( ToggleControl, { label: __( 'Show EXIF popover', 'media-bridge-for-bricks' ), checked: attributes.lightboxShowExif, disabled: ! config.exifEnabled,
-							help: config.exifEnabled ? __( 'Only selected fields with available data appear.', 'media-bridge-for-bricks' ) : __( 'Enable EXIF dynamic data in Media Bridge settings first.', 'media-bridge-for-bricks' ),
+							help: config.exifEnabled ? __( 'Only selected fields with available data appear.', 'media-bridge-for-bricks' ) : __( 'Enable EXIF dynamic data in Uplink Media Manager settings first.', 'media-bridge-for-bricks' ),
 							onChange: ( value ) => setAttributes( { lightboxShowExif: value } ) } ),
 						config.exifEnabled && attributes.lightboxShowExif && Object.entries( config.exifFields || {} ).map( ( [ key, label ] ) => el( ToggleControl, {
 							key, label, checked: ( attributes.lightboxExifFields || [] ).includes( key ),
@@ -486,7 +513,7 @@
 						} )
 						: el( Placeholder, {
 							icon: 'format-gallery',
-							label: __( 'Media Bridge Gallery', 'media-bridge-for-bricks' ),
+							label: __( 'Uplink Media Manager Gallery', 'media-bridge-for-bricks' ),
 							instructions: __( 'Choose a folder to display its images.', 'media-bridge-for-bricks' ),
 						}, collectionControl )
 				)
@@ -498,8 +525,8 @@
 	} );
 	blocks.registerBlockVariation( 'uplinkpress/bricks-collection-gallery', {
 		name: 'collection-slider',
-		title: __( 'Media Bridge Slideshow', 'media-bridge-for-bricks' ),
-		description: __( 'Show one or several images at a time from a live Media Bridge folder.', 'media-bridge-for-bricks' ),
+		title: __( 'Uplink Media Manager Slideshow', 'media-bridge-for-bricks' ),
+		description: __( 'Show one or several images at a time from a live Uplink Media Manager folder.', 'media-bridge-for-bricks' ),
 		icon: el( 'svg', { viewBox: '0 0 24 24', width: 24, height: 24, fill: 'none', 'aria-hidden': true, focusable: false },
 			el( 'path', { d: 'M4.5 19.25C5.19036 19.25 5.75 19.8096 5.75 20.5C5.75 21.1904 5.19036 21.75 4.5 21.75C3.80964 21.75 3.25 21.1904 3.25 20.5C3.25 19.8096 3.80964 19.25 4.5 19.25ZM9.5 19.25C10.1904 19.25 10.75 19.8096 10.75 20.5C10.75 21.1904 10.1904 21.75 9.5 21.75C8.80964 21.75 8.25 21.1904 8.25 20.5C8.25 19.8096 8.80964 19.25 9.5 19.25ZM14.5 19.25C15.1904 19.25 15.75 19.8096 15.75 20.5C15.75 21.1904 15.1904 21.75 14.5 21.75C13.8096 21.75 13.25 21.1904 13.25 20.5C13.25 19.8096 13.8096 19.25 14.5 19.25ZM19.5 19.25C20.1904 19.25 20.75 19.8096 20.75 20.5C20.75 21.1904 20.1904 21.75 19.5 21.75C18.8096 21.75 18.25 21.1904 18.25 20.5C18.25 19.8096 18.8096 19.25 19.5 19.25ZM21.75 16.75H2.25V3.25H21.75V16.75ZM3.75 15.25H20.25V4.75H3.75V15.25Z', fill: 'currentColor' } )
 		),
@@ -507,4 +534,65 @@
 		isActive: [ 'layout' ],
 		scope: [ 'inserter' ],
 	} );
+	registerBlockType( 'uplinkpress/bricks-ramka-gallery', {
+		edit( { attributes, setAttributes } ) {
+			const blockProps = useBlockProps();
+			const collection = el( SelectControl, {
+				label: config.managerLabel || __( 'Photo folder', 'uplink-media-manager' ),
+				value: attributes.collectionId,
+				options: collectionOptions,
+				onChange: ( value ) => setAttributes( { collectionId: Number( value ) } ),
+			} );
+			return el( element.Fragment, null,
+				el( InspectorControls, null,
+					el( PanelBody, { title: __( 'Gallery settings', 'uplink-media-manager' ) },
+						collection,
+						el( ToggleControl, {
+							label: __( 'Include child folders', 'uplink-media-manager' ),
+							checked: attributes.includeChildren,
+							onChange: ( value ) => setAttributes( { includeChildren: value } ),
+						} ),
+						el( SelectControl, {
+							label: __( 'Image order', 'uplink-media-manager' ),
+							value: attributes.sortOrder || 'date',
+							options: [
+								{ label: __( 'Newest first', 'uplink-media-manager' ), value: 'date' },
+								{ label: __( 'Custom order', 'uplink-media-manager' ), value: 'custom' },
+								{ label: __( 'Random', 'uplink-media-manager' ), value: 'random' },
+							],
+							onChange: ( value ) => setAttributes( { sortOrder: value } ),
+						} ),
+						el( RangeControl, {
+							label: __( 'Maximum photos', 'uplink-media-manager' ),
+							value: attributes.limit, min: 1, max: 100,
+							onChange: ( value ) => setAttributes( { limit: value } ),
+						} ),
+						el( RangeControl, {
+							label: __( 'Photos visible on page', 'uplink-media-manager' ),
+							value: attributes.visibleImageLimit, min: 0, max: 100,
+							help: __( 'Use 0 to show all photos.', 'uplink-media-manager' ),
+							onChange: ( value ) => setAttributes( { visibleImageLimit: value } ),
+						} ),
+						el( SelectControl, {
+							label: __( 'Opening view', 'uplink-media-manager' ),
+							value: attributes.lightboxOpeningView,
+							options: [
+								{ label: __( 'Peek', 'uplink-media-manager' ), value: 'peek' },
+								{ label: __( 'Theater', 'uplink-media-manager' ), value: 'theater' },
+							],
+							onChange: ( value ) => setAttributes( { lightboxOpeningView: value } ),
+						} )
+					)
+				),
+				el( 'div', blockProps, attributes.collectionId
+					? el( ServerSideRender, { block: 'uplinkpress/bricks-ramka-gallery', attributes, skipBlockSupportAttributes: true } )
+					: el( Placeholder, { icon: 'format-gallery', label: __( 'Ramka Gallery', 'uplink-media-manager' ) }, collection )
+				)
+			);
+		},
+		save() {
+			return null;
+		},
+	} );
+
 } )( window.wp.blocks, window.wp.blockEditor, window.wp.components, window.wp.element, window.wp.i18n, window.wp.serverSideRender );

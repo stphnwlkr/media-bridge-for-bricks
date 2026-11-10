@@ -123,7 +123,7 @@
 		const $progressBar = $( '<span class="uplink-mbb-upload-progress-value" />' );
 		const $progress = $( '<div class="uplink-mbb-upload-progress" role="status" aria-live="polite" hidden />' ).append(
 			$progressText,
-			$( '<span class="uplink-mbb-upload-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" />' ).append( $progressBar )
+			$( '<span class="uplink-mbb-upload-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" />' ).attr( 'aria-label', config.strings.uploadHeading ).append( $progressBar )
 		);
 		const $keep = $( '<input type="checkbox" />' );
 		const $helpButton = $( '<button type="button" class="uplink-mbb-upload-help" aria-expanded="false" />' )

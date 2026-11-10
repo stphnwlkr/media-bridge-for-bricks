@@ -1,18 +1,17 @@
 <?php
 /**
- * Plugin Name: Media Bridge for Bricks
- * Plugin URI: https://plugins.uplink.press/articles/uplink-media-bridge-for-bricks/
- * Description: Enhanced and WordPress media views with shared folders in the Bricks media manager.
- * Version: 1.0.0
+ * Plugin Name: Uplink Media Manager
+ * Description: Manage WordPress media with folders, compression, galleries and optional Bricks integration.
+ * Version: 1.2.0
  * Author: Stephen Walker
  * License: GPL-3.0-or-later
  * Requires at least: 6.8
  * Requires PHP: 8.3
- * Text Domain: media-bridge-for-bricks
+ * Text Domain: uplink-media-manager
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
-define( 'UPLINK_MBB_VERSION', '1.0.0' );
-define( 'UPLINK_MBB_ASSET_VERSION', UPLINK_MBB_VERSION );
+define( 'UPLINK_MBB_VERSION', '1.2.0' );
+define( 'UPLINK_MBB_ASSET_VERSION', '1.2.0' );
 define( 'UPLINK_MBB_FILE', __FILE__ );
 define( 'UPLINK_MBB_PATH', plugin_dir_path( __FILE__ ) );
 define( 'UPLINK_MBB_URL', plugin_dir_url( __FILE__ ) );
@@ -49,7 +48,7 @@ function uplink_mbb_get_library_url( int $attachment_id = 0, string $action = ''
 	}
 
 	/**
-	 * Filter the Media Bridge library URL used by integrations.
+	 * Filter the Uplink Media Manager library URL used by integrations.
 	 *
 	 * @param string $url           Generated library URL.
 	 * @param int    $attachment_id Attachment requested by the caller, or zero.
@@ -59,7 +58,7 @@ function uplink_mbb_get_library_url( int $attachment_id = 0, string $action = ''
 }
 
 
-foreach ( array( 'provider-interface', 'taxonomy-provider', 'folder-provider', 'image-metadata', 'exif-map', 'bricks-dynamic-data', 'upload-workspace', 'cimo-optimization', 'folder-import-sources', 'folder-import', 'folder-cleanup', 'happyfiles-import', 'collection-gallery', 'file-replacement', 'image-references', 'image-conversion', 'native-media-library', 'admin', 'plugin' ) as $uplink_mbb_file ) {
+foreach ( array( 'provider-interface', 'taxonomy-provider', 'folder-provider', 'image-metadata', 'exif-map', 'bricks-dynamic-data', 'upload-workspace', 'cimo-optimization', 'folder-import-sources', 'folder-import', 'folder-cleanup', 'happyfiles-import', 'collection-gallery', 'file-replacement', 'image-references', 'image-conversion', 'image-sizes', 'native-media-library', 'admin', 'plugin' ) as $uplink_mbb_file ) {
 	require_once UPLINK_MBB_PATH . 'includes/class-' . $uplink_mbb_file . '.php';
 }
 register_activation_hook( __FILE__, array( 'UplinkPress\\MediaBridgeForBricks\\Plugin', 'activate' ) );

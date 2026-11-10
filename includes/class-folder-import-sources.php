@@ -37,9 +37,9 @@ final class Folder_Import_Sources {
 		return $files ? 'inactive' : 'missing';
 	}
 	public static function status_label( string $status, bool $has_data ): string {
-		if ( 'active' === $status ) return __( 'Plugin active', 'media-bridge-for-bricks' );
-		if ( 'inactive' === $status ) return $has_data ? __( 'Plugin installed but inactive · Leftover folder data detected', 'media-bridge-for-bricks' ) : __( 'Plugin installed but inactive', 'media-bridge-for-bricks' );
-		return $has_data ? __( 'Plugin not installed · Leftover folder data detected', 'media-bridge-for-bricks' ) : __( 'Plugin not installed', 'media-bridge-for-bricks' );
+		if ( 'active' === $status ) return __( 'Plugin active', 'uplink-media-manager' );
+		if ( 'inactive' === $status ) return $has_data ? __( 'Plugin installed but inactive · Leftover folder data detected', 'uplink-media-manager' ) : __( 'Plugin installed but inactive', 'uplink-media-manager' );
+		return $has_data ? __( 'Plugin not installed · Leftover folder data detected', 'uplink-media-manager' ) : __( 'Plugin not installed', 'uplink-media-manager' );
 	}
 	public static function signature( \WP_Term $term ): string {
 		return hash( 'sha256', wp_json_encode( array( (int) $term->term_id, (int) $term->term_taxonomy_id, (int) $term->parent, $term->name, $term->slug ) ) );
@@ -48,11 +48,11 @@ final class Folder_Import_Sources {
 	public static function label( string $key ): string { return self::definitions()[ $key ]['label'] ?? ''; }
 	public static function terms( string $key ) {
 		global $wpdb;
-		if ( ! self::valid( $key ) ) return new \WP_Error( 'import_source', __( 'Choose a supported folder source.', 'media-bridge-for-bricks' ) );
+		if ( ! self::valid( $key ) ) return new \WP_Error( 'import_source', __( 'Choose a supported folder source.', 'uplink-media-manager' ) );
 		$definition = self::definitions()[ $key ];
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Read only known source taxonomies, including records retained by an inactive plugin.
 		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT t.term_id, t.name, t.slug, t.term_group, tt.term_taxonomy_id, tt.taxonomy, tt.description, tt.parent, tt.count FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = t.term_id WHERE tt.taxonomy = %s ORDER BY t.term_id ASC", $definition['taxonomy'] ) );
-		if ( $wpdb->last_error ) return new \WP_Error( 'import_read', __( 'The source folders could not be read. No source data has been changed.', 'media-bridge-for-bricks' ) );
+		if ( $wpdb->last_error ) return new \WP_Error( 'import_read', __( 'The source folders could not be read. No source data has been changed.', 'uplink-media-manager' ) );
 		$roots = array();
 		if ( 'wp-media-folder' === $key ) {
 			foreach ( $rows as $row ) if ( 'wp-media-folder-root' === $row->slug ) $roots[] = (int) $row->term_id;
@@ -76,7 +76,7 @@ final class Folder_Import_Sources {
 		$taxonomy = self::definitions()[ $key ]['taxonomy'];
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Accurate media-only count; term counts may include stale or non-media relationships.
 		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->term_relationships} tr INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id INNER JOIN {$wpdb->terms} t ON t.term_id = tt.term_id INNER JOIN {$wpdb->posts} p ON p.ID = tr.object_id WHERE tt.taxonomy = %s AND p.post_type = %s AND p.post_status NOT IN ('trash', 'auto-draft') AND (%s <> 'wp-media-folder' OR t.slug <> 'wp-media-folder-root')", $taxonomy, 'attachment', $key ) );
-		if ( $wpdb->last_error ) return new \WP_Error( 'import_read', __( 'The source assignments could not be counted.', 'media-bridge-for-bricks' ) );
+		if ( $wpdb->last_error ) return new \WP_Error( 'import_read', __( 'The source assignments could not be counted.', 'uplink-media-manager' ) );
 		return array( 'plugin_status' => self::plugin_status( $key ), 'label' => self::label( $key ), 'folders' => count( $terms ), 'assignments' => (int) $count );
 	}
 }

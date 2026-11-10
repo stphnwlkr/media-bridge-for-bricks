@@ -67,6 +67,7 @@ final class Native_Media_Library {
 
 		wp_enqueue_style( 'uplink-mbb-media-modal', UPLINK_MBB_URL . 'assets/media-modal.css', array( 'media-views' ), UPLINK_MBB_ASSET_VERSION );
 		wp_add_inline_style( 'uplink-mbb-media-modal', $this->custom_color_css( true ) );
+		Upload_Workspace::ui_assets( array( 'uplink-mbb-media-modal' ) );
 		wp_enqueue_script( 'uplink-mbb-media-modal', UPLINK_MBB_URL . 'assets/media-modal.js', array( 'media-views', 'wp-util', 'uplink-mbb-upload-workspace' ), UPLINK_MBB_ASSET_VERSION, true );
 		wp_localize_script(
 			'uplink-mbb-media-modal',
@@ -91,138 +92,138 @@ final class Native_Media_Library {
 				'parentCountDisplay' => Plugin::settings()['parent_count_display'],
 				'defaultMediaScreen' => ! empty( Plugin::settings()['default_media_screen'] ),
 				'strings'    => array(
-					'allMedia'       => __( 'All media', 'media-bridge-for-bricks' ),
-					'collapseCollection' => __( 'Collapse folder', 'media-bridge-for-bricks' ),
-					'collections'    => __( 'Folders', 'media-bridge-for-bricks' ),
-					'expandCollection' => __( 'Expand folder', 'media-bridge-for-bricks' ),
-					'altTextPresent' => __( 'Alt text provided', 'media-bridge-for-bricks' ),
-					'exifAvailable' => __( 'EXIF data available', 'media-bridge-for-bricks' ),
-					'attachmentDetails' => __( 'Attachment details', 'media-bridge-for-bricks' ),
-					'attachmentMetadata' => __( 'Attachment information', 'media-bridge-for-bricks' ),
-					'details'        => __( 'Main', 'media-bridge-for-bricks' ),
-					'fileInfo'       => __( 'Metadata', 'media-bridge-for-bricks' ),
-					'exif'           => __( 'EXIF', 'media-bridge-for-bricks' ),
-					'optimization'   => __( 'Optimization', 'media-bridge-for-bricks' ),
-					'fullFilePath' => __( 'Full file path', 'media-bridge-for-bricks' ),
-					'copyPath' => __( 'Copy', 'media-bridge-for-bricks' ),
-					'pathCopied' => __( 'File path copied.', 'media-bridge-for-bricks' ),
-					'fileName'       => __( 'File name', 'media-bridge-for-bricks' ),
-					'filePath'       => __( 'Relative file path', 'media-bridge-for-bricks' ),
-					'fileType'       => __( 'File type', 'media-bridge-for-bricks' ),
-					'dimensions'     => __( 'Dimensions', 'media-bridge-for-bricks' ),
-					'fileSize'       => __( 'File size', 'media-bridge-for-bricks' ),
-					'uploaded'       => __( 'Uploaded', 'media-bridge-for-bricks' ),
-					'attachmentId'   => __( 'Attachment ID', 'media-bridge-for-bricks' ),
-					'close'          => __( 'Close', 'media-bridge-for-bricks' ),
-					'previousAttachment' => __( 'Previous attachment', 'media-bridge-for-bricks' ),
-					'nextAttachment' => __( 'Next attachment', 'media-bridge-for-bricks' ),
-					'title'          => __( 'Title', 'media-bridge-for-bricks' ),
-					'altText'        => __( 'Alternative text', 'media-bridge-for-bricks' ),
-					'decorative'     => __( 'Decorative', 'media-bridge-for-bricks' ),
-					'caption'        => __( 'Caption', 'media-bridge-for-bricks' ),
-					'description'    => __( 'Description', 'media-bridge-for-bricks' ),
-					'editAction' => __( 'Edit', 'media-bridge-for-bricks' ),
-					'replaceAction' => __( 'Replace', 'media-bridge-for-bricks' ),
-					'saveAction' => __( 'Save', 'media-bridge-for-bricks' ),
-					'editImage'      => __( 'Edit image', 'media-bridge-for-bricks' ),
-					'saveChanges'    => __( 'Save changes', 'media-bridge-for-bricks' ),
-					'insertMedia'    => __( 'Insert', 'media-bridge-for-bricks' ),
-					'savingChanges'  => __( 'Saving changes…', 'media-bridge-for-bricks' ),
-					'inserting'      => __( 'Inserting…', 'media-bridge-for-bricks' ),
-					'replaceFeaturedImage' => __( 'Replace featured image', 'media-bridge-for-bricks' ),
-					'saved'          => __( 'Attachment saved.', 'media-bridge-for-bricks' ),
-					'empty'          => __( 'No media found in this folder.', 'media-bridge-for-bricks' ),
+					'allMedia'       => __( 'All media', 'uplink-media-manager' ),
+					'collapseCollection' => __( 'Collapse folder', 'uplink-media-manager' ),
+					'collections'    => __( 'Folders', 'uplink-media-manager' ),
+					'expandCollection' => __( 'Expand folder', 'uplink-media-manager' ),
+					'altTextPresent' => __( 'Alt text provided', 'uplink-media-manager' ),
+					'exifAvailable' => __( 'EXIF data available', 'uplink-media-manager' ),
+					'attachmentDetails' => __( 'Attachment details', 'uplink-media-manager' ),
+					'attachmentMetadata' => __( 'Attachment information', 'uplink-media-manager' ),
+					'details'        => __( 'Main', 'uplink-media-manager' ),
+					'fileInfo'       => __( 'Metadata', 'uplink-media-manager' ),
+					'exif'           => __( 'EXIF', 'uplink-media-manager' ),
+					'optimization'   => __( 'Optimization', 'uplink-media-manager' ),
+					'fullFilePath' => __( 'Full file path', 'uplink-media-manager' ),
+					'copyPath' => __( 'Copy', 'uplink-media-manager' ),
+					'pathCopied' => __( 'File path copied.', 'uplink-media-manager' ),
+					'fileName'       => __( 'File name', 'uplink-media-manager' ),
+					'filePath'       => __( 'Relative file path', 'uplink-media-manager' ),
+					'fileType'       => __( 'File type', 'uplink-media-manager' ),
+					'dimensions'     => __( 'Dimensions', 'uplink-media-manager' ),
+					'fileSize'       => __( 'File size', 'uplink-media-manager' ),
+					'uploaded'       => __( 'Uploaded', 'uplink-media-manager' ),
+					'attachmentId'   => __( 'Attachment ID', 'uplink-media-manager' ),
+					'close'          => __( 'Close', 'uplink-media-manager' ),
+					'previousAttachment' => __( 'Previous attachment', 'uplink-media-manager' ),
+					'nextAttachment' => __( 'Next attachment', 'uplink-media-manager' ),
+					'title'          => __( 'Title', 'uplink-media-manager' ),
+					'altText'        => __( 'Alternative text', 'uplink-media-manager' ),
+					'decorative'     => __( 'Decorative', 'uplink-media-manager' ),
+					'caption'        => __( 'Caption', 'uplink-media-manager' ),
+					'description'    => __( 'Description', 'uplink-media-manager' ),
+					'editAction' => __( 'Edit', 'uplink-media-manager' ),
+					'replaceAction' => __( 'Replace', 'uplink-media-manager' ),
+					'saveAction' => __( 'Save', 'uplink-media-manager' ),
+					'editImage'      => __( 'Edit image', 'uplink-media-manager' ),
+					'saveChanges'    => __( 'Save changes', 'uplink-media-manager' ),
+					'insertMedia'    => __( 'Insert', 'uplink-media-manager' ),
+					'savingChanges'  => __( 'Saving changes…', 'uplink-media-manager' ),
+					'inserting'      => __( 'Inserting…', 'uplink-media-manager' ),
+					'replaceFeaturedImage' => __( 'Replace featured image', 'uplink-media-manager' ),
+					'saved'          => __( 'Attachment saved.', 'uplink-media-manager' ),
+					'empty'          => __( 'No media found in this folder.', 'uplink-media-manager' ),
 					/* translators: %s is the administrator-defined media manager label. */
-					'error'          => sprintf( __( 'The %s library could not be loaded.', 'media-bridge-for-bricks' ), $manager_label ),
+					'error'          => sprintf( __( 'The %s library could not be loaded.', 'uplink-media-manager' ), $manager_label ),
 					/* translators: %s is the administrator-defined media manager label. */
-					'heading'        => sprintf( __( 'Browse %s', 'media-bridge-for-bricks' ), $manager_label ),
-					'instructions'   => __( 'Choose a folder, then select one or more media items for the current field.', 'media-bridge-for-bricks' ),
-					'loading'        => __( 'Loading media…', 'media-bridge-for-bricks' ),
-					'allDates'       => __( 'All dates', 'media-bridge-for-bricks' ),
-					'all'            => __( 'All', 'media-bridge-for-bricks' ),
-					'allExtensions'  => __( 'All extensions', 'media-bridge-for-bricks' ),
-					'allTypes'       => __( 'All media items', 'media-bridge-for-bricks' ),
-					'audio'          => __( 'Audio', 'media-bridge-for-bricks' ),
-					'clearFilters'   => __( 'Clear all', 'media-bridge-for-bricks' ),
-					'documents'      => __( 'Documents', 'media-bridge-for-bricks' ),
-					'filterByDate'   => __( 'Filter by upload date', 'media-bridge-for-bricks' ),
-					'filterByExtension' => __( 'Filter by file extension', 'media-bridge-for-bricks' ),
-					'filterByType'   => __( 'Filter by type', 'media-bridge-for-bricks' ),
-					'filter'         => __( 'Filter', 'media-bridge-for-bricks' ),
-					'mediaType'      => __( 'Media type', 'media-bridge-for-bricks' ),
-					'mimeSubtype'    => __( 'MIME subtype', 'media-bridge-for-bricks' ),
-					'uploadedBy'     => __( 'Uploaded by', 'media-bridge-for-bricks' ),
-					'attachmentStatus' => __( 'Attachment status', 'media-bridge-for-bricks' ),
-					'attached'       => __( 'Attached', 'media-bridge-for-bricks' ),
-					'unattached'     => __( 'Unattached', 'media-bridge-for-bricks' ),
-					'uploadedFrom'   => __( 'Uploaded from', 'media-bridge-for-bricks' ),
-					'uploadedTo'     => __( 'Uploaded to', 'media-bridge-for-bricks' ),
-					'widthPixels'    => __( 'Width (px)', 'media-bridge-for-bricks' ),
-					'heightPixels'   => __( 'Height (px)', 'media-bridge-for-bricks' ),
-					'fileSizeMb'     => __( 'File size (MB)', 'media-bridge-for-bricks' ),
-					'minimum'        => __( 'Minimum', 'media-bridge-for-bricks' ),
-					'maximum'        => __( 'Maximum', 'media-bridge-for-bricks' ),
-					'missingAltText' => __( 'Missing alt text', 'media-bridge-for-bricks' ),
-					'optimizationStatus' => __( 'Optimization', 'media-bridge-for-bricks' ),
-					'imageOptimized'  => __( 'Optimized by CIMO', 'media-bridge-for-bricks' ),
-					'imageNotOptimized' => __( 'Not optimized', 'media-bridge-for-bricks' ),
-					'optimizedLabel' => __( 'Optimized media', 'media-bridge-for-bricks' ),
-					'images'         => __( 'Images', 'media-bridge-for-bricks' ),
-					'search'         => __( 'Search media', 'media-bridge-for-bricks' ),
-					'searchPlaceholder' => __( 'Search', 'media-bridge-for-bricks' ),
-					'searchWildcardHelp' => __( 'Use * as a filename wildcard, for example *-1.png.', 'media-bridge-for-bricks' ),
-					'viewMode'       => __( 'View mode', 'media-bridge-for-bricks' ),
-					'listView'       => __( 'List view', 'media-bridge-for-bricks' ),
-					'gridView'       => __( 'Grid view', 'media-bridge-for-bricks' ),
-					'masonryView'    => __( 'Masonry view', 'media-bridge-for-bricks' ),
+					'heading'        => sprintf( __( 'Browse %s', 'uplink-media-manager' ), $manager_label ),
+					'instructions'   => __( 'Choose a folder, then select one or more media items for the current field.', 'uplink-media-manager' ),
+					'loading'        => __( 'Loading media…', 'uplink-media-manager' ),
+					'allDates'       => __( 'All dates', 'uplink-media-manager' ),
+					'all'            => __( 'All', 'uplink-media-manager' ),
+					'allExtensions'  => __( 'All extensions', 'uplink-media-manager' ),
+					'allTypes'       => __( 'All media items', 'uplink-media-manager' ),
+					'audio'          => __( 'Audio', 'uplink-media-manager' ),
+					'clearFilters'   => __( 'Clear all', 'uplink-media-manager' ),
+					'documents'      => __( 'Documents', 'uplink-media-manager' ),
+					'filterByDate'   => __( 'Filter by upload date', 'uplink-media-manager' ),
+					'filterByExtension' => __( 'Filter by file extension', 'uplink-media-manager' ),
+					'filterByType'   => __( 'Filter by type', 'uplink-media-manager' ),
+					'filter'         => __( 'Filter', 'uplink-media-manager' ),
+					'mediaType'      => __( 'Media type', 'uplink-media-manager' ),
+					'mimeSubtype'    => __( 'MIME subtype', 'uplink-media-manager' ),
+					'uploadedBy'     => __( 'Uploaded by', 'uplink-media-manager' ),
+					'attachmentStatus' => __( 'Attachment status', 'uplink-media-manager' ),
+					'attached'       => __( 'Attached', 'uplink-media-manager' ),
+					'unattached'     => __( 'Unattached', 'uplink-media-manager' ),
+					'uploadedFrom'   => __( 'Uploaded from', 'uplink-media-manager' ),
+					'uploadedTo'     => __( 'Uploaded to', 'uplink-media-manager' ),
+					'widthPixels'    => __( 'Width (px)', 'uplink-media-manager' ),
+					'heightPixels'   => __( 'Height (px)', 'uplink-media-manager' ),
+					'fileSizeMb'     => __( 'File size (MB)', 'uplink-media-manager' ),
+					'minimum'        => __( 'Minimum', 'uplink-media-manager' ),
+					'maximum'        => __( 'Maximum', 'uplink-media-manager' ),
+					'missingAltText' => __( 'Missing alt text', 'uplink-media-manager' ),
+					'optimizationStatus' => __( 'Optimization', 'uplink-media-manager' ),
+					'imageOptimized'  => __( 'Optimized by CIMO', 'uplink-media-manager' ),
+					'imageNotOptimized' => __( 'Not optimized', 'uplink-media-manager' ),
+					'optimizedLabel' => __( 'Optimized media', 'uplink-media-manager' ),
+					'images'         => __( 'Images', 'uplink-media-manager' ),
+					'search'         => __( 'Search media', 'uplink-media-manager' ),
+					'searchPlaceholder' => __( 'Search', 'uplink-media-manager' ),
+					'searchWildcardHelp' => __( 'Use * as a filename wildcard, for example *-1.png.', 'uplink-media-manager' ),
+					'viewMode'       => __( 'View mode', 'uplink-media-manager' ),
+					'listView'       => __( 'List view', 'uplink-media-manager' ),
+					'gridView'       => __( 'Grid view', 'uplink-media-manager' ),
+					'masonryView'    => __( 'Masonry view', 'uplink-media-manager' ),
 					/* translators: %s is the administrator-defined media manager label. */
-					'searchLabel'    => sprintf( __( 'Search %s', 'media-bridge-for-bricks' ), $manager_label ),
+					'searchLabel'    => sprintf( __( 'Search %s', 'uplink-media-manager' ), $manager_label ),
 					/* translators: %s is the media item title. */
-					'selectMedia'    => __( 'Select %s', 'media-bridge-for-bricks' ),
+					'selectMedia'    => __( 'Select %s', 'uplink-media-manager' ),
 					'tab'            => $manager_label,
-					'uncategorized'  => __( 'Uncategorized', 'media-bridge-for-bricks' ),
-					'video'          => __( 'Video', 'media-bridge-for-bricks' ),
-					'keepOriginals' => __( 'Keep originals', 'media-bridge-for-bricks' ),
-					'keepOriginalsHelp' => __( 'Upload the original file without CIMO pre-upload optimization. This can preserve embedded EXIF data.', 'media-bridge-for-bricks' ),
-					'fileKeptOriginal' => __( 'Original will be kept', 'media-bridge-for-bricks' ),
-					'uploadHeading' => __( 'Upload', 'media-bridge-for-bricks' ),
-					'uploadInstructions' => __( 'Choose a folder, then add files.', 'media-bridge-for-bricks' ),
-					'destination' => __( 'Destination', 'media-bridge-for-bricks' ),
-					'dropFiles' => __( 'Drop files here', 'media-bridge-for-bricks' ),
-					'acceptedFiles' => __( 'Files accepted by WordPress', 'media-bridge-for-bricks' ),
-					'perFile' => __( 'per file', 'media-bridge-for-bricks' ),
-					'chooseFiles' => __( 'Choose files', 'media-bridge-for-bricks' ),
-					'clearFiles' => __( 'Clear', 'media-bridge-for-bricks' ),
-					'cancelUpload' => __( 'Cancel', 'media-bridge-for-bricks' ),
-					'newCollection' => __( 'New folder', 'media-bridge-for-bricks' ),
-					'collectionName' => __( 'Folder name', 'media-bridge-for-bricks' ),
-					'parentCollection' => __( 'Parent folder', 'media-bridge-for-bricks' ),
-					'topLevel' => __( 'Top level', 'media-bridge-for-bricks' ),
-					'createCollection' => __( 'Create folder', 'media-bridge-for-bricks' ),
-					'collectionCreated' => __( 'Folder created and selected.', 'media-bridge-for-bricks' ),
+					'uncategorized'  => __( 'Uncategorized', 'uplink-media-manager' ),
+					'video'          => __( 'Video', 'uplink-media-manager' ),
+					'keepOriginals' => __( 'Keep originals', 'uplink-media-manager' ),
+					'keepOriginalsHelp' => __( 'Upload the original file without CIMO pre-upload optimization. This can preserve embedded EXIF data.', 'uplink-media-manager' ),
+					'fileKeptOriginal' => __( 'Original will be kept', 'uplink-media-manager' ),
+					'uploadHeading' => __( 'Upload', 'uplink-media-manager' ),
+					'uploadInstructions' => __( 'Choose a folder, then add files.', 'uplink-media-manager' ),
+					'destination' => __( 'Destination', 'uplink-media-manager' ),
+					'dropFiles' => __( 'Drop files here', 'uplink-media-manager' ),
+					'acceptedFiles' => __( 'Files accepted by WordPress', 'uplink-media-manager' ),
+					'perFile' => __( 'per file', 'uplink-media-manager' ),
+					'chooseFiles' => __( 'Choose files', 'uplink-media-manager' ),
+					'clearFiles' => __( 'Clear', 'uplink-media-manager' ),
+					'cancelUpload' => __( 'Cancel', 'uplink-media-manager' ),
+					'newCollection' => __( 'New folder', 'uplink-media-manager' ),
+					'collectionName' => __( 'Folder name', 'uplink-media-manager' ),
+					'parentCollection' => __( 'Parent folder', 'uplink-media-manager' ),
+					'topLevel' => __( 'Top level', 'uplink-media-manager' ),
+					'createCollection' => __( 'Create folder', 'uplink-media-manager' ),
+					'collectionCreated' => __( 'Folder created and selected.', 'uplink-media-manager' ),
 					/* translators: %s is the file name. */
-					'removeFile' => __( 'Remove %s', 'media-bridge-for-bricks' ),
-					'uploadFileName' => __( 'File name', 'media-bridge-for-bricks' ),
-					'renameUploadHelp' => __( 'You can rename optimized files too. The extension matches the file format.', 'media-bridge-for-bricks' ),
-					'validFileName' => __( 'Enter a file name without slashes.', 'media-bridge-for-bricks' ),
-					'fileReady' => __( 'Ready', 'media-bridge-for-bricks' ),
-					'fileOverLimit' => __( 'Over the upload limit', 'media-bridge-for-bricks' ),
+					'removeFile' => __( 'Remove %s', 'uplink-media-manager' ),
+					'uploadFileName' => __( 'File name', 'uplink-media-manager' ),
+					'renameUploadHelp' => __( 'You can rename optimized files too. The extension matches the file format.', 'uplink-media-manager' ),
+					'validFileName' => __( 'Enter a file name without slashes.', 'uplink-media-manager' ),
+					'fileReady' => __( 'Ready', 'uplink-media-manager' ),
+					'fileOverLimit' => __( 'Over the upload limit', 'uplink-media-manager' ),
 					/* translators: 1: number of files, 2: combined file size. */
-					'filesReady' => __( '%1$d files · %2$s ready', 'media-bridge-for-bricks' ),
+					'filesReady' => __( '%1$d files · %2$s ready', 'uplink-media-manager' ),
 					/* translators: %d is the number of files over the upload limit. */
-					'filesOverLimit' => __( '%d over limit', 'media-bridge-for-bricks' ),
+					'filesOverLimit' => __( '%d over limit', 'uplink-media-manager' ),
 					/* translators: %d is the number of files ready to upload. */
-					'uploadFiles' => __( 'Upload %d', 'media-bridge-for-bricks' ),
+					'uploadFiles' => __( 'Upload %d', 'uplink-media-manager' ),
 					/* translators: %d is the number of failed files ready to retry. */
-					'retryFiles' => __( 'Retry %d', 'media-bridge-for-bricks' ),
-					'uploading' => __( 'Uploading…', 'media-bridge-for-bricks' ),
+					'retryFiles' => __( 'Retry %d', 'uplink-media-manager' ),
+					'uploading' => __( 'Uploading…', 'uplink-media-manager' ),
 					/* translators: 1: number of finished uploads, 2: total number of uploads. */
-					'uploadingFiles' => __( '%1$d of %2$d finished', 'media-bridge-for-bricks' ),
+					'uploadingFiles' => __( '%1$d of %2$d finished', 'uplink-media-manager' ),
 					/* translators: 1: number of successful uploads, 2: number of failed uploads. */
-					'uploadResult' => __( '%1$d uploaded · %2$d failed', 'media-bridge-for-bricks' ),
+					'uploadResult' => __( '%1$d uploaded · %2$d failed', 'uplink-media-manager' ),
 					/* translators: %d is the number of successful uploads. */
-					'uploadComplete' => __( '%d uploaded', 'media-bridge-for-bricks' ),
-					'uploadFailed' => __( 'WordPress could not upload this file.', 'media-bridge-for-bricks' ),
+					'uploadComplete' => __( '%d uploaded', 'uplink-media-manager' ),
+					'uploadFailed' => __( 'WordPress could not upload this file.', 'uplink-media-manager' ),
 				),
 			)
 		);
@@ -258,44 +259,44 @@ final class Native_Media_Library {
 				'canAssign'   => $taxonomy && current_user_can( $taxonomy->cap->assign_terms ),
 				'canManage'   => $taxonomy && current_user_can( $taxonomy->cap->manage_terms ),
 				'strings'     => array(
-					'collections'   => __( 'Media folders', 'media-bridge-for-bricks' ),
-					'allMedia'      => __( 'All media', 'media-bridge-for-bricks' ),
-					'uncategorized' => __( 'Uncategorized', 'media-bridge-for-bricks' ),
-					'collapse'      => __( 'Collapse Media folders', 'media-bridge-for-bricks' ),
-					'collapseAllCollections' => __( 'Collapse all folders', 'media-bridge-for-bricks' ),
-					'expand'        => __( 'Expand Media folders', 'media-bridge-for-bricks' ),
-					'expandAllCollections' => __( 'Expand all folders', 'media-bridge-for-bricks' ),
-					'resizeCollections' => __( 'Resize folders panel', 'media-bridge-for-bricks' ),
-					'destination'   => __( 'Media folder', 'media-bridge-for-bricks' ),
-					'uploadHelp'    => __( 'Assign newly uploaded files to a folder.', 'media-bridge-for-bricks' ),
-					'newCollection' => __( 'New folder', 'media-bridge-for-bricks' ),
-					'addChild'      => __( 'Add child folder', 'media-bridge-for-bricks' ),
-					'editCollection' => __( 'Edit folder', 'media-bridge-for-bricks' ),
-					'deleteCollection' => __( 'Delete folder', 'media-bridge-for-bricks' ),
-					'collectionName' => __( 'Folder name', 'media-bridge-for-bricks' ),
-					'parentCollection' => __( 'Parent folder', 'media-bridge-for-bricks' ),
-					'topLevel'      => __( 'Top level', 'media-bridge-for-bricks' ),
-					'createCollection' => __( 'Create folder', 'media-bridge-for-bricks' ),
-					'cancel'        => __( 'Cancel', 'media-bridge-for-bricks' ),
-					'collectionCreated' => __( 'Folder created.', 'media-bridge-for-bricks' ),
-					'collectionUpdated' => __( 'Folder updated.', 'media-bridge-for-bricks' ),
-					'collectionDeleted' => __( 'Folder deleted.', 'media-bridge-for-bricks' ),
+					'collections'   => __( 'Media folders', 'uplink-media-manager' ),
+					'allMedia'      => __( 'All media', 'uplink-media-manager' ),
+					'uncategorized' => __( 'Uncategorized', 'uplink-media-manager' ),
+					'collapse'      => __( 'Collapse Media folders', 'uplink-media-manager' ),
+					'collapseAllCollections' => __( 'Collapse all folders', 'uplink-media-manager' ),
+					'expand'        => __( 'Expand Media folders', 'uplink-media-manager' ),
+					'expandAllCollections' => __( 'Expand all folders', 'uplink-media-manager' ),
+					'resizeCollections' => __( 'Resize folders panel', 'uplink-media-manager' ),
+					'destination'   => __( 'Media folder', 'uplink-media-manager' ),
+					'uploadHelp'    => __( 'Assign newly uploaded files to a folder.', 'uplink-media-manager' ),
+					'newCollection' => __( 'New folder', 'uplink-media-manager' ),
+					'addChild'      => __( 'Add child folder', 'uplink-media-manager' ),
+					'editCollection' => __( 'Edit folder', 'uplink-media-manager' ),
+					'deleteCollection' => __( 'Delete folder', 'uplink-media-manager' ),
+					'collectionName' => __( 'Folder name', 'uplink-media-manager' ),
+					'parentCollection' => __( 'Parent folder', 'uplink-media-manager' ),
+					'topLevel'      => __( 'Top level', 'uplink-media-manager' ),
+					'createCollection' => __( 'Create folder', 'uplink-media-manager' ),
+					'cancel'        => __( 'Cancel', 'uplink-media-manager' ),
+					'collectionCreated' => __( 'Folder created.', 'uplink-media-manager' ),
+					'collectionUpdated' => __( 'Folder updated.', 'uplink-media-manager' ),
+					'collectionDeleted' => __( 'Folder deleted.', 'uplink-media-manager' ),
 					/* translators: %s is the collection name. */
-					'confirmDelete' => __( 'Delete “%s”? Media files will remain in the library.', 'media-bridge-for-bricks' ),
+					'confirmDelete' => __( 'Delete “%s”? Media files will remain in the library.', 'uplink-media-manager' ),
 					/* translators: %s is the collection name. */
-					'confirmDeleteWithChildren' => __( 'Delete “%s”? Its child folders will be moved to the top level. Media files will remain in the library.', 'media-bridge-for-bricks' ),
-					'assignHelp'    => __( 'Drag media onto a folder to assign it.', 'media-bridge-for-bricks' ),
-					'dragAssignOne' => __( 'Assign 1 item', 'media-bridge-for-bricks' ),
+					'confirmDeleteWithChildren' => __( 'Delete “%s”? Its child folders will be moved to the top level. Media files will remain in the library.', 'uplink-media-manager' ),
+					'assignHelp'    => __( 'Drag media onto a folder to assign it.', 'uplink-media-manager' ),
+					'dragAssignOne' => __( 'Assign 1 item', 'uplink-media-manager' ),
 					/* translators: %d is the number of selected media items. */
-					'dragAssignMany' => __( 'Assign %d items', 'media-bridge-for-bricks' ),
-					'dragAssignHelp' => __( 'Drop onto a folder', 'media-bridge-for-bricks' ),
-					'reorderInstructions' => __( 'Drag to reorder, or press Alt plus the Up or Down arrow key.', 'media-bridge-for-bricks' ),
-					'orderSaved'     => __( 'Folder order saved.', 'media-bridge-for-bricks' ),
+					'dragAssignMany' => __( 'Assign %d items', 'uplink-media-manager' ),
+					'dragAssignHelp' => __( 'Drop onto a folder', 'uplink-media-manager' ),
+					'reorderInstructions' => __( 'Drag to reorder, or press Alt plus the Up or Down arrow key.', 'uplink-media-manager' ),
+					'orderSaved'     => __( 'Folder order saved.', 'uplink-media-manager' ),
 					/* translators: %d is the number of media items assigned. */
-					'assigned'      => __( '%d media items assigned.', 'media-bridge-for-bricks' ),
+					'assigned'      => __( '%d media items assigned.', 'uplink-media-manager' ),
 					/* translators: %d is the number of media items moved to Uncategorized. */
-					'cleared'       => __( '%d media items moved to Uncategorized.', 'media-bridge-for-bricks' ),
-					'error'         => __( 'The folder could not be updated.', 'media-bridge-for-bricks' ),
+					'cleared'       => __( '%d media items moved to Uncategorized.', 'uplink-media-manager' ),
+					'error'         => __( 'The folder could not be updated.', 'uplink-media-manager' ),
 				),
 			)
 		);
@@ -427,6 +428,7 @@ final class Native_Media_Library {
 		}
 
 		$html     = '<input type="hidden" name="attachments[' . (int) $attachment->ID . '][uplink_mbb_collections_present]" value="1">';
+		$html    .= '<input type="hidden" name="attachments[' . (int) $attachment->ID . '][uplink_mbb_collections_nonce]" value="' . esc_attr( wp_create_nonce( self::NONCE ) ) . '">';
 		$html    .= '<div class="uplink-mbb-native-assignment-list">';
 		$rendered = array();
 		$render_group = function ( array $collection, bool $is_child = false ) use ( &$render_group, &$rendered, $children_by_parent, $assigned, $attachment ): string {
@@ -446,7 +448,7 @@ final class Native_Media_Library {
 			$group .= '<span>' . esc_html( $collection['name'] ) . '</span></label>';
 			if ( $children ) {
 				/* translators: %s is a parent collection name. */
-				$group .= '<div class="uplink-mbb-native-assignment-children" role="group" aria-label="' . esc_attr( sprintf( __( 'Subfolders: %s', 'media-bridge-for-bricks' ), $collection['name'] ) ) . '">';
+				$group .= '<div class="uplink-mbb-native-assignment-children" role="group" aria-label="' . esc_attr( sprintf( __( 'Subfolders: %s', 'uplink-media-manager' ), $collection['name'] ) ) . '">';
 				foreach ( $children as $child ) {
 					$group .= $render_group( $child, true );
 				}
@@ -465,10 +467,10 @@ final class Native_Media_Library {
 		$html .= '</div>';
 
 		$fields['uplink_mbb_collections'] = array(
-			'label' => __( 'Media folders', 'media-bridge-for-bricks' ),
+			'label' => __( 'Media folders', 'uplink-media-manager' ),
 			'input' => 'html',
 			'html'  => $html,
-			'helps' => __( 'Leave every folder unchecked to keep this item uncategorized.', 'media-bridge-for-bricks' ),
+			'helps' => __( 'Leave every folder unchecked to keep this item uncategorized.', 'uplink-media-manager' ),
 		);
 
 		return $fields;
@@ -485,6 +487,8 @@ final class Native_Media_Library {
 		if ( ! $this->native_collections_are_enabled() || empty( $attachment['uplink_mbb_collections_present'] ) ) {
 			return $post;
 		}
+		$nonce = $attachment['uplink_mbb_collections_nonce'] ?? '';
+		if ( ! is_string( $nonce ) || ! wp_verify_nonce( sanitize_text_field( $nonce ), self::NONCE ) ) return $post;
 		$attachment_id = absint( $post['ID'] ?? 0 );
 		$taxonomy      = get_taxonomy( $this->folders->taxonomy() );
 		if ( ! $attachment_id || ! $taxonomy || ! current_user_can( 'edit_post', $attachment_id ) || ! current_user_can( $taxonomy->cap->assign_terms ) ) {
@@ -506,8 +510,9 @@ final class Native_Media_Library {
 		if ( ! $this->native_collections_are_enabled() ) {
 			return;
 		}
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended -- WordPress verifies the upload request before creating the attachment.
-		$collection_id = absint( $_REQUEST['uplink_mbb_collection'] ?? 0 );
+		$nonce = isset( $_REQUEST['uplink_mbb_collection_nonce'] ) && is_string( $_REQUEST['uplink_mbb_collection_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['uplink_mbb_collection_nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, self::NONCE ) || ! current_user_can( 'upload_files' ) || ! current_user_can( 'edit_post', $attachment_id ) ) return;
+		$collection_id = isset( $_REQUEST['uplink_mbb_collection'] ) && is_scalar( $_REQUEST['uplink_mbb_collection'] ) ? absint( $_REQUEST['uplink_mbb_collection'] ) : 0;
 		$taxonomy      = get_taxonomy( $this->folders->taxonomy() );
 		if ( ! $collection_id || ! $taxonomy || ! current_user_can( $taxonomy->cap->assign_terms ) || ! $this->folders->get_term( $collection_id ) ) {
 			return;
@@ -666,7 +671,7 @@ final class Native_Media_Library {
 				array(
 					'attachmentId' => $image_editor_id,
 					'returnUrl'     => $return_url,
-					'returnLabel'   => $manager_is_default ? __( 'Back to media manager', 'media-bridge-for-bricks' ) : __( 'Back to media', 'media-bridge-for-bricks' ),
+					'returnLabel'   => $manager_is_default ? __( 'Back to media manager', 'uplink-media-manager' ) : __( 'Back to media', 'uplink-media-manager' ),
 					'uploadUrl'     => \uplink_mbb_get_library_url( 0, 'upload' ),
 				)
 			);
@@ -697,7 +702,13 @@ final class Native_Media_Library {
 
 		wp_enqueue_media();
 		Image_Conversion::assets();
-		$native_media_asset_version = UPLINK_MBB_ASSET_VERSION . '.6';
+		Exif_Map::assets();
+		Upload_Workspace::assets();
+		$native_media_asset_version = UPLINK_MBB_ASSET_VERSION . '.8';
+		wp_enqueue_script_module( 'uplink-mbb-optimization-components', UPLINK_MBB_URL . 'assets/optimization-components.js', array(), $native_media_asset_version );
+		wp_enqueue_style( 'uplink-mbb-optimization-theme', UPLINK_MBB_URL . 'assets/vendor/webawesome/theme.css', array(), $native_media_asset_version );
+		wp_enqueue_style( 'uplink-mbb-enhanced-components', UPLINK_MBB_URL . 'assets/enhanced-components.css', array( 'uplink-mbb-native-media', 'uplink-mbb-optimization-theme' ), $native_media_asset_version );
+		Upload_Workspace::ui_assets( array( 'uplink-mbb-enhanced-components' ) );
 		wp_enqueue_style( 'uplink-mbb-native-media', UPLINK_MBB_URL . 'assets/native-media.css', array(), $native_media_asset_version );
 		wp_add_inline_style( 'uplink-mbb-native-media', $this->custom_color_css() );
 		wp_enqueue_script( 'uplink-mbb-native-media', UPLINK_MBB_URL . 'assets/native-media.js', array( 'media-editor' ), $native_media_asset_version, true );
@@ -718,6 +729,8 @@ final class Native_Media_Library {
 				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
 				'nonce'        => wp_create_nonce( self::NONCE ),
 				'altIconUrl'   => UPLINK_MBB_URL . 'assets/universal-access-circle-stroke-sharp.svg',
+				'showExif'     => ! empty( $settings['show_exif'] ),
+				'showExifVersion' => (string) $settings['show_exif_revision'],
 				'exifIconUrl'  => UPLINK_MBB_URL . 'assets/camera-lens-stroke-sharp.svg',
 				'optimizationIconUrl' => UPLINK_MBB_URL . 'assets/circle-gauge-stroke-sharp.svg',
 				'optimizationAvailable' => ! empty( Plugin::settings()['cimo_integration'] ),
@@ -731,124 +744,128 @@ final class Native_Media_Library {
 				'initialAttachmentId' => $initial_attachment_id,
 				'initialAction' => $initial_action,
 				'initialCollectionId' => $initial_collection_id,
+				'canAssign' => $taxonomy && current_user_can( $taxonomy->cap->assign_terms ),
 				'canManage'    => $taxonomy && current_user_can( $taxonomy->cap->manage_terms ),
 				'strings'      => array(
-					'add'                  => __( 'Add to folder', 'media-bridge-for-bricks' ),
-					'allMedia'             => __( 'All media', 'media-bridge-for-bricks' ),
-					'attachmentDetails'    => __( 'Attachment details', 'media-bridge-for-bricks' ),
-					'altSaved'             => __( 'Attachment saved.', 'media-bridge-for-bricks' ),
-					'altTextPresent'       => __( 'Alt text provided', 'media-bridge-for-bricks' ),
+					'add'                  => __( 'Add to folder', 'uplink-media-manager' ),
+					'movedTo' => __( 'Moved to', 'uplink-media-manager' ),
+					'allMedia'             => __( 'All media', 'uplink-media-manager' ),
+					'attachmentDetails'    => __( 'Attachment details', 'uplink-media-manager' ),
+					'altSaved'             => __( 'Attachment saved.', 'uplink-media-manager' ),
+					'altTextPresent'       => __( 'Alt text provided', 'uplink-media-manager' ),
 
-					'exifAvailable'        => __( 'EXIF data available', 'media-bridge-for-bricks' ),
-					'optimizedLabel'       => __( 'Optimized media', 'media-bridge-for-bricks' ),
-					'attachedToContent'    => __( 'Attached to content', 'media-bridge-for-bricks' ),
-					'attachmentSaved'      => __( 'Attachment changes saved.', 'media-bridge-for-bricks' ),
-					'clear'                => __( 'Move to Uncategorized', 'media-bridge-for-bricks' ),
-					'chooseCollection'     => __( 'Choose a folder…', 'media-bridge-for-bricks' ),
-					'collections'          => __( 'Folders', 'media-bridge-for-bricks' ),
-					'resizeCollections'    => __( 'Resize folders panel', 'media-bridge-for-bricks' ),
-					'collectionName'       => __( 'Folder name', 'media-bridge-for-bricks' ),
-					'copied'               => __( 'File path copied.', 'media-bridge-for-bricks' ),
-					'confirmDelete'        => __( 'Delete this folder? Media files will remain in the library.', 'media-bridge-for-bricks' ),
-					'confirmBulkCollections' => __( 'Delete the selected folders? Their media files will remain in the library.', 'media-bridge-for-bricks' ),
+					'exifAvailable'        => __( 'EXIF data available', 'uplink-media-manager' ),
+					'optimizedLabel'       => __( 'Optimized media', 'uplink-media-manager' ),
+					'attachedToContent'    => __( 'Attached to content', 'uplink-media-manager' ),
+					'attachmentSaved'      => __( 'Attachment changes saved.', 'uplink-media-manager' ),
+					'clear'                => __( 'Move to Uncategorized', 'uplink-media-manager' ),
+					'chooseCollection'     => __( 'Choose a folder…', 'uplink-media-manager' ),
+					'collections'          => __( 'Folders', 'uplink-media-manager' ),
+					'resizeCollections'    => __( 'Resize folders panel', 'uplink-media-manager' ),
+					'collectionName'       => __( 'Folder name', 'uplink-media-manager' ),
+					'copied'               => __( 'File path copied.', 'uplink-media-manager' ),
+					'confirmDelete'        => __( 'Delete this folder? Media files will remain in the library.', 'uplink-media-manager' ),
+					'confirmBulkCollections' => __( 'Delete the selected folders? Their media files will remain in the library.', 'uplink-media-manager' ),
 					/* translators: 1: parent collection name, 2: number of child collections. */
-					'childDeletePrompt'    => __( '“%1$s” contains %2$d child folders. Choose what should happen to those children. Media files will remain in the WordPress library.', 'media-bridge-for-bricks' ),
+					'childDeletePrompt'    => __( '“%1$s” contains %2$d child folders. Choose what should happen to those children. Media files will remain in the WordPress library.', 'uplink-media-manager' ),
 					/* translators: %d is the number of unselected child collections. */
-					'childDeletePromptBulk' => __( 'The selected parent folders contain %d child folders that are not selected. Choose what should happen to those children. Media files will remain in the WordPress library.', 'media-bridge-for-bricks' ),
-					'confirmDeleteMedia'   => __( 'Permanently delete this media item and its files? This cannot be undone.', 'media-bridge-for-bricks' ),
+					'childDeletePromptBulk' => __( 'The selected parent folders contain %d child folders that are not selected. Choose what should happen to those children. Media files will remain in the WordPress library.', 'uplink-media-manager' ),
+					'confirmDeleteMedia'   => __( 'Permanently delete this media item and its files? This cannot be undone.', 'uplink-media-manager' ),
 					/* translators: %d is the number of selected media items. */
-					'confirmDeleteMediaBulk' => __( 'Permanently delete %d selected media items and their files? This cannot be undone.', 'media-bridge-for-bricks' ),
-					'confirmDeleteUsed'    => __( 'This media item is referenced by site content. Permanently deleting it may break images in pages, posts, templates, or other content. Choose OK only if you understand the impact and still want to delete it.', 'media-bridge-for-bricks' ),
+					'confirmDeleteMediaBulk' => __( 'Permanently delete %d selected media items and their files? This cannot be undone.', 'uplink-media-manager' ),
+					'confirmDeleteUsed'    => __( 'This media item is referenced by site content. Permanently deleting it may break images in pages, posts, templates, or other content. Choose OK only if you understand the impact and still want to delete it.', 'uplink-media-manager' ),
 					/* translators: 1: number of selected media items that appear to be in use, 2: total number of selected media items. */
-					'confirmDeleteUsedBulk' => __( '%1$d of %2$d selected media items are referenced by site content. Permanently deleting the selection may break images in pages, posts, templates, or other content. Choose OK only if you understand the impact and still want to delete the selected items.', 'media-bridge-for-bricks' ),
-					'createCollection'     => __( 'Create folder', 'media-bridge-for-bricks' ),
-					'createdCollections'   => __( 'Folders added.', 'media-bridge-for-bricks' ),
-					'deleteCollection'     => __( 'Delete folder', 'media-bridge-for-bricks' ),
-					'collectionDeleted'    => __( 'Folder deleted. Media files were not removed.', 'media-bridge-for-bricks' ),
-					'deleteMedia'          => __( 'Delete permanently', 'media-bridge-for-bricks' ),
-					'editImage'            => __( 'Edit image', 'media-bridge-for-bricks' ),
-					'deletedMedia'         => __( 'Media deleted permanently.', 'media-bridge-for-bricks' ),
-					'deletedMediaPartial'  => __( 'Some selected media could not be deleted.', 'media-bridge-for-bricks' ),
-					'deletedCollections'   => __( 'Folders deleted. Media files were not removed.', 'media-bridge-for-bricks' ),
-					'editCollection'       => __( 'Edit folder', 'media-bridge-for-bricks' ),
-					'expandCollection'     => __( 'Expand folder', 'media-bridge-for-bricks' ),
-					'collapseCollection'   => __( 'Collapse folder', 'media-bridge-for-bricks' ),
-					'expandAllCollections' => __( 'Expand all folders', 'media-bridge-for-bricks' ),
-					'collapseAllCollections' => __( 'Collapse all folders', 'media-bridge-for-bricks' ),
-					'empty'                => __( 'No media found in this view.', 'media-bridge-for-bricks' ),
-					'error'                => __( 'Something went wrong. Please try again.', 'media-bridge-for-bricks' ),
-					'loading'              => __( 'Loading media…', 'media-bridge-for-bricks' ),
-					'loadingMore'          => __( 'Loading more media…', 'media-bridge-for-bricks' ),
+					'confirmDeleteUsedBulk' => __( '%1$d of %2$d selected media items are referenced by site content. Permanently deleting the selection may break images in pages, posts, templates, or other content. Choose OK only if you understand the impact and still want to delete the selected items.', 'uplink-media-manager' ),
+					'createCollection'     => __( 'Create folder', 'uplink-media-manager' ),
+					'createdCollections'   => __( 'Folders added.', 'uplink-media-manager' ),
+					'deleteCollection'     => __( 'Delete folder', 'uplink-media-manager' ),
+					'collectionDeleted'    => __( 'Folder deleted. Media files were not removed.', 'uplink-media-manager' ),
+					'deleteMedia'          => __( 'Delete permanently', 'uplink-media-manager' ),
+					'replaceFile'          => __( 'Replace', 'uplink-media-manager' ),
+					'restoreBeforeReplace' => __( 'Restore the original in the Optimization tab before replacing this file.', 'uplink-media-manager' ),
+					'editImage'            => __( 'Edit image', 'uplink-media-manager' ),
+					'deletedMedia'         => __( 'Media deleted permanently.', 'uplink-media-manager' ),
+					'deletedMediaPartial'  => __( 'Some selected media could not be deleted.', 'uplink-media-manager' ),
+					'deletedCollections'   => __( 'Folders deleted. Media files were not removed.', 'uplink-media-manager' ),
+					'editCollection'       => __( 'Edit folder', 'uplink-media-manager' ),
+					'expandCollection'     => __( 'Expand folder', 'uplink-media-manager' ),
+					'collapseCollection'   => __( 'Collapse folder', 'uplink-media-manager' ),
+					'expandAllCollections' => __( 'Expand all folders', 'uplink-media-manager' ),
+					'collapseAllCollections' => __( 'Collapse all folders', 'uplink-media-manager' ),
+					'empty'                => __( 'No media found in this view.', 'uplink-media-manager' ),
+					'error'                => __( 'Something went wrong. Please try again.', 'uplink-media-manager' ),
+					'loading'              => __( 'Loading media…', 'uplink-media-manager' ),
+					'loadingMore'          => __( 'Loading more media…', 'uplink-media-manager' ),
 					/* translators: %d is the number of matching media items. */
-					'resultCount'          => __( '%d media item found.', 'media-bridge-for-bricks' ),
+					'resultCount'          => __( '%d media item found.', 'uplink-media-manager' ),
 					/* translators: %d is the number of matching media items. */
-					'resultsCount'         => __( '%d media items found.', 'media-bridge-for-bricks' ),
+					'resultsCount'         => __( '%d media items found.', 'uplink-media-manager' ),
 					/* translators: 1: number of matching media items, 2: search text. */
-					'searchResult'         => __( '%1$d media item found for “%2$s”.', 'media-bridge-for-bricks' ),
+					'searchResult'         => __( '%1$d media item found for “%2$s”.', 'uplink-media-manager' ),
 					/* translators: 1: number of matching media items, 2: search text. */
-					'searchResults'        => __( '%1$d media items found for “%2$s”.', 'media-bridge-for-bricks' ),
-					'newCollection'        => __( 'New folder', 'media-bridge-for-bricks' ),
-					'newSubcollection'     => __( 'New sub-folder', 'media-bridge-for-bricks' ),
-					'subcollections'       => __( 'Subfolders', 'media-bridge-for-bricks' ),
-					'nextAttachment'       => __( 'Next attachment', 'media-bridge-for-bricks' ),
-					'noParent'             => __( 'Top level', 'media-bridge-for-bricks' ),
-					'parentCollection'     => __( 'Parent folder', 'media-bridge-for-bricks' ),
-					'previousAttachment'   => __( 'Previous attachment', 'media-bridge-for-bricks' ),
-					'fileType'             => __( 'File type', 'media-bridge-for-bricks' ),
-					'optimizationStatus'   => __( 'Optimization', 'media-bridge-for-bricks' ),
-					'imageOptimized'        => __( 'Optimized by CIMO', 'media-bridge-for-bricks' ),
-					'imageNotOptimized'     => __( 'Not optimized', 'media-bridge-for-bricks' ),
-					'finishUpload'         => __( 'Add media', 'media-bridge-for-bricks' ),
-					'remove'               => __( 'Remove from folder', 'media-bridge-for-bricks' ),
-					'reorderInstructions'  => __( 'Drag to reorder, or press Alt plus the Up or Down arrow key.', 'media-bridge-for-bricks' ),
-					'moveItemHere' => __( 'Move item here', 'media-bridge-for-bricks' ),
+					'searchResults'        => __( '%1$d media items found for “%2$s”.', 'uplink-media-manager' ),
+					'newCollection'        => __( 'New folder', 'uplink-media-manager' ),
+					'newSubcollection'     => __( 'New sub-folder', 'uplink-media-manager' ),
+					'subcollections'       => __( 'Subfolders', 'uplink-media-manager' ),
+					'nextAttachment'       => __( 'Next attachment', 'uplink-media-manager' ),
+					'noParent'             => __( 'Top level', 'uplink-media-manager' ),
+					'parentCollection'     => __( 'Parent folder', 'uplink-media-manager' ),
+					'previousAttachment'   => __( 'Previous attachment', 'uplink-media-manager' ),
+					'fileType'             => __( 'File type', 'uplink-media-manager' ),
+					'optimizationStatus'   => __( 'Optimization', 'uplink-media-manager' ),
+					'imageOptimized'        => __( 'Optimized by CIMO', 'uplink-media-manager' ),
+					'imageNotOptimized'     => __( 'Not optimized', 'uplink-media-manager' ),
+					'finishUpload'         => __( 'Add media', 'uplink-media-manager' ),
+					'remove'               => __( 'Remove from folder', 'uplink-media-manager' ),
+					'reorderInstructions'  => __( 'Drag to reorder, or press Alt plus the Up or Down arrow key.', 'uplink-media-manager' ),
+					'moveItemHere' => __( 'Move item here', 'uplink-media-manager' ),
 					/* translators: %d is the number of selected media items. */
-					'moveItemsHere' => __( 'Move %d items here', 'media-bridge-for-bricks' ),
+					'moveItemsHere' => __( 'Move %d items here', 'uplink-media-manager' ),
 					/* translators: %d is the number of selected media items. */
-					'movingItems' => __( 'Moving %d items', 'media-bridge-for-bricks' ),
-					'reorderMedia'         => __( 'Reorder', 'media-bridge-for-bricks' ),
-					'doneReordering'       => __( 'Done reordering', 'media-bridge-for-bricks' ),
-					'mediaOrderSaved'      => __( 'Media order saved.', 'media-bridge-for-bricks' ),
-					'mediaOrderHelp'       => __( 'Drag items before or after another item to reorder. Or focus an image and press Alt + an arrow key. Changes save automatically for this folder only.', 'media-bridge-for-bricks' ),
-					'orderSaved'           => __( 'Folder order saved.', 'media-bridge-for-bricks' ),
-					'saveCollection'       => __( 'Folder saved.', 'media-bridge-for-bricks' ),
-					'saveAltText'          => __( 'Save changes', 'media-bridge-for-bricks' ),
-					'selectMedia'          => __( 'Select', 'media-bridge-for-bricks' ),
-					'selected'             => __( 'selected', 'media-bridge-for-bricks' ),
-					'selectHelp'           => __( 'Select this item. Shift-click to select a range.', 'media-bridge-for-bricks' ),
-					'uncategorized'        => __( 'Uncategorized', 'media-bridge-for-bricks' ),
-					'upload'               => __( 'Select or Upload Media', 'media-bridge-for-bricks' ),
-					'gridView'             => __( 'Grid view', 'media-bridge-for-bricks' ),
-					'listView'             => __( 'List view', 'media-bridge-for-bricks' ),
-					'masonryView'          => __( 'Masonry view', 'media-bridge-for-bricks' ),
-					'allIssues'            => __( 'All issues', 'media-bridge-for-bricks' ),
-					'allIssuesDescription' => __( 'Media with one or more health issues.', 'media-bridge-for-bricks' ),
-					'brokenFile'           => __( 'Broken file', 'media-bridge-for-bricks' ),
-					'brokenFileDescription' => __( 'The attachment file is missing, unreadable, or empty.', 'media-bridge-for-bricks' ),
-					'missingAlt'           => __( 'Missing alt text', 'media-bridge-for-bricks' ),
-					'missingAltDescription' => __( 'Images without alt text that are not marked as decorative.', 'media-bridge-for-bricks' ),
-					'missingSizes'         => __( 'Missing image sizes', 'media-bridge-for-bricks' ),
-					'missingSizesDescription' => __( 'Images missing one or more sizes registered with WordPress.', 'media-bridge-for-bricks' ),
-					'oversized'            => __( 'Oversized', 'media-bridge-for-bricks' ),
-					'oversizedDescription' => __( 'Size limits: images 1 MB, fonts 0.5 MB, documents 5 MB, audio 10 MB, and video 50 MB.', 'media-bridge-for-bricks' ),
-					'suspectedDuplicates'       => __( 'Suspected duplicates', 'media-bridge-for-bricks' ),
-					'suspectedDuplicatesDescription' => __( 'Files whose contents match another attachment. Different titles or filenames may be intentional, so review the matching attachments before deleting anything.', 'media-bridge-for-bricks' ),
-					'obsoleteFormat'       => __( 'Obsolete format', 'media-bridge-for-bricks' ),
-					'obsoleteFormatDescription' => __( 'BMP or TIFF media that should be converted to a modern web format.', 'media-bridge-for-bricks' ),
-					'decorative'           => __( 'Decorative', 'media-bridge-for-bricks' ),
-					'decorativeDescription' => __( 'Images intentionally marked as decorative.', 'media-bridge-for-bricks' ),
-					'healthy'              => __( 'Healthy', 'media-bridge-for-bricks' ),
-					'healthyDescription'   => __( 'Media with none of the file, metadata, size, format, or duplicate issues checked here.', 'media-bridge-for-bricks' ),
-					'scannedNow'           => __( 'Scanned just now', 'media-bridge-for-bricks' ),
-					'appearanceSaved'       => __( 'Appearance saved.', 'media-bridge-for-bricks' ),
-					'appearanceAdjusted'    => __( 'Appearance saved. Some colors were restored to accessible values.', 'media-bridge-for-bricks' ),
-					'appearanceExported'    => __( 'Appearance exported.', 'media-bridge-for-bricks' ),
-					'appearanceImported'    => __( 'Appearance imported for preview. Save to apply it.', 'media-bridge-for-bricks' ),
-					'appearanceImportError' => __( 'That file is not a valid Media Bridge appearance export.', 'media-bridge-for-bricks' ),
+					'movingItems' => __( 'Moving %d items', 'uplink-media-manager' ),
+					'reorderMedia'         => __( 'Reorder', 'uplink-media-manager' ),
+					'doneReordering'       => __( 'Done reordering', 'uplink-media-manager' ),
+					'mediaOrderSaved'      => __( 'Media order saved.', 'uplink-media-manager' ),
+					'mediaOrderHelp'       => __( 'Drag items before or after another item to reorder. Or focus an image and press Alt + an arrow key. Changes save automatically for this folder only.', 'uplink-media-manager' ),
+					'orderSaved'           => __( 'Folder order saved.', 'uplink-media-manager' ),
+					'saveCollection'       => __( 'Folder saved.', 'uplink-media-manager' ),
+					'saveAltText'          => __( 'Save changes', 'uplink-media-manager' ),
+					'selectMedia'          => __( 'Select', 'uplink-media-manager' ),
+					'selected'             => __( 'selected', 'uplink-media-manager' ),
+					'selectHelp'           => __( 'Select this item. Shift-click to select a range.', 'uplink-media-manager' ),
+					'uncategorized'        => __( 'Uncategorized', 'uplink-media-manager' ),
+					'upload'               => __( 'Select or Upload Media', 'uplink-media-manager' ),
+					'gridView'             => __( 'Grid view', 'uplink-media-manager' ),
+					'listView'             => __( 'List view', 'uplink-media-manager' ),
+					'masonryView'          => __( 'Masonry view', 'uplink-media-manager' ),
+					'allIssues'            => __( 'All issues', 'uplink-media-manager' ),
+					'allIssuesDescription' => __( 'Media with one or more health issues.', 'uplink-media-manager' ),
+					'brokenFile'           => __( 'Broken file', 'uplink-media-manager' ),
+					'brokenFileDescription' => __( 'The attachment file is missing, unreadable, or empty.', 'uplink-media-manager' ),
+					'missingAlt'           => __( 'Missing alt text', 'uplink-media-manager' ),
+					'missingAltDescription' => __( 'Images without alt text that are not marked as decorative.', 'uplink-media-manager' ),
+					'missingSizes'         => __( 'Missing image sizes', 'uplink-media-manager' ),
+					'missingSizesDescription' => __( 'Images missing one or more sizes registered with WordPress.', 'uplink-media-manager' ),
+					'oversized'            => __( 'Oversized', 'uplink-media-manager' ),
+					'oversizedDescription' => __( 'Size limits: images 1 MB, fonts 0.5 MB, documents 5 MB, audio 10 MB, and video 50 MB.', 'uplink-media-manager' ),
+					'suspectedDuplicates'       => __( 'Suspected duplicates', 'uplink-media-manager' ),
+					'suspectedDuplicatesDescription' => __( 'Files whose contents match another attachment. Different titles or filenames may be intentional, so review the matching attachments before deleting anything.', 'uplink-media-manager' ),
+					'obsoleteFormat'       => __( 'Obsolete format', 'uplink-media-manager' ),
+					'obsoleteFormatDescription' => __( 'BMP or TIFF media that should be converted to a modern web format.', 'uplink-media-manager' ),
+					'decorative'           => __( 'Decorative', 'uplink-media-manager' ),
+					'decorativeDescription' => __( 'Images intentionally marked as decorative.', 'uplink-media-manager' ),
+					'healthy'              => __( 'Healthy', 'uplink-media-manager' ),
+					'healthyDescription'   => __( 'Media with none of the file, metadata, size, format, or duplicate issues checked here.', 'uplink-media-manager' ),
+					'scannedNow'           => __( 'Scanned just now', 'uplink-media-manager' ),
+					'appearanceSaved'       => __( 'Appearance saved.', 'uplink-media-manager' ),
+					'appearanceAdjusted'    => __( 'Appearance saved. Some colors were restored to accessible values.', 'uplink-media-manager' ),
+					'appearanceExported'    => __( 'Appearance exported.', 'uplink-media-manager' ),
+					'appearanceImported'    => __( 'Appearance imported for preview. Save to apply it.', 'uplink-media-manager' ),
+					'appearanceImportError' => __( 'That file is not a valid Uplink Media Manager appearance export.', 'uplink-media-manager' ),
 					/* translators: %s: Contrast ratio, for example 4.50:1. */
-					'contrastPasses'        => __( 'Passes WCAG AA contrast at %s.', 'media-bridge-for-bricks' ),
+					'contrastPasses'        => __( 'Passes WCAG AA contrast at %s.', 'uplink-media-manager' ),
 					/* translators: %s: Contrast ratio, for example 3.25:1. */
-					'contrastFails'         => __( 'Fails WCAG AA contrast at %s.', 'media-bridge-for-bricks' ),
+					'contrastFails'         => __( 'Fails WCAG AA contrast at %s.', 'uplink-media-manager' ),
 				),
 			)
 		);
@@ -859,7 +876,7 @@ final class Native_Media_Library {
 	 */
 	private function enqueue_attachment_compatibility_assets(): void {
 		/**
-		 * Fires while the Media Bridge manager enqueues its attachment detail UI.
+		 * Fires while the Uplink Media Manager manager enqueues its attachment detail UI.
 		 * Providers that use attachment_fields_to_edit may enqueue field assets here.
 		 */
 		do_action( 'uplink_mbb_enqueue_attachment_compatibility_assets' );
@@ -879,15 +896,19 @@ final class Native_Media_Library {
 		$contrast_fields = $this->palette_contrast_fields();
 		$palette_settings = Plugin::settings();
 		/* translators: %s is the administrator-defined media manager label. */
-		$about_label = sprintf( __( 'About %s', 'media-bridge-for-bricks' ), $manager_label );
+		$about_label = sprintf( __( 'About %s', 'uplink-media-manager' ), $manager_label );
 		/* translators: %s is the administrator-defined media manager label. */
-		$info_description = sprintf( __( 'Organize WordPress media directly with %s. An item can belong to more than one folder.', 'media-bridge-for-bricks' ), $manager_label );
+		$info_description = sprintf( __( 'Organize WordPress media directly with %s. An item can belong to more than one folder.', 'uplink-media-manager' ), $manager_label );
 		?>
-		<div class="wrap uplink-mbb-native-wrap uplink-mbb-theme-<?php echo esc_attr( $appearance ); ?>">
+		<div class="wrap uplink-mbb-native-wrap uplink-mbb-optimization-theme wa-theme-default uplink-mbb-theme-<?php echo esc_attr( $appearance ); ?>">
 			<div class="uplink-mbb-native-heading">
 				<div class="uplink-mbb-native-title-group">
 					<div class="uplink-mbb-native-title-row">
 					<h1><?php echo esc_html( $manager_label ); ?></h1>
+					<span class="uplink-mbb-heading-version"><?php
+						/* translators: %s is the installed plugin version. */
+						printf( esc_html__( 'Version %s', 'uplink-media-manager' ), esc_html( UPLINK_MBB_VERSION ) );
+					?></span>
 					<button type="button" class="uplink-mbb-info-toggle" id="uplink-mbb-info-toggle" aria-expanded="false" aria-controls="uplink-mbb-info-popup" aria-label="<?php echo esc_attr( $about_label ); ?>">
 							<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 						</button>
@@ -896,30 +917,31 @@ final class Native_Media_Library {
 					<h2 id="uplink-mbb-info-title"><?php echo esc_html( $about_label ); ?></h2>
 						<p class="uplink-mbb-version"><?php
 							/* translators: %s is the installed plugin version. */
-							printf( esc_html__( 'Media Bridge for Bricks version %s', 'media-bridge-for-bricks' ), esc_html( UPLINK_MBB_VERSION ) );
+							printf( esc_html__( 'Uplink Media Manager version %s', 'uplink-media-manager' ), esc_html( UPLINK_MBB_VERSION ) );
 						?></p>
 						<p><?php echo esc_html( $info_description ); ?></p>
-						<p><?php esc_html_e( 'Open an image to review its details. Use the footer checkbox, Ctrl/Command-click to select individual images, or Shift-click to select a range for bulk actions.', 'media-bridge-for-bricks' ); ?></p>
-						<div class="uplink-mbb-alt-legend"><img src="<?php echo esc_url( UPLINK_MBB_URL . 'assets/universal-access-circle-stroke-sharp.svg' ); ?>" alt="" aria-hidden="true"><span><?php esc_html_e( 'Accessibility icon: alt text is present', 'media-bridge-for-bricks' ); ?></span></div>
+						<p><?php esc_html_e( 'Open an image to review its details. Use the footer checkbox, Ctrl/Command-click to select individual images, or Shift-click to select a range for bulk actions.', 'uplink-media-manager' ); ?></p>
+						<div class="uplink-mbb-alt-legend"><img src="<?php echo esc_url( UPLINK_MBB_URL . 'assets/universal-access-circle-stroke-sharp.svg' ); ?>" alt="" aria-hidden="true"><span><?php esc_html_e( 'Accessibility icon: alt text is present', 'uplink-media-manager' ); ?></span></div>
 					</div>
 				</div>
 				<div class="uplink-mbb-native-heading-actions">
+<?php if ( current_user_can( 'upload_files' ) ) : ?>
+						<wa-button size="small" variant="brand" appearance="filled" type="button" class="button button-primary uplink-mbb-upload-action" id="uplink-mbb-upload-media" aria-label="<?php esc_attr_e( 'Upload media', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Upload media', 'uplink-media-manager' ); ?>"><svg slot="start" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 14v5h14v-5"></path></svg><span><?php esc_html_e( 'Upload media', 'uplink-media-manager' ); ?></span></wa-button>
+										<?php endif; ?>
 
-					<?php if ( current_user_can( 'upload_files' ) ) : ?>
-						<button type="button" class="uplink-mbb-icon-button is-primary" id="uplink-mbb-upload-media" aria-label="<?php esc_attr_e( 'Upload media', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Upload media', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 14v5h14v-5"></path></svg></button>
-					<?php endif; ?>
+<wa-button-group label="<?php esc_attr_e( 'Workspace tools', 'uplink-media-manager' ); ?>">
 					<?php if ( current_user_can( 'manage_options' ) ) : ?>
-						<button type="button" class="uplink-mbb-icon-button" id="uplink-mbb-appearance-toggle" aria-expanded="false" aria-controls="uplink-mbb-appearance-panel" aria-label="<?php esc_attr_e( 'Customize appearance', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Customize appearance', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-palette-icon" aria-hidden="true"></span></button>
-						<a class="uplink-mbb-icon-button" href="<?php echo esc_url( admin_url( 'upload.php?page=media-bridge-for-bricks' ) ); ?>" aria-label="<?php esc_attr_e( 'Media Bridge settings', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Media Bridge settings', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"></path></svg></a>
-					<?php endif; ?>
+						<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-icon-button" id="uplink-mbb-appearance-toggle" aria-expanded="false" aria-controls="uplink-mbb-appearance-panel" aria-label="<?php esc_attr_e( 'Customize appearance', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Customize appearance', 'uplink-media-manager' ); ?>"><span class="uplink-mbb-palette-icon" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Customize appearance', 'uplink-media-manager' ); ?></span></wa-button>
+						<wa-button size="small" variant="neutral" appearance="outlined" class="uplink-mbb-icon-button" href="<?php echo esc_url( admin_url( 'upload.php?page=media-bridge-for-bricks' ) ); ?>" aria-label="<?php esc_attr_e( 'Media Manager Settings', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Media Manager Settings', 'uplink-media-manager' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"></path></svg><span class="screen-reader-text"><?php esc_html_e( 'Media Manager Settings', 'uplink-media-manager' ); ?></span></wa-button>
+					<?php endif; ?></wa-button-group>
 				</div>
 				<?php if ( current_user_can( 'manage_options' ) ) : ?>
 				<div class="uplink-mbb-appearance-panel" id="uplink-mbb-appearance-panel" role="dialog" aria-modal="false" aria-labelledby="uplink-mbb-appearance-title" hidden>
-					<div class="uplink-mbb-appearance-header"><div><h2 id="uplink-mbb-appearance-title"><?php esc_html_e( 'Customize appearance', 'media-bridge-for-bricks' ); ?></h2><p><?php esc_html_e( 'Changes preview in the manager as you edit.', 'media-bridge-for-bricks' ); ?></p></div><button type="button" class="uplink-mbb-popover-close" data-appearance-close aria-label="<?php esc_attr_e( 'Close appearance settings', 'media-bridge-for-bricks' ); ?>">&times;</button></div>
+					<div class="uplink-mbb-appearance-header"><div><h2 id="uplink-mbb-appearance-title"><?php esc_html_e( 'Customize appearance', 'uplink-media-manager' ); ?></h2><p><?php esc_html_e( 'Changes preview in the manager as you edit.', 'uplink-media-manager' ); ?></p></div><button type="button" class="uplink-mbb-popover-close" data-appearance-close aria-label="<?php esc_attr_e( 'Close appearance settings', 'uplink-media-manager' ); ?>">&times;</button></div>
 					<form id="uplink-mbb-appearance-form">
 						<div class="uplink-mbb-appearance-scroll">
-						<label class="uplink-mbb-appearance-select" for="uplink-mbb-appearance"><span><?php esc_html_e( 'Default appearance', 'media-bridge-for-bricks' ); ?></span><select id="uplink-mbb-appearance" name="appearance"><option value="auto" <?php selected( $appearance, 'auto' ); ?>><?php esc_html_e( 'Auto, match device', 'media-bridge-for-bricks' ); ?></option><option value="light" <?php selected( $appearance, 'light' ); ?>><?php esc_html_e( 'Light', 'media-bridge-for-bricks' ); ?></option><option value="dark" <?php selected( $appearance, 'dark' ); ?>><?php esc_html_e( 'Dark', 'media-bridge-for-bricks' ); ?></option></select></label>
-						<div class="uplink-mbb-palette-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Palette preview', 'media-bridge-for-bricks' ); ?>"><button type="button" class="uplink-mbb-palette-tab" role="tab" id="uplink-mbb-palette-light-tab" data-palette-tab="light" aria-selected="true" aria-controls="uplink-mbb-palette-light"><?php esc_html_e( 'Light palette', 'media-bridge-for-bricks' ); ?></button><button type="button" class="uplink-mbb-palette-tab" role="tab" id="uplink-mbb-palette-dark-tab" data-palette-tab="dark" aria-selected="false" aria-controls="uplink-mbb-palette-dark" tabindex="-1"><?php esc_html_e( 'Dark palette', 'media-bridge-for-bricks' ); ?></button></div>
+						<label class="uplink-mbb-appearance-select" for="uplink-mbb-appearance"><span><?php esc_html_e( 'Default appearance', 'uplink-media-manager' ); ?></span><select id="uplink-mbb-appearance" name="appearance"><option value="auto" <?php selected( $appearance, 'auto' ); ?>><?php esc_html_e( 'Auto, match device', 'uplink-media-manager' ); ?></option><option value="light" <?php selected( $appearance, 'light' ); ?>><?php esc_html_e( 'Light', 'uplink-media-manager' ); ?></option><option value="dark" <?php selected( $appearance, 'dark' ); ?>><?php esc_html_e( 'Dark', 'uplink-media-manager' ); ?></option></select></label>
+						<div class="uplink-mbb-palette-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Palette preview', 'uplink-media-manager' ); ?>"><button type="button" class="uplink-mbb-palette-tab" role="tab" id="uplink-mbb-palette-light-tab" data-palette-tab="light" aria-selected="true" aria-controls="uplink-mbb-palette-light"><?php esc_html_e( 'Light palette', 'uplink-media-manager' ); ?></button><button type="button" class="uplink-mbb-palette-tab" role="tab" id="uplink-mbb-palette-dark-tab" data-palette-tab="dark" aria-selected="false" aria-controls="uplink-mbb-palette-dark" tabindex="-1"><?php esc_html_e( 'Dark palette', 'uplink-media-manager' ); ?></button></div>
 						<?php foreach ( array( 'light', 'dark' ) as $mode ) : ?>
 						<div class="uplink-mbb-appearance-palette" id="uplink-mbb-palette-<?php echo esc_attr( $mode ); ?>" role="tabpanel" aria-labelledby="uplink-mbb-palette-<?php echo esc_attr( $mode ); ?>-tab" data-palette-panel="<?php echo esc_attr( $mode ); ?>" <?php echo 'dark' === $mode ? 'hidden' : ''; ?>>
 							<?php foreach ( $palette_fields as $group_label => $fields ) : ?>
@@ -931,108 +953,112 @@ final class Native_Media_Library {
 							<?php endforeach; ?>
 						</div>
 						<?php endforeach; ?>
-						<p class="uplink-mbb-appearance-help"><?php esc_html_e( 'Saving restores any foreground colors that fall below WCAG 2.2 AA contrast.', 'media-bridge-for-bricks' ); ?></p>
+						<p class="uplink-mbb-appearance-help"><?php esc_html_e( 'Saving restores any foreground colors that fall below WCAG 2.2 AA contrast.', 'uplink-media-manager' ); ?></p>
 						</div>
-						<div class="uplink-mbb-appearance-actions"><button type="button" class="button" id="uplink-mbb-reset-palette"><?php esc_html_e( 'Reset palette', 'media-bridge-for-bricks' ); ?></button><div class="uplink-mbb-appearance-transfer"><button type="button" class="button" id="uplink-mbb-export-appearance"><?php esc_html_e( 'Export', 'media-bridge-for-bricks' ); ?></button><button type="button" class="button" id="uplink-mbb-import-appearance"><?php esc_html_e( 'Import', 'media-bridge-for-bricks' ); ?></button><input type="file" id="uplink-mbb-import-appearance-file" class="screen-reader-text" accept=".json,application/json" aria-label="<?php esc_attr_e( 'Choose an appearance JSON file', 'media-bridge-for-bricks' ); ?>"></div><span class="spinner" id="uplink-mbb-appearance-spinner"></span><div class="uplink-mbb-appearance-commit"><button type="button" class="button" data-appearance-close><?php esc_html_e( 'Cancel', 'media-bridge-for-bricks' ); ?></button><button type="submit" class="button button-primary"><?php esc_html_e( 'Save appearance', 'media-bridge-for-bricks' ); ?></button></div></div><p id="uplink-mbb-appearance-status" class="screen-reader-text" role="status" aria-live="polite"></p>
+						<div class="uplink-mbb-appearance-actions"><button type="button" class="button" id="uplink-mbb-reset-palette"><?php esc_html_e( 'Reset palette', 'uplink-media-manager' ); ?></button><div class="uplink-mbb-appearance-transfer"><button type="button" class="button" id="uplink-mbb-export-appearance"><?php esc_html_e( 'Export', 'uplink-media-manager' ); ?></button><button type="button" class="button" id="uplink-mbb-import-appearance"><?php esc_html_e( 'Import', 'uplink-media-manager' ); ?></button><input type="file" id="uplink-mbb-import-appearance-file" class="screen-reader-text" accept=".json,application/json" aria-label="<?php esc_attr_e( 'Choose an appearance JSON file', 'uplink-media-manager' ); ?>"></div><span class="spinner" id="uplink-mbb-appearance-spinner"></span><div class="uplink-mbb-appearance-commit"><button type="button" class="button" data-appearance-close><?php esc_html_e( 'Cancel', 'uplink-media-manager' ); ?></button><button type="submit" class="button button-primary"><?php esc_html_e( 'Save appearance', 'uplink-media-manager' ); ?></button></div></div><p id="uplink-mbb-appearance-status" class="screen-reader-text" role="status" aria-live="polite"></p>
 					</form>
 				</div>
 				<?php endif; ?>
 			</div>
 
 			<?php if ( ! $this->folders->is_available() ) : ?>
-				<div class="notice notice-error"><p><?php esc_html_e( 'Media folders are not available. Activate Bricks before using this screen.', 'media-bridge-for-bricks' ); ?></p></div>
+				<div class="notice notice-error"><p><?php esc_html_e( 'Media folders are not available. Reload this page or reactivate Uplink Media Manager.', 'uplink-media-manager' ); ?></p></div>
 			<?php else : ?>
-				<div id="uplink-mbb-native-notice" class="notice inline" role="status" aria-live="polite" hidden><p></p></div>
+				<wa-callout variant="neutral" appearance="outlined" id="uplink-mbb-native-notice" class="notice inline" role="status" aria-live="polite" hidden><p></p></wa-callout>
 				<div id="uplink-mbb-native-toast" class="uplink-mbb-native-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
 				<div class="uplink-mbb-native-shell" id="uplink-mbb-native-library">
-					<aside class="uplink-mbb-native-sidebar" aria-label="<?php esc_attr_e( 'Media folders', 'media-bridge-for-bricks' ); ?>">
-						<div class="uplink-mbb-library-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Media workspace', 'media-bridge-for-bricks' ); ?>"><button type="button" id="uplink-mbb-library-tab" role="tab" aria-selected="true"><?php esc_html_e( 'Library', 'media-bridge-for-bricks' ); ?></button><button type="button" id="uplink-mbb-health-tab" role="tab" aria-selected="false"><?php esc_html_e( 'Health', 'media-bridge-for-bricks' ); ?> <span id="uplink-mbb-health-tab-count">0</span></button></div>
+					<aside class="uplink-mbb-native-sidebar" aria-label="<?php esc_attr_e( 'Media folders', 'uplink-media-manager' ); ?>">
+						<div class="uplink-mbb-library-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Media workspace', 'uplink-media-manager' ); ?>"><button type="button" id="uplink-mbb-library-tab" role="tab" aria-selected="true"><?php esc_html_e( 'Library', 'uplink-media-manager' ); ?></button><button type="button" id="uplink-mbb-health-tab" role="tab" aria-selected="false"><?php esc_html_e( 'Health', 'uplink-media-manager' ); ?> <span id="uplink-mbb-health-tab-count">0</span></button></div>
 						<div id="uplink-mbb-library-navigation">
 							<div class="uplink-mbb-collection-heading">
-								<h2><?php esc_html_e( 'Folders', 'media-bridge-for-bricks' ); ?></h2>
-								<div class="uplink-mbb-collection-heading-actions">
-									<button type="button" class="uplink-mbb-icon-button" id="uplink-mbb-collection-tree-toggle" aria-label="<?php esc_attr_e( 'Collapse all folders', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Collapse all folders', 'media-bridge-for-bricks' ); ?>"><span class="uplink-mbb-tree-icon is-close" aria-hidden="true"></span></button>
-									
-									<?php if ( $can_manage ) : ?>
-										<button type="button" class="uplink-mbb-icon-button" id="uplink-mbb-new-collection" aria-label="<?php esc_attr_e( 'New folder', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'New folder', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"></path><path d="M12 12v5M9.5 14.5h5"></path></svg></button>
-										<button type="button" class="uplink-mbb-icon-button" id="uplink-mbb-manage-collections" aria-label="<?php esc_attr_e( 'Manage folders', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Manage folders', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path><circle cx="16" cy="7" r="2"></circle><circle cx="8" cy="17" r="2"></circle></svg></button>
+								<h2><?php esc_html_e( 'Folders', 'uplink-media-manager' ); ?></h2>
+								<wa-button-group label="<?php esc_attr_e( 'Folder actions', 'uplink-media-manager' ); ?>" class="uplink-mbb-collection-heading-actions">
+									<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-icon-button" id="uplink-mbb-collection-tree-toggle" aria-label="<?php esc_attr_e( 'Collapse all folders', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Collapse all folders', 'uplink-media-manager' ); ?>"><span class="uplink-mbb-tree-icon is-close" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Collapse all folders', 'uplink-media-manager' ); ?></span></wa-button>
+																		<?php if ( $can_manage ) : ?>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-icon-button" id="uplink-mbb-new-collection" aria-label="<?php esc_attr_e( 'New folder', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'New folder', 'uplink-media-manager' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"></path><path d="M12 12v5M9.5 14.5h5"></path></svg><span class="screen-reader-text"><?php esc_html_e( 'New folder', 'uplink-media-manager' ); ?></span></wa-button>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-icon-button" id="uplink-mbb-manage-collections" aria-label="<?php esc_attr_e( 'Manage folders', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Manage folders', 'uplink-media-manager' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path><circle cx="16" cy="7" r="2"></circle><circle cx="8" cy="17" r="2"></circle></svg><span class="screen-reader-text"><?php esc_html_e( 'Manage folders', 'uplink-media-manager' ); ?></span></wa-button>
 									<?php endif; ?>
-								</div>
+								</wa-button-group>
 							</div>
 							<nav id="uplink-mbb-collection-tree"></nav>
 						</div>
-						<nav id="uplink-mbb-health-navigation" class="uplink-mbb-health-navigation" aria-label="<?php esc_attr_e( 'Media health filters', 'media-bridge-for-bricks' ); ?>" hidden></nav>
+						<nav id="uplink-mbb-health-navigation" class="uplink-mbb-health-navigation" aria-label="<?php esc_attr_e( 'Media health filters', 'uplink-media-manager' ); ?>" hidden></nav>
 						<p id="uplink-mbb-health-description" class="uplink-mbb-health-description" role="status" aria-live="polite" hidden></p>
 					</aside>
-					<div class="uplink-mbb-sidebar-resizer" id="uplink-mbb-sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="<?php esc_attr_e( 'Resize folders panel', 'media-bridge-for-bricks' ); ?>" aria-valuemin="220" aria-valuemax="480" aria-valuenow="280" tabindex="0"></div>
+					<div class="uplink-mbb-sidebar-resizer" id="uplink-mbb-sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="<?php esc_attr_e( 'Resize folders panel', 'uplink-media-manager' ); ?>" aria-valuemin="220" aria-valuemax="480" aria-valuenow="280" tabindex="0"></div>
 
 					<main class="uplink-mbb-native-content">
-						<div class="uplink-mbb-health-summary" id="uplink-mbb-health-summary" hidden><strong><?php esc_html_e( 'Media health', 'media-bridge-for-bricks' ); ?></strong><div class="uplink-mbb-health-progress"><span id="uplink-mbb-health-progress-bar"></span></div><span id="uplink-mbb-health-status"></span><button type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-health-rescan" aria-label="<?php esc_attr_e( 'Rescan media health', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Rescan media health', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg></button></div>
+						<div class="uplink-mbb-health-summary" id="uplink-mbb-health-summary" hidden><strong><?php esc_html_e( 'Media health', 'uplink-media-manager' ); ?></strong><wa-progress-bar class="uplink-mbb-health-progress" id="uplink-mbb-health-progress-bar" label="<?php esc_attr_e( 'Healthy media', 'uplink-media-manager' ); ?>"></wa-progress-bar><span id="uplink-mbb-health-status"></span><wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-health-rescan" aria-label="<?php esc_attr_e( 'Rescan media health', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Rescan media health', 'uplink-media-manager' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg><span class="screen-reader-text"><?php esc_html_e( 'Rescan media health', 'uplink-media-manager' ); ?></span></wa-button></div>
 						<section class="uplink-mbb-library-drawer uplink-mbb-library-toolbar" id="uplink-mbb-library-drawer">
 							<div class="uplink-mbb-library-drawer-bar">
 								<form id="uplink-mbb-media-search" role="search">
-									<label class="screen-reader-text" for="uplink-mbb-search-input"><?php esc_html_e( 'Search media', 'media-bridge-for-bricks' ); ?></label>
-									<input type="search" id="uplink-mbb-search-input" placeholder="<?php esc_attr_e( 'Search', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Use * as a filename wildcard, for example *-1.png.', 'media-bridge-for-bricks' ); ?>">
-									<button type="submit" class="uplink-mbb-toolbar-button" aria-label="<?php esc_attr_e( 'Search media', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Search media', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg></button>
+																		<wa-input class="wa-visually-hidden-label" size="small" label="<?php esc_attr_e( 'Search media', 'uplink-media-manager' ); ?>" type="search" id="uplink-mbb-search-input" placeholder="<?php esc_attr_e( 'Search', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Use * as a filename wildcard, for example *-1.png.', 'uplink-media-manager' ); ?>">
+									<button slot="end" type="submit" class="uplink-mbb-toolbar-button" aria-label="<?php esc_attr_e( 'Search media', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Search media', 'uplink-media-manager' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg></button>
+									</wa-input>
 								</form>
-								<button type="button" class="uplink-mbb-toolbar-button uplink-mbb-library-drawer-toggle" id="uplink-mbb-library-drawer-toggle" aria-expanded="false" aria-controls="uplink-mbb-library-drawer-panel" aria-label="<?php esc_attr_e( 'Open filters', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Filter media', 'media-bridge-for-bricks' ); ?>">
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-toolbar-button uplink-mbb-library-drawer-toggle" id="uplink-mbb-library-drawer-toggle" aria-expanded="false" aria-controls="uplink-mbb-library-drawer-panel" aria-label="<?php esc_attr_e( 'Open filters', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Filter media', 'uplink-media-manager' ); ?>">
 									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7v6l-4 2v-8z"></path></svg>
 									<span class="uplink-mbb-library-drawer-summary" id="uplink-mbb-library-drawer-summary" aria-live="polite"></span>
-								</button>
-								<button type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-reorder-media" aria-pressed="false" aria-label="<?php esc_attr_e( 'Reorder', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Reorder', 'media-bridge-for-bricks' ); ?>" hidden><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="currentColor" fill="none"><path d="M22.75 20.75H13.25V13.25H22.75V20.75ZM10.75 7.75H7C4.65279 7.75 2.75 9.65279 2.75 12C2.75 14.3472 4.65279 16.25 7 16.25H8.18945L6.4375 14.498L7.49805 13.4375L11.0586 16.998L7.49805 20.5586L6.4375 19.498L8.18555 17.75H7C3.82436 17.75 1.25 15.1756 1.25 12C1.25 8.82436 3.82436 6.25 7 6.25H10.75V7.75ZM14.75 19.25H21.25V14.75H14.75V19.25ZM22.75 10.75H13.25V3.25H22.75V10.75ZM14.75 9.25H21.25V4.75H14.75V9.25Z" fill="currentColor"></path></svg></button>
-								<div class="uplink-mbb-view-switch" role="group" aria-label="<?php esc_attr_e( 'View mode', 'media-bridge-for-bricks' ); ?>">
-									<button type="button" class="uplink-mbb-view-button" id="uplink-mbb-list-view" aria-label="<?php esc_attr_e( 'List view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'List view', 'media-bridge-for-bricks' ); ?>" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg></button>
-									<button type="button" class="uplink-mbb-view-button" id="uplink-mbb-grid-view" aria-label="<?php esc_attr_e( 'Grid view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Grid view', 'media-bridge-for-bricks' ); ?>" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg></button>
-									<button type="button" class="uplink-mbb-view-button" id="uplink-mbb-masonry-view" aria-label="<?php esc_attr_e( 'Masonry view', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Masonry view', 'media-bridge-for-bricks' ); ?>" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="5" rx="1"></rect><rect x="14" y="3" width="7" height="9" rx="1"></rect><rect x="3" y="11" width="8" height="10" rx="1"></rect><rect x="14" y="15" width="7" height="6" rx="1"></rect></svg></button>
-								</div>
-								<button type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-display-options-toggle" aria-expanded="false" aria-controls="uplink-mbb-display-options" aria-label="<?php esc_attr_e( 'Open display options', 'media-bridge-for-bricks' ); ?>" title="<?php esc_attr_e( 'Display options', 'media-bridge-for-bricks' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></button>
+								<span class="screen-reader-text"><?php esc_html_e( 'Open filters', 'uplink-media-manager' ); ?></span></wa-button>
+								<button type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-reorder-media" aria-pressed="false" aria-label="<?php esc_attr_e( 'Reorder', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Reorder', 'uplink-media-manager' ); ?>" hidden><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="currentColor" fill="none"><path d="M22.75 20.75H13.25V13.25H22.75V20.75ZM10.75 7.75H7C4.65279 7.75 2.75 9.65279 2.75 12C2.75 14.3472 4.65279 16.25 7 16.25H8.18945L6.4375 14.498L7.49805 13.4375L11.0586 16.998L7.49805 20.5586L6.4375 19.498L8.18555 17.75H7C3.82436 17.75 1.25 15.1756 1.25 12C1.25 8.82436 3.82436 6.25 7 6.25H10.75V7.75ZM14.75 19.25H21.25V14.75H14.75V19.25ZM22.75 10.75H13.25V3.25H22.75V10.75ZM14.75 9.25H21.25V4.75H14.75V9.25Z" fill="currentColor"></path></svg></button>
+								<wa-button-group label="<?php esc_attr_e( 'View mode', 'uplink-media-manager' ); ?>" class="uplink-mbb-view-switch" role="group" aria-label="<?php esc_attr_e( 'View mode', 'uplink-media-manager' ); ?>">
+									<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-view-button" id="uplink-mbb-list-view" aria-label="<?php esc_attr_e( 'List view', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'List view', 'uplink-media-manager' ); ?>" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg><span class="screen-reader-text"><?php esc_html_e( 'List view', 'uplink-media-manager' ); ?></span></wa-button>
+									<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-view-button" id="uplink-mbb-grid-view" aria-label="<?php esc_attr_e( 'Grid view', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Grid view', 'uplink-media-manager' ); ?>" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg><span class="screen-reader-text"><?php esc_html_e( 'Grid view', 'uplink-media-manager' ); ?></span></wa-button>
+									<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-view-button" id="uplink-mbb-masonry-view" aria-label="<?php esc_attr_e( 'Masonry view', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Masonry view', 'uplink-media-manager' ); ?>" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="5" rx="1"></rect><rect x="14" y="3" width="7" height="9" rx="1"></rect><rect x="3" y="11" width="8" height="10" rx="1"></rect><rect x="14" y="15" width="7" height="6" rx="1"></rect></svg><span class="screen-reader-text"><?php esc_html_e( 'Masonry view', 'uplink-media-manager' ); ?></span></wa-button>
+								</wa-button-group>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-toolbar-button" id="uplink-mbb-display-options-toggle" aria-expanded="false" aria-controls="uplink-mbb-display-options" aria-label="<?php esc_attr_e( 'Open display options', 'uplink-media-manager' ); ?>" title="<?php esc_attr_e( 'Display options', 'uplink-media-manager' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg><span class="screen-reader-text"><?php esc_html_e( 'Open display options', 'uplink-media-manager' ); ?></span></wa-button>
 							</div>
-							<div class="uplink-mbb-library-drawer-panel uplink-mbb-toolbar-popover" id="uplink-mbb-library-drawer-panel" role="region" aria-label="<?php esc_attr_e( 'Media filters', 'media-bridge-for-bricks' ); ?>" hidden>
-								<div class="uplink-mbb-popover-heading"><h3><?php esc_html_e( 'Filter', 'media-bridge-for-bricks' ); ?></h3><div class="uplink-mbb-popover-heading-actions"><button type="button" class="button" id="uplink-mbb-clear-filters" disabled><?php esc_html_e( 'Clear all', 'media-bridge-for-bricks' ); ?></button><button type="button" class="uplink-mbb-popover-close" data-filter-close aria-label="<?php esc_attr_e( 'Close filters', 'media-bridge-for-bricks' ); ?>">&times;</button></div></div>
+							<div class="uplink-mbb-library-drawer-panel uplink-mbb-toolbar-popover" id="uplink-mbb-library-drawer-panel" role="region" aria-label="<?php esc_attr_e( 'Media filters', 'uplink-media-manager' ); ?>" hidden>
+								<div class="uplink-mbb-popover-heading"><h3><?php esc_html_e( 'Filter', 'uplink-media-manager' ); ?></h3><div class="uplink-mbb-popover-heading-actions"><wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button" id="uplink-mbb-clear-filters" disabled><?php esc_html_e( 'Clear all', 'uplink-media-manager' ); ?></wa-button><button type="button" class="uplink-mbb-popover-close" data-filter-close aria-label="<?php esc_attr_e( 'Close filters', 'uplink-media-manager' ); ?>">&times;</button></div></div>
 								<div class="uplink-mbb-library-drawer-primary">
-									<div class="uplink-mbb-library-controls" aria-label="<?php esc_attr_e( 'Media display options', 'media-bridge-for-bricks' ); ?>">
-									<label for="uplink-mbb-type-filter"><?php esc_html_e( 'Media type', 'media-bridge-for-bricks' ); ?>
-									<select id="uplink-mbb-type-filter">
-										<option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option>
-										<option value="image"><?php esc_html_e( 'Images', 'media-bridge-for-bricks' ); ?></option>
-										<option value="audio"><?php esc_html_e( 'Audio', 'media-bridge-for-bricks' ); ?></option>
-										<option value="video"><?php esc_html_e( 'Video', 'media-bridge-for-bricks' ); ?></option>
-										<option value="application"><?php esc_html_e( 'Documents', 'media-bridge-for-bricks' ); ?></option>
-									</select></label>
-									<label for="uplink-mbb-mime-filter"><?php esc_html_e( 'MIME subtype', 'media-bridge-for-bricks' ); ?><select id="uplink-mbb-mime-filter" data-all-mime-types="<?php esc_attr_e( 'All', 'media-bridge-for-bricks' ); ?>"><option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option></select></label>
-									<label for="uplink-mbb-uploader-filter"><?php esc_html_e( 'Uploaded by', 'media-bridge-for-bricks' ); ?><select id="uplink-mbb-uploader-filter" data-all-uploaders="<?php esc_attr_e( 'All', 'media-bridge-for-bricks' ); ?>"><option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option></select></label>
-									<label for="uplink-mbb-attachment-status-filter"><?php esc_html_e( 'Attachment status', 'media-bridge-for-bricks' ); ?><select id="uplink-mbb-attachment-status-filter"><option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option><option value="attached"><?php esc_html_e( 'Attached', 'media-bridge-for-bricks' ); ?></option><option value="unattached"><?php esc_html_e( 'Unattached', 'media-bridge-for-bricks' ); ?></option></select></label>
-					<label for="uplink-mbb-optimization-status-filter"><?php esc_html_e( 'Optimization', 'media-bridge-for-bricks' ); ?><select id="uplink-mbb-optimization-status-filter"><option value=""><?php esc_html_e( 'All', 'media-bridge-for-bricks' ); ?></option><option value="optimized"><?php esc_html_e( 'Optimized by CIMO', 'media-bridge-for-bricks' ); ?></option><option value="not_optimized"><?php esc_html_e( 'Not optimized', 'media-bridge-for-bricks' ); ?></option></select></label>
-									<label for="uplink-mbb-uploaded-from-filter"><?php esc_html_e( 'Uploaded from', 'media-bridge-for-bricks' ); ?><input type="date" id="uplink-mbb-uploaded-from-filter"></label>
-									<label for="uplink-mbb-uploaded-to-filter"><?php esc_html_e( 'Uploaded to', 'media-bridge-for-bricks' ); ?><input type="date" id="uplink-mbb-uploaded-to-filter"></label>
-									<fieldset class="uplink-mbb-filter-range"><legend><?php esc_html_e( 'Width (px)', 'media-bridge-for-bricks' ); ?></legend><div><input type="number" min="0" id="uplink-mbb-width-min-filter" placeholder="<?php esc_attr_e( 'Minimum', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Minimum width', 'media-bridge-for-bricks' ); ?>"><input type="number" min="0" id="uplink-mbb-width-max-filter" placeholder="<?php esc_attr_e( 'Maximum', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Maximum width', 'media-bridge-for-bricks' ); ?>"></div></fieldset>
-									<fieldset class="uplink-mbb-filter-range"><legend><?php esc_html_e( 'Height (px)', 'media-bridge-for-bricks' ); ?></legend><div><input type="number" min="0" id="uplink-mbb-height-min-filter" placeholder="<?php esc_attr_e( 'Minimum', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Minimum height', 'media-bridge-for-bricks' ); ?>"><input type="number" min="0" id="uplink-mbb-height-max-filter" placeholder="<?php esc_attr_e( 'Maximum', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Maximum height', 'media-bridge-for-bricks' ); ?>"></div></fieldset>
-									<fieldset class="uplink-mbb-filter-range"><legend><?php esc_html_e( 'File size (MB)', 'media-bridge-for-bricks' ); ?></legend><div><input type="number" min="0" step="0.1" id="uplink-mbb-file-size-min-filter" placeholder="<?php esc_attr_e( 'Minimum', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Minimum file size in megabytes', 'media-bridge-for-bricks' ); ?>"><input type="number" min="0" step="0.1" id="uplink-mbb-file-size-max-filter" placeholder="<?php esc_attr_e( 'Maximum', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Maximum file size in megabytes', 'media-bridge-for-bricks' ); ?>"></div></fieldset>
-									<label class="uplink-mbb-filter-toggle" for="uplink-mbb-missing-alt-filter"><span><?php esc_html_e( 'Missing alt text', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" id="uplink-mbb-missing-alt-filter"></label>
+									<div class="uplink-mbb-library-controls" aria-label="<?php esc_attr_e( 'Media display options', 'uplink-media-manager' ); ?>">
+
+									<wa-select size="small" label="<?php esc_attr_e( 'Media type', 'uplink-media-manager' ); ?>" id="uplink-mbb-type-filter">
+										<wa-option value=""><?php esc_html_e( 'All', 'uplink-media-manager' ); ?></wa-option>
+										<wa-option value="image"><?php esc_html_e( 'Images', 'uplink-media-manager' ); ?></wa-option>
+										<wa-option value="audio"><?php esc_html_e( 'Audio', 'uplink-media-manager' ); ?></wa-option>
+										<wa-option value="video"><?php esc_html_e( 'Video', 'uplink-media-manager' ); ?></wa-option>
+										<wa-option value="application"><?php esc_html_e( 'Documents', 'uplink-media-manager' ); ?></wa-option>
+									</wa-select>
+									<wa-select size="small" label="<?php esc_attr_e( 'MIME subtype', 'uplink-media-manager' ); ?>" id="uplink-mbb-mime-filter" data-all-mime-types="<?php esc_attr_e( 'All', 'uplink-media-manager' ); ?>"><wa-option value=""><?php esc_html_e( 'All', 'uplink-media-manager' ); ?></wa-option></wa-select>
+									<wa-select size="small" label="<?php esc_attr_e( 'Uploaded by', 'uplink-media-manager' ); ?>" id="uplink-mbb-uploader-filter" data-all-uploaders="<?php esc_attr_e( 'All', 'uplink-media-manager' ); ?>"><wa-option value=""><?php esc_html_e( 'All', 'uplink-media-manager' ); ?></wa-option></wa-select>
+									<wa-select size="small" label="<?php esc_attr_e( 'Attachment status', 'uplink-media-manager' ); ?>" id="uplink-mbb-attachment-status-filter"><wa-option value=""><?php esc_html_e( 'All', 'uplink-media-manager' ); ?></wa-option><wa-option value="attached"><?php esc_html_e( 'Attached', 'uplink-media-manager' ); ?></wa-option><wa-option value="unattached"><?php esc_html_e( 'Unattached', 'uplink-media-manager' ); ?></wa-option></wa-select>
+					<wa-select size="small" label="<?php esc_attr_e( 'Optimization', 'uplink-media-manager' ); ?>" id="uplink-mbb-optimization-status-filter"><wa-option value=""><?php esc_html_e( 'All', 'uplink-media-manager' ); ?></wa-option><wa-option value="optimized"><?php esc_html_e( 'Optimized', 'uplink-media-manager' ); ?></wa-option><wa-option value="not_optimized"><?php esc_html_e( 'Not optimized', 'uplink-media-manager' ); ?></wa-option></wa-select>
+									<label for="uplink-mbb-uploaded-from-filter"><?php esc_html_e( 'Uploaded from', 'uplink-media-manager' ); ?><input type="date" id="uplink-mbb-uploaded-from-filter"></label>
+									<label for="uplink-mbb-uploaded-to-filter"><?php esc_html_e( 'Uploaded to', 'uplink-media-manager' ); ?><input type="date" id="uplink-mbb-uploaded-to-filter"></label>
+									<fieldset class="uplink-mbb-filter-range"><legend><?php esc_html_e( 'Width (px)', 'uplink-media-manager' ); ?></legend><div><input type="number" min="0" id="uplink-mbb-width-min-filter" placeholder="<?php esc_attr_e( 'Minimum', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Minimum width', 'uplink-media-manager' ); ?>"><input type="number" min="0" id="uplink-mbb-width-max-filter" placeholder="<?php esc_attr_e( 'Maximum', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Maximum width', 'uplink-media-manager' ); ?>"></div></fieldset>
+									<fieldset class="uplink-mbb-filter-range"><legend><?php esc_html_e( 'Height (px)', 'uplink-media-manager' ); ?></legend><div><input type="number" min="0" id="uplink-mbb-height-min-filter" placeholder="<?php esc_attr_e( 'Minimum', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Minimum height', 'uplink-media-manager' ); ?>"><input type="number" min="0" id="uplink-mbb-height-max-filter" placeholder="<?php esc_attr_e( 'Maximum', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Maximum height', 'uplink-media-manager' ); ?>"></div></fieldset>
+									<fieldset class="uplink-mbb-filter-range"><legend><?php esc_html_e( 'File size (MB)', 'uplink-media-manager' ); ?></legend><div><input type="number" min="0" step="0.1" id="uplink-mbb-file-size-min-filter" placeholder="<?php esc_attr_e( 'Minimum', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Minimum file size in megabytes', 'uplink-media-manager' ); ?>"><input type="number" min="0" step="0.1" id="uplink-mbb-file-size-max-filter" placeholder="<?php esc_attr_e( 'Maximum', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Maximum file size in megabytes', 'uplink-media-manager' ); ?>"></div></fieldset>
+									<label class="uplink-mbb-filter-toggle" for="uplink-mbb-missing-alt-filter"><span><?php esc_html_e( 'Missing alt text', 'uplink-media-manager' ); ?></span><input type="checkbox" id="uplink-mbb-missing-alt-filter"></label>
 									</div>
 								</div>
 							</div>
-							<div class="uplink-mbb-toolbar-popover uplink-mbb-display-options" id="uplink-mbb-display-options" role="region" aria-label="<?php esc_attr_e( 'Display options', 'media-bridge-for-bricks' ); ?>" hidden>
-								<div class="uplink-mbb-popover-heading"><h3><?php esc_html_e( 'Display', 'media-bridge-for-bricks' ); ?></h3><button type="button" class="uplink-mbb-popover-close" data-display-close aria-label="<?php esc_attr_e( 'Close display options', 'media-bridge-for-bricks' ); ?>">&times;</button></div>
-								<div class="uplink-mbb-grid-size-control"><label for="uplink-mbb-grid-size"><?php esc_html_e( 'Thumbnail size', 'media-bridge-for-bricks' ); ?></label><input type="range" id="uplink-mbb-grid-size" min="180" max="400" step="10" value="240" aria-describedby="uplink-mbb-grid-size-value"><output id="uplink-mbb-grid-size-value" for="uplink-mbb-grid-size">240px</output></div>
-								<div class="uplink-mbb-grid-ratio-control"><span><?php esc_html_e( 'Aspect ratio', 'media-bridge-for-bricks' ); ?></span><div class="uplink-mbb-grid-ratio-options" role="group" aria-label="<?php esc_attr_e( 'Aspect ratio', 'media-bridge-for-bricks' ); ?>"><button type="button" data-grid-ratio="16/9" aria-pressed="false"><?php esc_html_e( '16:9', 'media-bridge-for-bricks' ); ?></button><button type="button" data-grid-ratio="4/3" aria-pressed="true"><?php esc_html_e( '4:3', 'media-bridge-for-bricks' ); ?></button><button type="button" data-grid-ratio="1/1" aria-pressed="false"><?php esc_html_e( '1:1', 'media-bridge-for-bricks' ); ?></button></div></div>
-								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'File name', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="filename"></label>
-								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Author', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="author" checked></label>
-								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Date', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="date" checked></label>
-								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'MIME type', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="mime" checked></label>
-								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'File size', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="fileSize" checked></label>
-								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Dimensions', 'media-bridge-for-bricks' ); ?></span><input type="checkbox" data-display-field="dimensions"></label>
+							<div class="uplink-mbb-toolbar-popover uplink-mbb-display-options" id="uplink-mbb-display-options" role="region" aria-label="<?php esc_attr_e( 'Display options', 'uplink-media-manager' ); ?>" hidden>
+								<div class="uplink-mbb-popover-heading"><h3><?php esc_html_e( 'Display', 'uplink-media-manager' ); ?></h3><button type="button" class="uplink-mbb-popover-close" data-display-close aria-label="<?php esc_attr_e( 'Close display options', 'uplink-media-manager' ); ?>">&times;</button></div>
+								<div class="uplink-mbb-grid-size-control"><label for="uplink-mbb-grid-size"><?php esc_html_e( 'Thumbnail size', 'uplink-media-manager' ); ?></label><input type="range" id="uplink-mbb-grid-size" min="180" max="400" step="10" value="240" aria-describedby="uplink-mbb-grid-size-value"><output id="uplink-mbb-grid-size-value" for="uplink-mbb-grid-size">240px</output></div>
+								<div class="uplink-mbb-grid-ratio-control"><span><?php esc_html_e( 'Aspect ratio', 'uplink-media-manager' ); ?></span><wa-button-group label="<?php esc_attr_e( 'Aspect ratio', 'uplink-media-manager' ); ?>" class="uplink-mbb-grid-ratio-options" role="group" aria-label="<?php esc_attr_e( 'Aspect ratio', 'uplink-media-manager' ); ?>"><wa-button size="small" type="button" appearance="outlined" data-grid-ratio="16/9" aria-pressed="false"><?php esc_html_e( '16:9', 'uplink-media-manager' ); ?></wa-button><wa-button size="small" type="button" appearance="outlined" data-grid-ratio="4/3" aria-pressed="true"><?php esc_html_e( '4:3', 'uplink-media-manager' ); ?></wa-button><wa-button size="small" type="button" appearance="outlined" data-grid-ratio="1/1" aria-pressed="false"><?php esc_html_e( '1:1', 'uplink-media-manager' ); ?></wa-button></wa-button-group></div>
+								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'File name', 'uplink-media-manager' ); ?></span><input type="checkbox" data-display-field="filename"></label>
+								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Author', 'uplink-media-manager' ); ?></span><input type="checkbox" data-display-field="author" checked></label>
+								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Date', 'uplink-media-manager' ); ?></span><input type="checkbox" data-display-field="date" checked></label>
+								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'MIME type', 'uplink-media-manager' ); ?></span><input type="checkbox" data-display-field="mime" checked></label>
+								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'File size', 'uplink-media-manager' ); ?></span><input type="checkbox" data-display-field="fileSize" checked></label>
+								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Dimensions', 'uplink-media-manager' ); ?></span><input type="checkbox" data-display-field="dimensions"></label>
+								<label class="uplink-mbb-display-toggle"><span><?php esc_html_e( 'Show EXIF in inspector', 'uplink-media-manager' ); ?></span><input type="checkbox" data-display-field="exif"></label>
 							</div>
 							<div class="uplink-mbb-selection-tools" id="uplink-mbb-selection-tools" hidden>
-									<span id="uplink-mbb-selection-count" aria-live="polite"></span>
-									<span class="uplink-mbb-selection-help" id="uplink-mbb-selection-help"><?php esc_html_e( 'Choose a folder to enable its Add and Remove actions. Shift-click checkboxes to select a range.', 'media-bridge-for-bricks' ); ?></span>
-									<label class="screen-reader-text" for="uplink-mbb-bulk-collection"><?php esc_html_e( 'Choose a folder', 'media-bridge-for-bricks' ); ?></label>
-									<select id="uplink-mbb-bulk-collection" aria-describedby="uplink-mbb-selection-help"></select>
-									<button type="button" class="button" id="uplink-mbb-bulk-add" disabled><?php esc_html_e( 'Add to folder', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" class="button" id="uplink-mbb-bulk-remove" disabled><?php esc_html_e( 'Remove from folder', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" class="button" id="uplink-mbb-bulk-clear"><?php esc_html_e( 'Uncategorize', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" class="button" id="uplink-mbb-bulk-deselect"><?php esc_html_e( 'Clear selection', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" class="button button-link-delete" id="uplink-mbb-bulk-delete"><?php esc_html_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?></button>
+                                    <div class="uplink-mbb-selection-picker">
+                                        <div class="uplink-mbb-selection-picker-label"><label for="uplink-mbb-bulk-collection"><?php esc_html_e( 'Choose a folder', 'uplink-media-manager' ); ?></label><wa-button size="small" appearance="plain" variant="neutral" id="uplink-mbb-selection-help-toggle" aria-label="<?php esc_attr_e( 'About folder assignments', 'uplink-media-manager' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></svg><span class="screen-reader-text"><?php esc_html_e( 'About folder assignments', 'uplink-media-manager' ); ?></span></wa-button></div>
+                                        <wa-select size="small" label="<?php esc_attr_e( 'Choose a folder', 'uplink-media-manager' ); ?>" id="uplink-mbb-bulk-collection"></wa-select>
+                                        <wa-popover for="uplink-mbb-selection-help-toggle" id="uplink-mbb-selection-help" placement="bottom-end"><p><?php esc_html_e( 'Drag images onto a folder to move them. Use Add and Remove for multiple assignments.', 'uplink-media-manager' ); ?></p></wa-popover>
+                                    </div>
+									<wa-button-group class="uplink-mbb-selection-actions" label="<?php esc_attr_e( 'Selected image actions', 'uplink-media-manager' ); ?>">
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-add" aria-label="<?php esc_attr_e( 'Add to folder', 'uplink-media-manager' ); ?>" disabled><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/folder-plus.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Add to folder', 'uplink-media-manager' ); ?></span></wa-button>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-remove" aria-label="<?php esc_attr_e( 'Remove from folder', 'uplink-media-manager' ); ?>" disabled><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/folder-minus.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Remove from folder', 'uplink-media-manager' ); ?></span></wa-button>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-clear" aria-label="<?php esc_attr_e( 'Uncategorize', 'uplink-media-manager' ); ?>"><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/folder-x.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Uncategorize', 'uplink-media-manager' ); ?></span></wa-button>
+										<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-deselect" aria-label="<?php esc_attr_e( 'Clear selection', 'uplink-media-manager' ); ?>"><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/square-minus.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Clear selection', 'uplink-media-manager' ); ?></span></wa-button>
+										<wa-button size="small" variant="danger" appearance="outlined" type="button" class="button uplink-mbb-selection-icon" id="uplink-mbb-bulk-delete" aria-label="<?php esc_attr_e( 'Delete permanently', 'uplink-media-manager' ); ?>"><span class="uplink-mbb-selection-icon-art" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/trash.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><span class="screen-reader-text"><?php esc_html_e( 'Delete permanently', 'uplink-media-manager' ); ?></span></wa-button>
+									</wa-button-group>
+									<span id="uplink-mbb-selection-count" role="status" aria-live="polite"></span>
 							</div>
 						</section>
 						<p id="uplink-mbb-search-status" class="screen-reader-text" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -1046,17 +1072,17 @@ final class Native_Media_Library {
 				<div class="uplink-mbb-modal" id="uplink-mbb-collection-modal" hidden>
 					<div class="uplink-mbb-modal-backdrop" data-modal-close></div>
 					<div class="uplink-mbb-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="uplink-mbb-modal-title">
-						<button type="button" class="uplink-mbb-modal-close" data-modal-close aria-label="<?php esc_attr_e( 'Close', 'media-bridge-for-bricks' ); ?>">&times;</button>
-						<h2 id="uplink-mbb-modal-title"><?php esc_html_e( 'New folder', 'media-bridge-for-bricks' ); ?></h2>
+						<button type="button" class="uplink-mbb-modal-close" data-modal-close aria-label="<?php esc_attr_e( 'Close', 'uplink-media-manager' ); ?>">&times;</button>
+						<h2 id="uplink-mbb-modal-title"><?php esc_html_e( 'New folder', 'uplink-media-manager' ); ?></h2>
 						<form id="uplink-mbb-collection-form">
 							<input type="hidden" id="uplink-mbb-collection-id" value="0">
-							<label for="uplink-mbb-collection-name"><?php esc_html_e( 'Folder name', 'media-bridge-for-bricks' ); ?></label>
+							<label for="uplink-mbb-collection-name"><?php esc_html_e( 'Folder name', 'uplink-media-manager' ); ?></label>
 							<input type="text" id="uplink-mbb-collection-name" required maxlength="200">
-							<label for="uplink-mbb-collection-parent"><?php esc_html_e( 'Parent folder', 'media-bridge-for-bricks' ); ?></label>
+							<label for="uplink-mbb-collection-parent"><?php esc_html_e( 'Parent folder', 'uplink-media-manager' ); ?></label>
 							<select id="uplink-mbb-collection-parent"></select>
 							<div class="uplink-mbb-modal-actions">
-								<button type="button" class="button" data-modal-close><?php esc_html_e( 'Cancel', 'media-bridge-for-bricks' ); ?></button>
-								<button type="submit" class="button button-primary"><?php esc_html_e( 'Save folder', 'media-bridge-for-bricks' ); ?></button>
+								<button type="button" class="button" data-modal-close><?php esc_html_e( 'Cancel', 'uplink-media-manager' ); ?></button>
+								<button type="submit" class="button button-primary"><?php esc_html_e( 'Save folder', 'uplink-media-manager' ); ?></button>
 							</div>
 						</form>
 					</div>
@@ -1065,11 +1091,11 @@ final class Native_Media_Library {
 				<div class="uplink-mbb-attachment-inspector" id="uplink-mbb-attachment-modal" hidden>
 					<div class="uplink-mbb-attachment-dialog" role="dialog" aria-modal="true" aria-labelledby="uplink-mbb-attachment-dialog-title">
 						<header class="uplink-mbb-attachment-header">
-							<h2 class="uplink-mbb-attachment-eyebrow" id="uplink-mbb-attachment-dialog-title"><?php esc_html_e( 'Attachment details', 'media-bridge-for-bricks' ); ?></h2>
+							<h2 class="uplink-mbb-attachment-eyebrow" id="uplink-mbb-attachment-dialog-title"><?php esc_html_e( 'Attachment details', 'uplink-media-manager' ); ?></h2>
 							<div class="uplink-mbb-attachment-header-actions">
-								<button type="button" class="uplink-mbb-attachment-header-nav" id="uplink-mbb-attachment-previous" aria-label="<?php esc_attr_e( 'Previous attachment', 'media-bridge-for-bricks' ); ?>"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span></button>
-								<button type="button" class="uplink-mbb-attachment-header-nav" id="uplink-mbb-attachment-next" aria-label="<?php esc_attr_e( 'Next attachment', 'media-bridge-for-bricks' ); ?>"><span class="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span></button>
-								<button type="button" class="uplink-mbb-attachment-header-nav" data-attachment-close aria-label="<?php esc_attr_e( 'Close', 'media-bridge-for-bricks' ); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
+								<wa-button-group label="<?php esc_attr_e( 'Image navigation', 'uplink-media-manager' ); ?>"><wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-attachment-header-nav" id="uplink-mbb-attachment-previous" aria-label="<?php esc_attr_e( 'Previous attachment', 'uplink-media-manager' ); ?>"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Previous attachment', 'uplink-media-manager' ); ?></span></wa-button>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-attachment-header-nav" id="uplink-mbb-attachment-next" aria-label="<?php esc_attr_e( 'Next attachment', 'uplink-media-manager' ); ?>"><span class="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Next attachment', 'uplink-media-manager' ); ?></span></wa-button></wa-button-group>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="uplink-mbb-attachment-header-nav" data-attachment-close aria-label="<?php esc_attr_e( 'Close', 'uplink-media-manager' ); ?>"><span class="uplink-mbb-close-icon" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Close', 'uplink-media-manager' ); ?></span></wa-button>
 							</div>
 						</header>
 						<div class="uplink-mbb-attachment-preview-wrap">
@@ -1077,56 +1103,49 @@ final class Native_Media_Library {
 						</div>
 						<div class="uplink-mbb-attachment-info">
 							<h3 id="uplink-mbb-attachment-title"></h3>
-							<p class="uplink-mbb-attachment-position" id="uplink-mbb-attachment-position" aria-live="polite"></p>
-							<div class="uplink-mbb-attachment-notice" id="uplink-mbb-attachment-notice" role="status" aria-live="polite" aria-atomic="true" hidden><p></p></div>
-							<div class="uplink-mbb-attachment-metadata">
-								<div class="uplink-mbb-attachment-metadata-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Attachment metadata', 'media-bridge-for-bricks' ); ?>">
-									<button type="button" id="uplink-mbb-attachment-main-tab" role="tab" aria-selected="true" aria-controls="uplink-mbb-attachment-main-panel"><?php esc_html_e( 'Main', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" id="uplink-mbb-attachment-file-tab" role="tab" aria-selected="false" aria-controls="uplink-mbb-attachment-file-panel" tabindex="-1"><?php esc_html_e( 'Metadata', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" id="uplink-mbb-attachment-exif-tab" role="tab" aria-selected="false" aria-controls="uplink-mbb-attachment-exif" tabindex="-1" hidden><?php esc_html_e( 'EXIF', 'media-bridge-for-bricks' ); ?></button>
-									<button type="button" id="uplink-mbb-attachment-optimization-tab" role="tab" aria-selected="false" aria-controls="uplink-mbb-attachment-optimization" tabindex="-1" hidden><?php esc_html_e( 'Optimization', 'media-bridge-for-bricks' ); ?></button>
-								</div>
-								<div id="uplink-mbb-attachment-main-panel" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-section uplink-mbb-attachment-fields" role="tabpanel" aria-labelledby="uplink-mbb-attachment-main-tab">
-									<label for="uplink-mbb-attachment-title-input"><?php esc_html_e( 'Title', 'media-bridge-for-bricks' ); ?></label>
-									<input type="text" id="uplink-mbb-attachment-title-input">
-									<label for="uplink-mbb-attachment-alt"><?php esc_html_e( 'Alt text', 'media-bridge-for-bricks' ); ?></label>
-									<textarea id="uplink-mbb-attachment-alt" rows="3"></textarea>
-									<label class="uplink-mbb-decorative-toggle"><input type="checkbox" id="uplink-mbb-attachment-decorative"> <?php esc_html_e( 'Decorative image', 'media-bridge-for-bricks' ); ?></label>
-									<label for="uplink-mbb-attachment-caption"><?php esc_html_e( 'Caption', 'media-bridge-for-bricks' ); ?></label>
-									<textarea id="uplink-mbb-attachment-caption" rows="3"></textarea>
-									<label for="uplink-mbb-attachment-description"><?php esc_html_e( 'Description', 'media-bridge-for-bricks' ); ?></label>
-									<textarea id="uplink-mbb-attachment-description" rows="4"></textarea>
+							<wa-callout variant="neutral" appearance="outlined" class="uplink-mbb-attachment-notice" id="uplink-mbb-attachment-notice" role="status" aria-live="polite" aria-atomic="true" hidden><p></p></wa-callout>
+							<wa-tab-group id="uplink-mbb-detail-tabs" active="main" class="uplink-mbb-attachment-metadata">
+								<wa-tab panel="main" id="uplink-mbb-attachment-main-tab" aria-selected="true" aria-controls="uplink-mbb-attachment-main-panel"><?php esc_html_e( 'Main', 'uplink-media-manager' ); ?></wa-tab>
+<wa-tab panel="file" id="uplink-mbb-attachment-file-tab" aria-selected="false" aria-controls="uplink-mbb-attachment-file-panel"><?php esc_html_e( 'Metadata', 'uplink-media-manager' ); ?></wa-tab>
+<wa-tab panel="exif" id="uplink-mbb-attachment-exif-tab" aria-selected="false" aria-controls="uplink-mbb-attachment-exif" hidden><?php esc_html_e( 'EXIF', 'uplink-media-manager' ); ?></wa-tab>
+<wa-tab panel="optimization" id="uplink-mbb-attachment-optimization-tab" aria-selected="false" aria-controls="uplink-mbb-attachment-optimization" hidden><?php esc_html_e( 'Optimization', 'uplink-media-manager' ); ?></wa-tab>
+								<wa-tab-panel name="main" id="uplink-mbb-attachment-main-panel" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-section uplink-mbb-attachment-fields" role="tabpanel" tabindex="0" aria-labelledby="uplink-mbb-attachment-main-tab"><div class="uplink-mbb-attachment-field-stack">
+																		<wa-input size="small" label="<?php esc_attr_e( 'Title', 'uplink-media-manager' ); ?>" type="text" id="uplink-mbb-attachment-title-input"></wa-input>
+																		<wa-textarea size="small" label="<?php esc_attr_e( 'Alt text', 'uplink-media-manager' ); ?>" id="uplink-mbb-attachment-alt" rows="3"></wa-textarea>
+									<label class="uplink-mbb-decorative-toggle"><input type="checkbox" id="uplink-mbb-attachment-decorative"> <?php esc_html_e( 'Decorative image', 'uplink-media-manager' ); ?></label>
+																		<wa-textarea size="small" label="<?php esc_attr_e( 'Caption', 'uplink-media-manager' ); ?>" id="uplink-mbb-attachment-caption" rows="3"></wa-textarea>
+																		<wa-textarea size="small" label="<?php esc_attr_e( 'Description', 'uplink-media-manager' ); ?>" id="uplink-mbb-attachment-description" rows="4"></wa-textarea>
 									<div class="uplink-mbb-attachment-compatibility" id="uplink-mbb-attachment-compatibility" hidden>
 										<form id="uplink-mbb-attachment-compatibility-form"></form>
 									</div>
 									<fieldset class="uplink-mbb-attachment-collection-assignment">
-										<legend><?php esc_html_e( 'Folders', 'media-bridge-for-bricks' ); ?></legend>
+										<legend><?php esc_html_e( 'Folders', 'uplink-media-manager' ); ?></legend>
 										<div id="uplink-mbb-attachment-collection-options"></div>
-										<p><?php esc_html_e( 'Leave every folder unchecked to place this item in Uncategorized.', 'media-bridge-for-bricks' ); ?></p>
+										<p><?php esc_html_e( 'Leave every folder unchecked to place this item in Uncategorized.', 'uplink-media-manager' ); ?></p>
 									</fieldset>
-								</div>
-								<div id="uplink-mbb-attachment-file-panel" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-section uplink-mbb-attachment-fields" role="tabpanel" aria-labelledby="uplink-mbb-attachment-file-tab" hidden>
+								</div></wa-tab-panel>
+								<wa-tab-panel name="file" id="uplink-mbb-attachment-file-panel" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-section uplink-mbb-attachment-fields" role="tabpanel" tabindex="0" aria-labelledby="uplink-mbb-attachment-file-tab" hidden>
 									<dl class="uplink-mbb-attachment-data-list">
-										<div><dt><?php esc_html_e( 'File name', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-filename"></dd></div>
-										<div><dt><?php esc_html_e( 'Relative file path', 'media-bridge-for-bricks' ); ?></dt><dd class="uplink-mbb-attachment-path-row"><code id="uplink-mbb-attachment-path"></code><button type="button" class="button-link dashicons dashicons-admin-page" id="uplink-mbb-attachment-copy" aria-label="<?php esc_attr_e( 'Copy relative file path', 'media-bridge-for-bricks' ); ?>"></button></dd></div>
-										<div><dt><?php esc_html_e( 'Full file path', 'media-bridge-for-bricks' ); ?></dt><dd class="uplink-mbb-attachment-path-row"><code id="uplink-mbb-attachment-full-path"></code><button type="button" class="button-link dashicons dashicons-admin-page" id="uplink-mbb-attachment-copy-full" aria-label="<?php esc_attr_e( 'Copy full file path', 'media-bridge-for-bricks' ); ?>"></button></dd></div>
-										<div><dt><?php esc_html_e( 'File type', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-type"></dd></div>
-										<div><dt><?php esc_html_e( 'Dimensions', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-dimensions"></dd></div>
-										<div><dt><?php esc_html_e( 'File size', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-size"></dd></div>
-										<div><dt><?php esc_html_e( 'Uploaded by', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-author"></dd></div>
-										<div><dt><?php esc_html_e( 'Uploaded', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-date"></dd></div>
-										<div><dt><?php esc_html_e( 'Attachment ID', 'media-bridge-for-bricks' ); ?></dt><dd id="uplink-mbb-attachment-id"></dd></div>
+										<div><dt><?php esc_html_e( 'File name', 'uplink-media-manager' ); ?></dt><dd id="uplink-mbb-attachment-filename"></dd></div>
+										<div><dt><?php esc_html_e( 'Relative file path', 'uplink-media-manager' ); ?></dt><dd class="uplink-mbb-attachment-path-row"><code id="uplink-mbb-attachment-path"></code><button type="button" class="button-link dashicons dashicons-admin-page" id="uplink-mbb-attachment-copy" aria-label="<?php esc_attr_e( 'Copy relative file path', 'uplink-media-manager' ); ?>"></button></dd></div>
+										<div><dt><?php esc_html_e( 'Full file path', 'uplink-media-manager' ); ?></dt><dd class="uplink-mbb-attachment-path-row"><code id="uplink-mbb-attachment-full-path"></code><button type="button" class="button-link dashicons dashicons-admin-page" id="uplink-mbb-attachment-copy-full" aria-label="<?php esc_attr_e( 'Copy full file path', 'uplink-media-manager' ); ?>"></button></dd></div>
+										<div><dt><?php esc_html_e( 'File type', 'uplink-media-manager' ); ?></dt><dd id="uplink-mbb-attachment-type"></dd></div>
+										<div><dt><?php esc_html_e( 'Dimensions', 'uplink-media-manager' ); ?></dt><dd id="uplink-mbb-attachment-dimensions"></dd></div>
+										<div><dt><?php esc_html_e( 'File size', 'uplink-media-manager' ); ?></dt><dd id="uplink-mbb-attachment-size"></dd></div>
+										<div><dt><?php esc_html_e( 'Uploaded by', 'uplink-media-manager' ); ?></dt><dd id="uplink-mbb-attachment-author"></dd></div>
+										<div><dt><?php esc_html_e( 'Uploaded', 'uplink-media-manager' ); ?></dt><dd id="uplink-mbb-attachment-date"></dd></div>
+										<div><dt><?php esc_html_e( 'Attachment ID', 'uplink-media-manager' ); ?></dt><dd id="uplink-mbb-attachment-id"></dd></div>
 									</dl>
-								</div>
-								<div class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-exif" id="uplink-mbb-attachment-exif" role="tabpanel" aria-labelledby="uplink-mbb-attachment-exif-tab" hidden><dl></dl></div>
-								<div class="uplink-mbb-attachment-metadata-panel uplink-mbb-optimization-details" id="uplink-mbb-attachment-optimization" role="tabpanel" aria-labelledby="uplink-mbb-attachment-optimization-tab" hidden><div id="uplink-mbb-conversion-controls" hidden></div><div class="uplink-mbb-optimization-groups" id="uplink-mbb-attachment-optimization-list"></div></div>
-							</div>
+								</wa-tab-panel>
+								<wa-tab-panel name="exif" class="uplink-mbb-attachment-metadata-panel uplink-mbb-attachment-exif" id="uplink-mbb-attachment-exif" role="tabpanel" tabindex="0" aria-labelledby="uplink-mbb-attachment-exif-tab" hidden><dl></dl></wa-tab-panel>
+								<wa-tab-panel name="optimization" class="uplink-mbb-attachment-metadata-panel uplink-mbb-optimization-details" id="uplink-mbb-attachment-optimization" role="tabpanel" tabindex="0" aria-labelledby="uplink-mbb-attachment-optimization-tab" hidden><div id="uplink-mbb-conversion-controls" hidden></div><div class="uplink-mbb-optimization-groups" id="uplink-mbb-attachment-optimization-list"></div></wa-tab-panel>
+							</wa-tab-group>
 							<div class="uplink-mbb-attachment-actions">
-								<a href="#" class="button" id="uplink-mbb-attachment-edit" title="<?php esc_attr_e( 'Edit image', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Edit image', 'media-bridge-for-bricks' ); ?>" hidden><span class="dashicons dashicons-wordpress-alt" aria-hidden="true"></span><span><?php esc_html_e( 'Edit', 'media-bridge-for-bricks' ); ?></span></a>
-								<button type="button" class="button" id="uplink-mbb-attachment-optimize" hidden><?php esc_html_e( 'Optimize', 'media-bridge-for-bricks' ); ?></button>
-								<button type="button" class="button" id="uplink-mbb-attachment-replace" title="<?php esc_attr_e( 'Replace file', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Replace file', 'media-bridge-for-bricks' ); ?>" hidden><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/ai-swap-twotone-rounded.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?><?php esc_html_e( 'Replace', 'media-bridge-for-bricks' ); ?></button>
-								<button type="button" class="button button-primary" id="uplink-mbb-attachment-save-alt" disabled title="<?php esc_attr_e( 'Save changes', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Save changes', 'media-bridge-for-bricks' ); ?>"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/save-twotone-rounded.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?><?php esc_html_e( 'Save', 'media-bridge-for-bricks' ); ?></button>
-								<button type="button" class="button button-link-delete" id="uplink-mbb-attachment-delete" title="<?php esc_attr_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?>" aria-label="<?php esc_attr_e( 'Delete permanently', 'media-bridge-for-bricks' ); ?>"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/delete-02-stroke-sharp.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?><?php esc_html_e( 'Delete', 'media-bridge-for-bricks' ); ?></button>
+								<a href="#" class="button" id="uplink-mbb-attachment-edit" title="<?php esc_attr_e( 'Edit image', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Edit image', 'uplink-media-manager' ); ?>" hidden><span class="dashicons dashicons-wordpress-alt" aria-hidden="true"></span><span><?php esc_html_e( 'Edit', 'uplink-media-manager' ); ?></span></a>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button" id="uplink-mbb-attachment-optimize" hidden><?php esc_html_e( 'Optimize', 'uplink-media-manager' ); ?></wa-button>
+								<wa-button size="small" variant="neutral" appearance="outlined" type="button" class="button" id="uplink-mbb-attachment-replace" title="<?php esc_attr_e( 'Replace file', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Replace file', 'uplink-media-manager' ); ?>" hidden><span slot="start" class="uplink-mbb-footer-icon" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/ai-swap-twotone-rounded.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><?php esc_html_e( 'Replace', 'uplink-media-manager' ); ?></wa-button>
+								<wa-button size="small" variant="brand" appearance="outlined" type="button" class="button button-primary" id="uplink-mbb-attachment-save-alt" disabled title="<?php esc_attr_e( 'Save changes', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Save changes', 'uplink-media-manager' ); ?>"><span slot="start" class="uplink-mbb-footer-icon" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/save-twotone-rounded.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><?php esc_html_e( 'Save', 'uplink-media-manager' ); ?></wa-button>
+								<wa-button size="small" variant="danger" appearance="outlined" type="button" class="button button-link-delete" id="uplink-mbb-attachment-delete" title="<?php esc_attr_e( 'Delete permanently', 'uplink-media-manager' ); ?>" aria-label="<?php esc_attr_e( 'Delete permanently', 'uplink-media-manager' ); ?>"><span slot="start" class="uplink-mbb-footer-icon" aria-hidden="true"><?php echo file_get_contents( UPLINK_MBB_PATH . 'assets/vendor/lucide/trash.svg' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted bundled SVG. ?></span><?php esc_html_e( 'Delete', 'uplink-media-manager' ); ?></wa-button>
 							</div>
 						</div>
 					</div>
@@ -1135,23 +1154,23 @@ final class Native_Media_Library {
 				<div class="uplink-mbb-modal" id="uplink-mbb-collection-manager-modal" hidden>
 					<div class="uplink-mbb-modal-backdrop" data-collection-manager-close></div>
 					<div class="uplink-mbb-modal-dialog uplink-mbb-collection-manager-dialog" role="dialog" aria-modal="true" aria-labelledby="uplink-mbb-collection-manager-title">
-						<button type="button" class="uplink-mbb-modal-close" data-collection-manager-close aria-label="<?php esc_attr_e( 'Close', 'media-bridge-for-bricks' ); ?>">&times;</button>
-						<h2 id="uplink-mbb-collection-manager-title"><?php esc_html_e( 'Manage folders', 'media-bridge-for-bricks' ); ?></h2>
+						<button type="button" class="uplink-mbb-modal-close" data-collection-manager-close aria-label="<?php esc_attr_e( 'Close', 'uplink-media-manager' ); ?>">&times;</button>
+						<h2 id="uplink-mbb-collection-manager-title"><?php esc_html_e( 'Manage folders', 'uplink-media-manager' ); ?></h2>
 						<div class="uplink-mbb-manager-notice" id="uplink-mbb-manager-notice" role="status" aria-live="polite" hidden></div>
 						<section class="uplink-mbb-collection-manager-section">
-							<h3><?php esc_html_e( 'Add multiple folders', 'media-bridge-for-bricks' ); ?></h3>
-							<p><?php esc_html_e( 'Enter folder names separated by commas or new lines.', 'media-bridge-for-bricks' ); ?></p>
-							<label for="uplink-mbb-bulk-collection-parent"><?php esc_html_e( 'Parent folder', 'media-bridge-for-bricks' ); ?></label>
+							<h3><?php esc_html_e( 'Add multiple folders', 'uplink-media-manager' ); ?></h3>
+							<p><?php esc_html_e( 'Enter folder names separated by commas or new lines.', 'uplink-media-manager' ); ?></p>
+							<label for="uplink-mbb-bulk-collection-parent"><?php esc_html_e( 'Parent folder', 'uplink-media-manager' ); ?></label>
 							<select id="uplink-mbb-bulk-collection-parent"></select>
-							<label for="uplink-mbb-bulk-collection-names"><?php esc_html_e( 'Folder names', 'media-bridge-for-bricks' ); ?></label>
-							<textarea id="uplink-mbb-bulk-collection-names" rows="4" placeholder="<?php esc_attr_e( 'Branding, Client photos, Social media', 'media-bridge-for-bricks' ); ?>"></textarea>
-							<button type="button" class="button button-primary" id="uplink-mbb-bulk-create-collections"><?php esc_html_e( 'Add folders', 'media-bridge-for-bricks' ); ?></button>
+							<label for="uplink-mbb-bulk-collection-names"><?php esc_html_e( 'Folder names', 'uplink-media-manager' ); ?></label>
+							<textarea id="uplink-mbb-bulk-collection-names" rows="4" placeholder="<?php esc_attr_e( 'Branding, Client photos, Social media', 'uplink-media-manager' ); ?>"></textarea>
+							<button type="button" class="button button-primary" id="uplink-mbb-bulk-create-collections"><?php esc_html_e( 'Add folders', 'uplink-media-manager' ); ?></button>
 						</section>
 						<section class="uplink-mbb-collection-manager-section">
-							<div class="uplink-mbb-collection-manager-heading"><h3><?php esc_html_e( 'Delete folders', 'media-bridge-for-bricks' ); ?></h3><label><input type="checkbox" id="uplink-mbb-select-all-collections"> <?php esc_html_e( 'Select all', 'media-bridge-for-bricks' ); ?></label></div>
-							<p><?php esc_html_e( 'Deleting folders removes only their categorization. Media files remain in the WordPress library.', 'media-bridge-for-bricks' ); ?></p>
+							<div class="uplink-mbb-collection-manager-heading"><h3><?php esc_html_e( 'Delete folders', 'uplink-media-manager' ); ?></h3><label><input type="checkbox" id="uplink-mbb-select-all-collections"> <?php esc_html_e( 'Select all', 'uplink-media-manager' ); ?></label></div>
+							<p><?php esc_html_e( 'Deleting folders removes only their categorization. Media files remain in the WordPress library.', 'uplink-media-manager' ); ?></p>
 							<div id="uplink-mbb-collection-manager-list" class="uplink-mbb-collection-manager-list"></div>
-							<button type="button" class="button button-link-delete" id="uplink-mbb-bulk-delete-collections" disabled><?php esc_html_e( 'Delete selected folders', 'media-bridge-for-bricks' ); ?></button>
+							<button type="button" class="button button-link-delete" id="uplink-mbb-bulk-delete-collections" disabled><?php esc_html_e( 'Delete selected folders', 'uplink-media-manager' ); ?></button>
 						</section>
 					</div>
 				</div>
@@ -1159,13 +1178,13 @@ final class Native_Media_Library {
 				<div class="uplink-mbb-modal" id="uplink-mbb-child-delete-modal" hidden>
 					<div class="uplink-mbb-modal-backdrop" data-child-delete-action="cancel"></div>
 					<div class="uplink-mbb-modal-dialog uplink-mbb-child-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="uplink-mbb-child-delete-title" aria-describedby="uplink-mbb-child-delete-description">
-						<button type="button" class="uplink-mbb-modal-close" data-child-delete-action="cancel" aria-label="<?php esc_attr_e( 'Close', 'media-bridge-for-bricks' ); ?>">&times;</button>
-						<h2 id="uplink-mbb-child-delete-title"><?php esc_html_e( 'Delete parent folder', 'media-bridge-for-bricks' ); ?></h2>
+						<button type="button" class="uplink-mbb-modal-close" data-child-delete-action="cancel" aria-label="<?php esc_attr_e( 'Close', 'uplink-media-manager' ); ?>">&times;</button>
+						<h2 id="uplink-mbb-child-delete-title"><?php esc_html_e( 'Delete parent folder', 'uplink-media-manager' ); ?></h2>
 						<p id="uplink-mbb-child-delete-description"></p>
 						<div class="uplink-mbb-child-delete-actions">
-							<button type="button" class="button" data-child-delete-action="cancel"><?php esc_html_e( 'Cancel', 'media-bridge-for-bricks' ); ?></button>
-							<button type="button" class="button" id="uplink-mbb-promote-children" data-child-delete-action="promote"><?php esc_html_e( 'Promote children and delete parent', 'media-bridge-for-bricks' ); ?></button>
-							<button type="button" class="button button-link-delete" id="uplink-mbb-delete-parent-children" data-child-delete-action="delete"><?php esc_html_e( 'Delete parent and child folders', 'media-bridge-for-bricks' ); ?></button>
+							<button type="button" class="button" data-child-delete-action="cancel"><?php esc_html_e( 'Cancel', 'uplink-media-manager' ); ?></button>
+							<button type="button" class="button" id="uplink-mbb-promote-children" data-child-delete-action="promote"><?php esc_html_e( 'Promote children and delete parent', 'uplink-media-manager' ); ?></button>
+							<button type="button" class="button button-link-delete" id="uplink-mbb-delete-parent-children" data-child-delete-action="delete"><?php esc_html_e( 'Delete parent and child folders', 'uplink-media-manager' ); ?></button>
 						</div>
 					</div>
 				</div>
@@ -1181,7 +1200,7 @@ final class Native_Media_Library {
 	 */
 	private function manager_label(): string {
 		$label = trim( (string) ( Plugin::settings()['manager_label'] ?? '' ) );
-		return '' !== $label ? $label : __( 'Media folders', 'media-bridge-for-bricks' );
+		return '' !== $label ? $label : __( 'Media folders', 'uplink-media-manager' );
 	}
 
 	/**
@@ -1191,50 +1210,50 @@ final class Native_Media_Library {
 	 */
 	private function palette_fields(): array {
 		return array(
-			__( 'Base interface', 'media-bridge-for-bricks' ) => array(
-				'background'    => __( 'Page background', 'media-bridge-for-bricks' ),
-				'text'          => __( 'Primary text', 'media-bridge-for-bricks' ),
-				'surface'       => __( 'Panel background', 'media-bridge-for-bricks' ),
-				'muted'         => __( 'Secondary text', 'media-bridge-for-bricks' ),
-				'card'          => __( 'Media card background', 'media-bridge-for-bricks' ),
-				'surface_muted' => __( 'Secondary surface', 'media-bridge-for-bricks' ),
+			__( 'Base interface', 'uplink-media-manager' ) => array(
+				'background'    => __( 'Page background', 'uplink-media-manager' ),
+				'text'          => __( 'Primary text', 'uplink-media-manager' ),
+				'surface'       => __( 'Panel background', 'uplink-media-manager' ),
+				'muted'         => __( 'Secondary text', 'uplink-media-manager' ),
+				'card'          => __( 'Media card background', 'uplink-media-manager' ),
+				'surface_muted' => __( 'Secondary surface', 'uplink-media-manager' ),
 			),
-			__( 'Previews and badges', 'media-bridge-for-bricks' ) => array(
-				'preview'      => __( 'Preview background', 'media-bridge-for-bricks' ),
-				'preview_text' => __( 'Preview text and icons', 'media-bridge-for-bricks' ),
-				'badge'        => __( 'Badge background', 'media-bridge-for-bricks' ),
-				'badge_text'   => __( 'Badge text and icons', 'media-bridge-for-bricks' ),
+			__( 'Previews and badges', 'uplink-media-manager' ) => array(
+				'preview'      => __( 'Preview background', 'uplink-media-manager' ),
+				'preview_text' => __( 'Preview text and icons', 'uplink-media-manager' ),
+				'badge'        => __( 'Badge background', 'uplink-media-manager' ),
+				'badge_text'   => __( 'Badge text and icons', 'uplink-media-manager' ),
 			),
-			__( 'Controls and borders', 'media-bridge-for-bricks' ) => array(
-				'control'        => __( 'Control background', 'media-bridge-for-bricks' ),
-				'control_border' => __( 'Control border', 'media-bridge-for-bricks' ),
-				'border'         => __( 'Borders', 'media-bridge-for-bricks' ),
-				'soft_border'    => __( 'Soft borders', 'media-bridge-for-bricks' ),
+			__( 'Controls and borders', 'uplink-media-manager' ) => array(
+				'control'        => __( 'Control background', 'uplink-media-manager' ),
+				'control_border' => __( 'Control border', 'uplink-media-manager' ),
+				'border'         => __( 'Borders', 'uplink-media-manager' ),
+				'soft_border'    => __( 'Soft borders', 'uplink-media-manager' ),
 			),
-			__( 'Accents', 'media-bridge-for-bricks' ) => array(
-				'accent'         => __( 'Accent background', 'media-bridge-for-bricks' ),
-				'accent_icon'    => __( 'Text and icons on accent', 'media-bridge-for-bricks' ),
-				'accent_soft'    => __( 'Soft accent background', 'media-bridge-for-bricks' ),
-				'accent_text'    => __( 'Text on soft accent', 'media-bridge-for-bricks' ),
-				'accent_hover'   => __( 'Accent hover background', 'media-bridge-for-bricks' ),
+			__( 'Accents', 'uplink-media-manager' ) => array(
+				'accent'         => __( 'Accent background', 'uplink-media-manager' ),
+				'accent_icon'    => __( 'Text and icons on accent', 'uplink-media-manager' ),
+				'accent_soft'    => __( 'Soft accent background', 'uplink-media-manager' ),
+				'accent_text'    => __( 'Text on soft accent', 'uplink-media-manager' ),
+				'accent_hover'   => __( 'Accent hover background', 'uplink-media-manager' ),
 			),
-			__( 'Status colors', 'media-bridge-for-bricks' ) => array(
-				'alt'          => __( 'Alt text background', 'media-bridge-for-bricks' ),
-				'alt_text'     => __( 'Alt text foreground', 'media-bridge-for-bricks' ),
-				'guide'        => __( 'Guide background', 'media-bridge-for-bricks' ),
-				'guide_text'   => __( 'Guide text', 'media-bridge-for-bricks' ),
-				'drop_bg'      => __( 'Drop target background', 'media-bridge-for-bricks' ),
-				'drop_text'    => __( 'Drop target text', 'media-bridge-for-bricks' ),
-				'danger_solid' => __( 'Destructive background', 'media-bridge-for-bricks' ),
-				'danger_icon'  => __( 'Text and icons on destructive background', 'media-bridge-for-bricks' ),
-				'guide_border' => __( 'Guide border', 'media-bridge-for-bricks' ),
-				'drop_border'  => __( 'Drop target border', 'media-bridge-for-bricks' ),
-				'danger'       => __( 'Destructive text', 'media-bridge-for-bricks' ),
+			__( 'Status colors', 'uplink-media-manager' ) => array(
+				'alt'          => __( 'Alt text background', 'uplink-media-manager' ),
+				'alt_text'     => __( 'Alt text foreground', 'uplink-media-manager' ),
+				'guide'        => __( 'Guide background', 'uplink-media-manager' ),
+				'guide_text'   => __( 'Guide text', 'uplink-media-manager' ),
+				'drop_bg'      => __( 'Drop target background', 'uplink-media-manager' ),
+				'drop_text'    => __( 'Drop target text', 'uplink-media-manager' ),
+				'danger_solid' => __( 'Destructive background', 'uplink-media-manager' ),
+				'danger_icon'  => __( 'Text and icons on destructive background', 'uplink-media-manager' ),
+				'guide_border' => __( 'Guide border', 'uplink-media-manager' ),
+				'drop_border'  => __( 'Drop target border', 'uplink-media-manager' ),
+				'danger'       => __( 'Destructive text', 'uplink-media-manager' ),
 			),
-			__( 'Scrollbars', 'media-bridge-for-bricks' ) => array(
-				'scrollbar_track' => __( 'Track', 'media-bridge-for-bricks' ),
-				'scrollbar_thumb' => __( 'Thumb', 'media-bridge-for-bricks' ),
-				'scrollbar_hover' => __( 'Thumb hover', 'media-bridge-for-bricks' ),
+			__( 'Scrollbars', 'uplink-media-manager' ) => array(
+				'scrollbar_track' => __( 'Track', 'uplink-media-manager' ),
+				'scrollbar_thumb' => __( 'Thumb', 'uplink-media-manager' ),
+				'scrollbar_hover' => __( 'Thumb hover', 'uplink-media-manager' ),
 			),
 		);
 	}
@@ -1502,7 +1521,7 @@ final class Native_Media_Library {
 		$parent  = absint( $_POST['parent'] ?? 0 );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		if ( '' === $name ) {
-			wp_send_json_error( array( 'message' => __( 'Enter a folder name.', 'media-bridge-for-bricks' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Enter a folder name.', 'uplink-media-manager' ) ), 400 );
 		}
 
 		$parent_error = $this->validate_parent( $parent, $term_id );
@@ -1516,7 +1535,7 @@ final class Native_Media_Library {
 		if ( $term_id ) {
 			$term = $this->folders->get_term( $term_id );
 			if ( ! $term ) {
-				wp_send_json_error( array( 'message' => __( 'The folder no longer exists.', 'media-bridge-for-bricks' ) ), 404 );
+				wp_send_json_error( array( 'message' => __( 'The folder no longer exists.', 'uplink-media-manager' ) ), 404 );
 			}
 
 			$position_needed = (int) $term->parent !== $parent || null === $this->folders->get_position( $term_id );
@@ -1566,7 +1585,7 @@ final class Native_Media_Library {
 		sort( $submitted, SORT_NUMERIC );
 		sort( $expected, SORT_NUMERIC );
 		if ( ! $ordered_ids || $submitted !== $expected ) {
-			wp_send_json_error( array( 'message' => __( 'The folder list changed. Reload and try reordering again.', 'media-bridge-for-bricks' ) ), 409 );
+			wp_send_json_error( array( 'message' => __( 'The folder list changed. Reload and try reordering again.', 'uplink-media-manager' ) ), 409 );
 		}
 
 		foreach ( $ordered_ids as $position => $term_id ) {
@@ -1653,11 +1672,11 @@ final class Native_Media_Library {
 		$ids = is_string( $raw_ids ) ? json_decode( $raw_ids, true ) : null;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		if ( ! $collection || ! $this->folders->get_term( $collection ) || ! is_array( $ids ) || ! $ids || ! in_array( $placement, array( 'before', 'after' ), true ) ) {
-			wp_send_json_error( array( 'message' => __( 'Choose a folder and valid media to reorder.', 'media-bridge-for-bricks' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Choose a folder and valid media to reorder.', 'uplink-media-manager' ) ), 400 );
 		}
 		foreach ( $ids as $id ) {
 			if ( ! is_int( $id ) || $id <= 0 ) {
-				wp_send_json_error( array( 'message' => __( 'Invalid media IDs.', 'media-bridge-for-bricks' ) ), 400 );
+				wp_send_json_error( array( 'message' => __( 'Invalid media IDs.', 'uplink-media-manager' ) ), 400 );
 			}
 		}
 		$ids = array_values( array_unique( $ids ) );
@@ -1680,7 +1699,7 @@ final class Native_Media_Library {
 		);
 		$current = array_map( 'intval', wp_list_pluck( $query->posts, 'ID' ) );
 		if ( array_diff( $ids, $current ) || ! in_array( $target, $current, true ) || in_array( $target, $ids, true ) ) {
-			wp_send_json_error( array( 'message' => __( 'The folder changed. Reload and try reordering again.', 'media-bridge-for-bricks' ) ), 409 );
+			wp_send_json_error( array( 'message' => __( 'The folder changed. Reload and try reordering again.', 'uplink-media-manager' ) ), 409 );
 		}
 		// Preserve the current relative order of a multi-selection, not its click order.
 		$moved = array_values( array_intersect( $current, $ids ) );
@@ -1690,12 +1709,12 @@ final class Native_Media_Library {
 		// Validate permissions before persisting the collection-specific order.
 		foreach ( $query->posts as $attachment ) {
 			if ( ! current_user_can( 'edit_post', $attachment->ID ) ) {
-				wp_send_json_error( array( 'message' => __( 'You must be allowed to edit every item in this folder to reorder it.', 'media-bridge-for-bricks' ) ), 403 );
+				wp_send_json_error( array( 'message' => __( 'You must be allowed to edit every item in this folder to reorder it.', 'uplink-media-manager' ) ), 403 );
 			}
 		}
 		$result = update_term_meta( $collection, self::MEDIA_ORDER_META, $ordered );
 		if ( is_wp_error( $result ) || ( false === $result && get_term_meta( $collection, self::MEDIA_ORDER_META, true ) !== $ordered ) ) {
-			wp_send_json_error( array( 'message' => __( 'Could not save media order. Please try again.', 'media-bridge-for-bricks' ) ), 500 );
+			wp_send_json_error( array( 'message' => __( 'Could not save media order. Please try again.', 'uplink-media-manager' ) ), 500 );
 		}
 		wp_send_json_success( array( 'ordered_ids' => $ordered ) );
 	}
@@ -1708,7 +1727,7 @@ final class Native_Media_Library {
 		$child_action = sanitize_key( wp_unslash( $_POST['child_action'] ?? '' ) );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		if ( ! $term_id || ! $this->folders->get_term( $term_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'The folder no longer exists.', 'media-bridge-for-bricks' ) ), 404 );
+			wp_send_json_error( array( 'message' => __( 'The folder no longer exists.', 'uplink-media-manager' ) ), 404 );
 		}
 		$positions             = $this->snapshot_positions();
 		$root_was_alphabetical = $this->siblings_are_alphabetical( 0 );
@@ -1723,7 +1742,7 @@ final class Native_Media_Library {
 		);
 		$children = is_wp_error( $children ) ? array() : array_map( 'intval', $children );
 		if ( $children && ! in_array( $child_action, array( 'promote', 'delete' ), true ) ) {
-			wp_send_json_error( array( 'message' => __( 'Choose whether to promote or delete the child folders.', 'media-bridge-for-bricks' ) ), 409 );
+			wp_send_json_error( array( 'message' => __( 'Choose whether to promote or delete the child folders.', 'uplink-media-manager' ) ), 409 );
 		}
 
 		if ( 'promote' === $child_action ) {
@@ -1737,7 +1756,7 @@ final class Native_Media_Library {
 			foreach ( $children as $child_id ) {
 				$deleted_child = $this->folders->delete_term( $child_id );
 				if ( is_wp_error( $deleted_child ) || ! $deleted_child ) {
-					$message = is_wp_error( $deleted_child ) ? $deleted_child->get_error_message() : __( 'A child folder could not be deleted.', 'media-bridge-for-bricks' );
+					$message = is_wp_error( $deleted_child ) ? $deleted_child->get_error_message() : __( 'A child folder could not be deleted.', 'uplink-media-manager' );
 					wp_send_json_error( array( 'message' => $message ), 400 );
 				}
 			}
@@ -1745,7 +1764,7 @@ final class Native_Media_Library {
 
 		$result = $this->folders->delete_term( $term_id );
 		if ( is_wp_error( $result ) || ! $result ) {
-			$message = is_wp_error( $result ) ? $result->get_error_message() : __( 'The folder could not be deleted.', 'media-bridge-for-bricks' );
+			$message = is_wp_error( $result ) ? $result->get_error_message() : __( 'The folder could not be deleted.', 'uplink-media-manager' );
 			wp_send_json_error( array( 'message' => $message ), 400 );
 		}
 		$promoted = 'promote' === $child_action ? $children : array();
@@ -1776,7 +1795,7 @@ final class Native_Media_Library {
 			$names     = preg_split( '/[,\r\n]+/', $raw_names );
 			$names     = is_array( $names ) ? array_slice( array_values( array_unique( array_filter( array_map( 'trim', $names ) ) ) ), 0, 50 ) : array();
 			if ( ! $names ) {
-				wp_send_json_error( array( 'message' => __( 'Enter at least one folder name.', 'media-bridge-for-bricks' ) ), 400 );
+				wp_send_json_error( array( 'message' => __( 'Enter at least one folder name.', 'uplink-media-manager' ) ), 400 );
 			}
 			$parent_error = $this->validate_parent( $parent );
 			if ( $parent_error ) {
@@ -1820,7 +1839,7 @@ final class Native_Media_Library {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce and capability checks are centralized in verify_request().
 			$child_action = sanitize_key( wp_unslash( $_POST['child_action'] ?? '' ) );
 			if ( ! $term_ids ) {
-				wp_send_json_error( array( 'message' => __( 'Choose at least one folder.', 'media-bridge-for-bricks' ) ), 400 );
+				wp_send_json_error( array( 'message' => __( 'Choose at least one folder.', 'uplink-media-manager' ) ), 400 );
 			}
 			$all_terms = $this->folders->get_terms();
 			$all_terms = is_wp_error( $all_terms ) ? array() : $all_terms;
@@ -1831,7 +1850,7 @@ final class Native_Media_Library {
 				)
 			);
 			if ( $unselected_children && ! in_array( $child_action, array( 'promote', 'delete' ), true ) ) {
-				wp_send_json_error( array( 'message' => __( 'Choose whether to promote or delete the unselected child folders.', 'media-bridge-for-bricks' ) ), 409 );
+				wp_send_json_error( array( 'message' => __( 'Choose whether to promote or delete the unselected child folders.', 'uplink-media-manager' ) ), 409 );
 			}
 			if ( 'delete' === $child_action ) {
 				$term_ids = array_values( array_unique( array_merge( $term_ids, array_map( static fn( WP_Term $term ): int => (int) $term->term_id, $unselected_children ) ) ) );
@@ -1867,7 +1886,7 @@ final class Native_Media_Library {
 			wp_send_json_success( array( 'deleted' => $deleted, 'errors' => $errors ) );
 		}
 
-		wp_send_json_error( array( 'message' => __( 'Choose a valid folder action.', 'media-bridge-for-bricks' ) ), 400 );
+		wp_send_json_error( array( 'message' => __( 'Choose a valid folder action.', 'uplink-media-manager' ) ), 400 );
 	}
 
 	public function ajax_assign_media(): void {
@@ -1879,20 +1898,26 @@ final class Native_Media_Library {
 		$media_ids  = is_array( $media_ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $media_ids ) ) ) ) : array();
 		$collection = absint( $_POST['collection'] ?? 0 );
 		$mode       = sanitize_key( wp_unslash( $_POST['mode'] ?? 'add' ) );
+		$source     = absint( $_POST['source_collection'] ?? 0 );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
-		if ( ! $media_ids || ! in_array( $mode, array( 'add', 'remove', 'clear' ), true ) ) {
-			wp_send_json_error( array( 'message' => __( 'Choose at least one media item.', 'media-bridge-for-bricks' ) ), 400 );
+		if ( ! $media_ids || ! in_array( $mode, array( 'add', 'remove', 'clear', 'move' ), true ) ) {
+			wp_send_json_error( array( 'message' => __( 'Choose at least one media item.', 'uplink-media-manager' ) ), 400 );
 		}
 		if ( 'clear' !== $mode && ( ! $collection || ! $this->folders->get_term( $collection ) ) ) {
-			wp_send_json_error( array( 'message' => __( 'Choose a valid folder.', 'media-bridge-for-bricks' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Choose a valid folder.', 'uplink-media-manager' ) ), 400 );
 		}
 
-		$errors = $this->assign_media_items( $media_ids, $collection, $mode );
+		if ( 'move' === $mode && $source && ! $this->folders->get_term( $source ) ) {
+			wp_send_json_error( array( 'message' => __( 'Choose a valid source folder.', 'uplink-media-manager' ) ), 400 );
+		}
+		$errors = 'move' === $mode
+			? $this->move_media_items( $media_ids, $source, $collection )
+			: $this->assign_media_items( $media_ids, $collection, $mode );
 
 		if ( $errors ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'Some media items could not be updated.', 'media-bridge-for-bricks' ),
+					'message' => __( 'Some media items could not be updated.', 'uplink-media-manager' ),
 					'ids'     => $errors,
 				),
 				400
@@ -1911,14 +1936,14 @@ final class Native_Media_Library {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The nonce check is centralized in verify_request().
 		$attachment_id = absint( $_POST['attachment_id'] ?? 0 );
 		if ( ! $attachment_id || 'attachment' !== get_post_type( $attachment_id ) || ! current_user_can( 'edit_post', $attachment_id ) || ! Image_Metadata::can_read( $attachment_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to edit this attachment, or it no longer exists.', 'media-bridge-for-bricks' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to edit this attachment, or it no longer exists.', 'uplink-media-manager' ) ), 403 );
 		}
 
 		wp_send_json_success( $this->attachment_data( $attachment_id, true ) );
 	}
 
 	/**
-	 * Execute a Media Bridge command from a trusted integration.
+	 * Execute a Uplink Media Manager command from a trusted integration.
 	 *
 	 * Usage: apply_filters( 'uplink_mbb_execute_media_command', null, $command ).
 	 * Supported operations are update, add, remove, and clear.
@@ -1935,7 +1960,7 @@ final class Native_Media_Library {
 		$interactive_allowed = current_user_can( 'upload_files' );
 		$allowed             = $interactive_allowed;
 		/**
-		 * Allow a trusted server-side integration to execute a Media Bridge command
+		 * Allow a trusted server-side integration to execute a Uplink Media Manager command
 		 * when there is no interactive WordPress user.
 		 *
 		 * @param bool  $allowed Whether the command may run.
@@ -1943,7 +1968,7 @@ final class Native_Media_Library {
 		 */
 		$allowed = (bool) apply_filters( 'uplink_mbb_media_command_allowed', $allowed, $command );
 		if ( ! $allowed ) {
-			return new \WP_Error( 'uplink_mbb_forbidden', __( 'You are not allowed to manage media.', 'media-bridge-for-bricks' ) );
+			return new \WP_Error( 'uplink_mbb_forbidden', __( 'You are not allowed to manage media.', 'uplink-media-manager' ) );
 		}
 		$trusted_command = ! $interactive_allowed;
 
@@ -1961,16 +1986,16 @@ final class Native_Media_Library {
 			$media_ids  = array_values( array_unique( array_filter( array_map( 'absint', (array) ( $command['attachment_ids'] ?? array() ) ) ) ) );
 			$collection = absint( $command['collection_id'] ?? 0 );
 			if ( ! $media_ids || ( 'clear' !== $operation && ( ! $collection || ! $this->folders->get_term( $collection ) ) ) ) {
-				return new \WP_Error( 'uplink_mbb_invalid_command', __( 'The media command is missing valid attachment or folder IDs.', 'media-bridge-for-bricks' ) );
+				return new \WP_Error( 'uplink_mbb_invalid_command', __( 'The media command is missing valid attachment or folder IDs.', 'uplink-media-manager' ) );
 			}
 			$errors = $this->assign_media_items( $media_ids, $collection, $operation, $trusted_command );
 			if ( $errors ) {
-				return new \WP_Error( 'uplink_mbb_partial_failure', __( 'Some media items could not be updated.', 'media-bridge-for-bricks' ), array( 'ids' => $errors ) );
+				return new \WP_Error( 'uplink_mbb_partial_failure', __( 'Some media items could not be updated.', 'uplink-media-manager' ), array( 'ids' => $errors ) );
 			}
 			return array( 'operation' => $operation, 'updated' => count( $media_ids ), 'attachment_ids' => $media_ids, 'collection_id' => $collection );
 		}
 
-		return new \WP_Error( 'uplink_mbb_unknown_command', __( 'The requested Media Bridge operation is not supported.', 'media-bridge-for-bricks' ) );
+		return new \WP_Error( 'uplink_mbb_unknown_command', __( 'The requested Uplink Media Manager operation is not supported.', 'uplink-media-manager' ) );
 	}
 
 	public function ajax_update_attachment(): void {
@@ -1991,14 +2016,14 @@ final class Native_Media_Library {
 		$collection_ids = is_array( $collection_ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $collection_ids ) ) ) ) : null;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		if ( 'attachment' !== get_post_type( $attachment_id ) || ! current_user_can( 'edit_post', $attachment_id ) || ! Image_Metadata::can_read( $attachment_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to edit this attachment.', 'media-bridge-for-bricks' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to edit this attachment.', 'uplink-media-manager' ) ), 403 );
 		}
 		if ( null === $collection_ids ) {
-			wp_send_json_error( array( 'message' => __( 'The folder selection was not valid.', 'media-bridge-for-bricks' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'The folder selection was not valid.', 'uplink-media-manager' ) ), 400 );
 		}
 		foreach ( $collection_ids as $collection_id ) {
 			if ( ! $this->folders->get_term( $collection_id ) ) {
-				wp_send_json_error( array( 'message' => __( 'One of the selected folders no longer exists.', 'media-bridge-for-bricks' ) ), 409 );
+				wp_send_json_error( array( 'message' => __( 'One of the selected folders no longer exists.', 'uplink-media-manager' ) ), 409 );
 			}
 		}
 
@@ -2168,7 +2193,7 @@ final class Native_Media_Library {
 		$acknowledge_used = isset( $_POST['acknowledge_used'] ) && '1' === sanitize_key( wp_unslash( $_POST['acknowledge_used'] ) );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		if ( ! $media_ids ) {
-			wp_send_json_error( array( 'message' => __( 'Choose at least one media item.', 'media-bridge-for-bricks' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Choose at least one media item.', 'uplink-media-manager' ) ), 400 );
 		}
 
 		if ( ! $acknowledge_used ) {
@@ -2181,7 +2206,7 @@ final class Native_Media_Library {
 			if ( $used_ids ) {
 				wp_send_json_error(
 					array(
-						'message'                 => __( 'One or more selected media items appear to be in use.', 'media-bridge-for-bricks' ),
+						'message'                 => __( 'One or more selected media items appear to be in use.', 'uplink-media-manager' ),
 						'requiresAcknowledgement' => true,
 						'usedCount'               => count( $used_ids ),
 					),
@@ -2201,7 +2226,7 @@ final class Native_Media_Library {
 		}
 
 		if ( ! $deleted ) {
-			wp_send_json_error( array( 'message' => __( 'The selected media could not be deleted.', 'media-bridge-for-bricks' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'The selected media could not be deleted.', 'uplink-media-manager' ) ), 403 );
 		}
 
 		wp_send_json_success(
@@ -2253,7 +2278,7 @@ final class Native_Media_Library {
 			'mime'        => (string) get_post_mime_type( $attachment_id ),
 			'filePath'    => is_string( $url_path ) ? $url_path : '',
 			'fullFilePath' => (string) $url,
-			'fileType'    => $extension ? strtoupper( $extension ) : __( 'File', 'media-bridge-for-bricks' ),
+			'fileType'    => $extension ? strtoupper( $extension ) : __( 'File', 'uplink-media-manager' ),
 			'fileSize'    => $file && is_file( $file ) ? size_format( (int) filesize( $file ), 1 ) : '—',
 			'dimensions'  => $width && $height ? $width . '×' . $height : '—',
 			'date'        => get_the_date( '', $attachment_id ),
@@ -2267,8 +2292,9 @@ final class Native_Media_Library {
 			'imageEditUrl' => $image_edit_url,
 			'canEdit'     => current_user_can( 'edit_post', $attachment_id ),
 			'canDelete'   => current_user_can( 'delete_post', $attachment_id ),
-			'canConvert' => Image_Conversion::allowed( $attachment_id ) && in_array( get_post_mime_type( $attachment_id ), array( 'image/png', 'image/jpeg', 'image/webp', 'image/avif' ), true ),
-			'canCompress' => empty( $metadata['cimo'] ) && empty( $metadata['mbb_optimization'] ),
+			'canConvert' => ! empty( Plugin::settings()['image_conversion'] ) && Image_Conversion::allowed( $attachment_id ) && in_array( get_post_mime_type( $attachment_id ), array( 'image/png', 'image/jpeg', 'image/webp', 'image/avif' ), true ),
+			'canRestore' => Image_Conversion::allowed( $attachment_id, 'restore' ),
+			'canCompress' => ! Image_Conversion::active( $attachment_id ),
 			'conversion' => Image_Conversion::summary( $attachment_id ),
 			'canOptimize' => empty( $metadata['cimo'] ) && Cimo_Optimization::available() && ! is_wp_error( $plan = Cimo_Optimization::plan( $attachment_id ) ) && (bool) $plan,
 		);
@@ -2330,18 +2356,18 @@ final class Native_Media_Library {
 		if ( ! $taxonomy || ! wp_attachment_is_image( $attachment->ID ) || ! current_user_can( $taxonomy->cap->assign_terms ) ) {
 			return;
 		}
-		$taxonomy->labels->all_items      = __( 'Folders', 'media-bridge-for-bricks' );
-		$taxonomy->labels->search_items   = __( 'Search Folders', 'media-bridge-for-bricks' );
-		$taxonomy->labels->parent_item    = __( 'Parent Folder', 'media-bridge-for-bricks' );
-		$taxonomy->labels->parent_item_colon = __( 'Parent Folder:', 'media-bridge-for-bricks' );
-		$taxonomy->labels->edit_item      = __( 'Edit Folder', 'media-bridge-for-bricks' );
-		$taxonomy->labels->update_item    = __( 'Update Folder', 'media-bridge-for-bricks' );
-		$taxonomy->labels->add_new_item   = __( 'Add New Folder', 'media-bridge-for-bricks' );
-		$taxonomy->labels->new_item_name  = __( 'New Folder Name', 'media-bridge-for-bricks' );
+		$taxonomy->labels->all_items      = __( 'Folders', 'uplink-media-manager' );
+		$taxonomy->labels->search_items   = __( 'Search Folders', 'uplink-media-manager' );
+		$taxonomy->labels->parent_item    = __( 'Parent Folder', 'uplink-media-manager' );
+		$taxonomy->labels->parent_item_colon = __( 'Parent Folder:', 'uplink-media-manager' );
+		$taxonomy->labels->edit_item      = __( 'Edit Folder', 'uplink-media-manager' );
+		$taxonomy->labels->update_item    = __( 'Update Folder', 'uplink-media-manager' );
+		$taxonomy->labels->add_new_item   = __( 'Add New Folder', 'uplink-media-manager' );
+		$taxonomy->labels->new_item_name  = __( 'New Folder Name', 'uplink-media-manager' );
 
 		add_meta_box(
 			'uplink-mbb-bricks-media-folders',
-			__( 'Media folders', 'media-bridge-for-bricks' ),
+			__( 'Media folders', 'uplink-media-manager' ),
 			array( $this, 'render_image_editor_collection_meta_box' ),
 			'attachment',
 			'side',
@@ -2405,15 +2431,15 @@ final class Native_Media_Library {
 		$image_meta = Image_Metadata::attachment_exif( $attachment_id );
 		$exif       = array();
 		$map        = array(
-			'camera_model' => __( 'Camera', 'media-bridge-for-bricks' ),
-			'lens'      => __( 'Lens', 'media-bridge-for-bricks' ),
-			'aperture_display' => __( 'Aperture', 'media-bridge-for-bricks' ),
-			'focal_display' => __( 'Focal length', 'media-bridge-for-bricks' ),
-			'iso'       => __( 'ISO', 'media-bridge-for-bricks' ),
-			'exposure_display' => __( 'Shutter speed', 'media-bridge-for-bricks' ),
-			'date_taken_iso' => __( 'Captured', 'media-bridge-for-bricks' ),
-			'credit'    => __( 'Credit', 'media-bridge-for-bricks' ),
-			'copyright' => __( 'Copyright', 'media-bridge-for-bricks' ),
+			'camera_model' => __( 'Camera', 'uplink-media-manager' ),
+			'lens'      => __( 'Lens', 'uplink-media-manager' ),
+			'aperture_display' => __( 'Aperture', 'uplink-media-manager' ),
+			'focal_display' => __( 'Focal length', 'uplink-media-manager' ),
+			'iso'       => __( 'ISO', 'uplink-media-manager' ),
+			'exposure_display' => __( 'Shutter speed', 'uplink-media-manager' ),
+			'date_taken_iso' => __( 'Captured', 'uplink-media-manager' ),
+			'credit'    => __( 'Credit', 'uplink-media-manager' ),
+			'copyright' => __( 'Copyright', 'uplink-media-manager' ),
 		);
 		foreach ( $map as $key => $label ) {
 			$value = $image_meta[ $key ] ?? '';
@@ -2428,9 +2454,9 @@ final class Native_Media_Library {
 		}
 		$gps = is_array( $image_meta['gps'] ?? null ) ? $image_meta['gps'] : array();
 		$gps_map = array(
-			'latitude'    => __( 'Latitude', 'media-bridge-for-bricks' ),
-			'longitude'   => __( 'Longitude', 'media-bridge-for-bricks' ),
-			'altitude_ft' => __( 'Altitude', 'media-bridge-for-bricks' ),
+			'latitude'    => __( 'Latitude', 'uplink-media-manager' ),
+			'longitude'   => __( 'Longitude', 'uplink-media-manager' ),
+			'altitude_ft' => __( 'Altitude', 'uplink-media-manager' ),
 		);
 		foreach ( $gps_map as $key => $label ) {
 			$value = $gps[ $key ] ?? null;
@@ -2528,49 +2554,49 @@ final class Native_Media_Library {
 			? max( 0, ( ( $full_original_size - $full_optimized_size ) / $full_original_size ) * 100 )
 			: 0;
 		$status  = $bulk
-			? __( 'Bulk optimized', 'media-bridge-for-bricks' )
-			: __( 'Optimized on upload', 'media-bridge-for-bricks' );
+			? __( 'Bulk optimized', 'uplink-media-manager' )
+			: __( 'Optimized on upload', 'uplink-media-manager' );
 		$details = array(
-			array( 'label' => __( 'Optimization source', 'media-bridge-for-bricks' ), 'value' => __( 'Cimo', 'media-bridge-for-bricks' ) ),
-			array( 'label' => __( 'Status', 'media-bridge-for-bricks' ), 'value' => $status ),
+			array( 'label' => __( 'Optimization source', 'uplink-media-manager' ), 'value' => __( 'Cimo', 'uplink-media-manager' ) ),
+			array( 'label' => __( 'Status', 'uplink-media-manager' ), 'value' => $status ),
 		);
 		if ( $full_original_size ) {
-			$details[] = array( 'label' => __( 'Full-size before', 'media-bridge-for-bricks' ), 'value' => size_format( $full_original_size, 1 ) );
+			$details[] = array( 'label' => __( 'Full-size before', 'uplink-media-manager' ), 'value' => size_format( $full_original_size, 1 ) );
 		}
 		if ( $full_optimized_size ) {
-			$details[] = array( 'label' => __( 'Full-size after', 'media-bridge-for-bricks' ), 'value' => size_format( $full_optimized_size, 1 ) );
-			$details[] = array( 'label' => __( 'Full-size saved', 'media-bridge-for-bricks' ), 'value' => number_format_i18n( $full_savings, 1 ) . '%' );
+			$details[] = array( 'label' => __( 'Full-size after', 'uplink-media-manager' ), 'value' => size_format( $full_optimized_size, 1 ) );
+			$details[] = array( 'label' => __( 'Full-size saved', 'uplink-media-manager' ), 'value' => number_format_i18n( $full_savings, 1 ) . '%' );
 		}
 		if ( $processed > 1 ) {
-			$details[] = array( 'label' => __( 'Total before', 'media-bridge-for-bricks' ), 'value' => size_format( $original_size, 1 ) );
-			$details[] = array( 'label' => __( 'Total after', 'media-bridge-for-bricks' ), 'value' => size_format( $optimized_size, 1 ) );
-			$details[] = array( 'label' => __( 'Total saved', 'media-bridge-for-bricks' ), 'value' => number_format_i18n( $savings, 1 ) . '%' );
+			$details[] = array( 'label' => __( 'Total before', 'uplink-media-manager' ), 'value' => size_format( $original_size, 1 ) );
+			$details[] = array( 'label' => __( 'Total after', 'uplink-media-manager' ), 'value' => size_format( $optimized_size, 1 ) );
+			$details[] = array( 'label' => __( 'Total saved', 'uplink-media-manager' ), 'value' => number_format_i18n( $savings, 1 ) . '%' );
 		}
 		if ( $converted_format ) {
-			$details[] = array( 'label' => __( 'Optimized format', 'media-bridge-for-bricks' ), 'value' => $converted_format );
+			$details[] = array( 'label' => __( 'Optimized format', 'uplink-media-manager' ), 'value' => $converted_format );
 		}
 		if ( $processed > 1 ) {
 			/* translators: %s: Number of generated WordPress image sizes optimized by Cimo. */
-			$details[] = array( 'label' => __( 'WordPress image sizes', 'media-bridge-for-bricks' ), 'value' => sprintf( _n( '%s size optimized', '%s sizes optimized', $generated_processed, 'media-bridge-for-bricks' ), number_format_i18n( $generated_processed ) ) );
+			$details[] = array( 'label' => __( 'WordPress image sizes', 'uplink-media-manager' ), 'value' => sprintf( _n( '%s size optimized', '%s sizes optimized', $generated_processed, 'uplink-media-manager' ), number_format_i18n( $generated_processed ) ) );
 		}
 		if ( ! empty( $cimo['smartOptimized'] ) ) {
-			$details[] = array( 'label' => __( 'Smart optimization', 'media-bridge-for-bricks' ), 'value' => __( 'Enabled', 'media-bridge-for-bricks' ) );
+			$details[] = array( 'label' => __( 'Smart optimization', 'uplink-media-manager' ), 'value' => __( 'Enabled', 'uplink-media-manager' ) );
 		}
 		if ( $conversion_time > 0 ) {
 			$formatted_time = $conversion_time < 1000
 				? number_format_i18n( $conversion_time, 0 ) . ' ms'
 				: number_format_i18n( $conversion_time / 1000, 1 ) . ' s';
-			$details[] = array( 'label' => __( 'Processing time', 'media-bridge-for-bricks' ), 'value' => $formatted_time );
+			$details[] = array( 'label' => __( 'Processing time', 'uplink-media-manager' ), 'value' => $formatted_time );
 		}
 
-		$summary = __( 'Optimized by Cimo', 'media-bridge-for-bricks' );
+		$summary = __( 'Optimized by Cimo', 'uplink-media-manager' );
 		if ( $optimized_size && $original_size ) {
 			if ( $processed > 1 ) {
 				/* translators: %s: Percentage of total file size saved across all generated image files. */
-				$summary = sprintf( __( 'Optimized by Cimo · %s total saved', 'media-bridge-for-bricks' ), number_format_i18n( $savings, 1 ) . '%' );
+				$summary = sprintf( __( 'Optimized by Cimo · %s total saved', 'uplink-media-manager' ), number_format_i18n( $savings, 1 ) . '%' );
 			} else {
 				/* translators: %s: Percentage of file size saved. */
-				$summary = sprintf( __( 'Optimized by Cimo · %s saved', 'media-bridge-for-bricks' ), number_format_i18n( $savings, 1 ) . '%' );
+				$summary = sprintf( __( 'Optimized by Cimo · %s saved', 'uplink-media-manager' ), number_format_i18n( $savings, 1 ) . '%' );
 			}
 		}
 
@@ -2587,6 +2613,32 @@ final class Native_Media_Library {
 			'_total_original_size' => $original_size,
 			'_total_optimized_size' => $optimized_size,
 		);
+	}
+
+	/** Move out of the viewed collection branch while preserving unrelated memberships. */
+	private function move_media_items( array $media_ids, int $source, int $destination ): array {
+		$taxonomy = $this->folders->taxonomy();
+		$source_ids = $source ? get_term_children( $source, $taxonomy ) : array();
+		if ( is_wp_error( $source_ids ) ) return $media_ids;
+		if ( $source ) $source_ids[] = $source;
+		$source_ids = array_map( 'intval', $source_ids );
+		$assignments = array();
+		$errors = array();
+		// Validate the complete selection before changing any relationship.
+		foreach ( $media_ids as $id ) {
+			if ( 'attachment' !== get_post_type( $id ) || ! current_user_can( 'edit_post', $id ) ) { $errors[] = $id; continue; }
+			$existing = wp_get_object_terms( $id, $taxonomy, array( 'fields' => 'ids' ) );
+			if ( is_wp_error( $existing ) ) { $errors[] = $id; continue; }
+			$existing = array_map( 'intval', $existing );
+			if ( $source && ! array_intersect( $existing, $source_ids ) ) { $errors[] = $id; continue; }
+			$assignments[ $id ] = $source === $destination ? $existing : array_values( array_unique( array_merge( array_diff( $existing, $source_ids ), array( $destination ) ) ) );
+		}
+		if ( $errors ) return $errors;
+		foreach ( $assignments as $id => $terms ) {
+			if ( is_wp_error( wp_set_object_terms( $id, $terms, $taxonomy, false ) ) ) $errors[] = $id;
+		}
+		if ( ! $errors ) do_action( 'uplink_mbb_media_collections_changed', $media_ids, $destination, 'move' );
+		return $errors;
 	}
 
 	private function assign_media_items( array $media_ids, int $collection, string $mode, bool $trusted_command = false ): array {
@@ -2615,7 +2667,7 @@ final class Native_Media_Library {
 
 	private function update_attachment_fields( int $attachment_id, $fields, bool $trusted_command = false ) {
 		if ( 'attachment' !== get_post_type( $attachment_id ) || ( ! $trusted_command && ! current_user_can( 'edit_post', $attachment_id ) || ! Image_Metadata::can_read( $attachment_id ) ) ) {
-			return new \WP_Error( 'uplink_mbb_cannot_edit', __( 'You are not allowed to edit this attachment.', 'media-bridge-for-bricks' ) );
+			return new \WP_Error( 'uplink_mbb_cannot_edit', __( 'You are not allowed to edit this attachment.', 'uplink-media-manager' ) );
 		}
 		$fields      = is_array( $fields ) ? $fields : array();
 		$decorative  = array_key_exists( 'decorative', $fields )
@@ -2848,18 +2900,18 @@ final class Native_Media_Library {
 
 	private function validate_parent( int $parent, int $term_id = 0 ): string {
 		if ( $term_id && $parent === $term_id ) {
-			return __( 'A folder cannot be its own parent.', 'media-bridge-for-bricks' );
+			return __( 'A folder cannot be its own parent.', 'uplink-media-manager' );
 		}
 
 		if ( $parent ) {
 			$parent_term = $this->folders->get_term( $parent );
 			if ( ! $parent_term ) {
-				return __( 'The selected parent folder no longer exists.', 'media-bridge-for-bricks' );
+				return __( 'The selected parent folder no longer exists.', 'uplink-media-manager' );
 			}
 
 			$ancestors = get_ancestors( $parent, $this->folders->taxonomy(), 'taxonomy' );
 			if ( $term_id && in_array( $term_id, array_map( 'intval', $ancestors ), true ) ) {
-				return __( 'A folder cannot be moved inside one of its sub-folders.', 'media-bridge-for-bricks' );
+				return __( 'A folder cannot be moved inside one of its sub-folders.', 'uplink-media-manager' );
 			}
 		}
 
@@ -2958,31 +3010,31 @@ final class Native_Media_Library {
 	private function verify_request( bool $manage = false, bool $assign = true ): void {
 		check_ajax_referer( self::NONCE, 'nonce' );
 		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to manage media.', 'media-bridge-for-bricks' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to manage media.', 'uplink-media-manager' ) ), 403 );
 		}
 
 		$taxonomy = get_taxonomy( $this->folders->taxonomy() );
 		if ( ! $taxonomy ) {
-			wp_send_json_error( array( 'message' => __( 'Media folders are not available.', 'media-bridge-for-bricks' ) ), 409 );
+			wp_send_json_error( array( 'message' => __( 'Media folders are not available.', 'uplink-media-manager' ) ), 409 );
 		}
 		if ( $manage && ! current_user_can( $taxonomy->cap->manage_terms ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to manage folders.', 'media-bridge-for-bricks' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to manage folders.', 'uplink-media-manager' ) ), 403 );
 		}
 		if ( ! $manage && $assign && ! current_user_can( $taxonomy->cap->assign_terms ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to assign folders.', 'media-bridge-for-bricks' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to assign folders.', 'uplink-media-manager' ) ), 403 );
 		}
 	}
 
 	public function ajax_save_appearance(): void {
 		check_ajax_referer( self::NONCE, 'nonce' );
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You are not allowed to change the media appearance.', 'media-bridge-for-bricks' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to change the media appearance.', 'uplink-media-manager' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON values are decoded and sanitized as hex colors below.
 		$submitted = json_decode( wp_unslash( $_POST['settings'] ?? '{}' ), true );
 		if ( ! is_array( $submitted ) ) {
-			wp_send_json_error( array( 'message' => __( 'The appearance settings were not valid.', 'media-bridge-for-bricks' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'The appearance settings were not valid.', 'uplink-media-manager' ) ), 400 );
 		}
 		$current   = Plugin::settings();
 		$sanitized = Plugin::sanitize_appearance( $submitted, $current );
