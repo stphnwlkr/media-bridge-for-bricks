@@ -4,7 +4,7 @@ Tags: media library, folders, image optimization, gallery, bricks
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -191,6 +191,13 @@ No ongoing synchronization runs. Import copies supported source folders and opti
 The plugin preserves its folders, assignments, settings, and metadata.
 
 == Changelog ==
+
+= 1.2.1 =
+* Saves changes to title, alt text, caption, and description when you leave a field, including when you click into another field or press Tab. Save also commits changes. Typing no longer triggers save requests.
+* Shows the save confirmation below the inspector controls so it stays clear of the buttons.
+* Defaults Ramka Gallery to a cropped mosaic and adds tile aspect-ratio options for original proportions, square, 4:3, 16:9, and 4:5. The lightbox shows the full photo.
+* Adds an aperture button to view available EXIF photo details in the Ramka lightbox.
+* Fixes oversized lazy-loaded thumbnails that could make the gallery jump when changing photos.
 
 = 1.2.0 =
 * Adds the separate Ramka Gallery block with the demo’s masonry photo wall, Peek and Theater views, scroll-snap navigation, zoom, and pull-to-dismiss.

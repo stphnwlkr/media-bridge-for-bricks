@@ -574,6 +574,20 @@
 							onChange: ( value ) => setAttributes( { visibleImageLimit: value } ),
 						} ),
 						el( SelectControl, {
+							label: __( 'Tile aspect ratio', 'uplink-media-manager' ),
+							value: attributes.ramkaTileAspect || 'mosaic',
+							help: __( 'Sets the crop on the gallery page. The lightbox shows the full photo.', 'uplink-media-manager' ),
+							options: [
+								{ label: __( 'Cropped mosaic', 'uplink-media-manager' ), value: 'mosaic' },
+								{ label: __( 'Original proportions', 'uplink-media-manager' ), value: 'original' },
+								{ label: __( 'Square (1:1)', 'uplink-media-manager' ), value: '1/1' },
+								{ label: __( 'Landscape (4:3)', 'uplink-media-manager' ), value: '4/3' },
+								{ label: __( 'Widescreen (16:9)', 'uplink-media-manager' ), value: '16/9' },
+								{ label: __( 'Portrait (4:5)', 'uplink-media-manager' ), value: '4/5' },
+							],
+							onChange: ( value ) => setAttributes( { ramkaTileAspect: value } ),
+						} ),
+						el( SelectControl, {
 							label: __( 'Opening view', 'uplink-media-manager' ),
 							value: attributes.lightboxOpeningView,
 							options: [
